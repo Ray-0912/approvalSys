@@ -1,0 +1,47 @@
+<!-- register.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+</head>
+<body>
+    <h2>Register</h2>
+    {% if error %}
+        <p>{{ error }}</p>
+    {% endif %}
+    <form method="POST" action="/register">
+        <div>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div>
+            <label for="role">Role:</label>
+            <select id="role" name="role">
+                {% for role in roles %}
+                    <option value="{{ role.role_id }}">{{ role.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="team">Team:</label>
+            <select id="team" name="team" required>
+                {% for team in teams %}
+                    <option value="{{ team.team_id }}">{{ team.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="phone">Phone:</label>
+            <input type="text" id="phone" name="phone" required>
+        </div>
+        <div>
+            <button type="submit">Register</button>
+        </div>
+    </form>
+</body>
+</html>
