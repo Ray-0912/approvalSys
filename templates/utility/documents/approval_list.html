@@ -1,0 +1,126 @@
+{% extends 'components/base.html' %}
+{% block title %}Approval List{% endblock %}
+{% block content %}
+
+<div class="row">
+    <div class="col mb-4">
+        <div class="card shadow mb-4">
+            <a href="#collapseCardMyself" class="d-block card-header py-3" data-toggle="collapse"
+            role="button" aria-expanded="true" aria-controls="collapseCardMyself">
+                <h6 class="m-0 font-weight-bold text-primary">你建立的簽呈</h6>
+            </a>
+            <div class="collapse" id="collapseCardMyself">
+                <div class="card-body">
+                <div class="mt-3">
+                    <ul class="list list-inline">
+                        {% for document in creator_pending_documents %}
+                            <li class="d-flex justify-content-between align-items-center activity"
+                                onclick="toggleContentCreator('{{ document.doc_id }}');">
+                                <h6 class="mb-0">{{ document.title }}</h6>
+                                <span class="ml-2">Type: {{ document.doc_type }}</span>
+                                <span class="ml-2">Creator: {{ document.creator_name }}</span>
+                            </li>
+
+                            <div id="creator-content-{{ document.doc_id }}"
+                                class="expand-detail">
+                                <p class="break-lines">內容：<br/>{{ document.content|safe }}</p>
+
+                                <li class="d-flex justify-content-between align-items-center activity">
+                                    <p>修改紀錄：<br/>{{ document.status_remark|safe }}</p>
+                                </li>
+                                <li class="d-flex justify-content-between align-items-center activity">
+                                    <span class="ml-2">建立時間： {{ document.create_time }}</span>
+                                    <span class="ml-2">最後更改： {{ document.last_update }}</span>
+                                </li>
+                                <li class="d-flex justify-content-between align-items-center activity">
+                                    {% if document.status == 1 %}
+                                    <a href="/edit_doc/{{ document.doc_id }}"
+                                       class="btn btn-primary btn-icon-split">
+                                        <span class="icon text-white-50">
+                                            <i class="fas fa-file-code"></i>
+                                        </span>
+                                        <span class="text">Alter</span>
+                                    </a>
+                                    {% endif %}
+                                </li>
+                            </div>
+
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <a href="#collapseCardUnapproved" class="d-block card-header py-3" data-toggle="collapse"
+            role="button" aria-expanded="true" aria-controls="collapseCardMyself">
+                <h6 class="m-0 font-weight-bold text-primary">待核可簽呈</h6>
+            </a>
+            <div class="collapse" id="collapseCardUnapproved">
+                <div class="card-body">
+                <div class="mt-3">
+                    <ul class="list list-inline">
+                        {% for document in unapproved_documents %}
+                            <li class="d-flex justify-content-between align-items-center activity"
+                                onclick="toggleContentUnapproved('{{ document.doc_id }}');">
+                                <h6 class="mb-0">{{ document.title }}</h6>
+                                <span class="ml-2">Type: {{ document.doc_type }}</span>
+                                <span class="ml-2">Creator: {{ document.creator_name }}</span>
+                            </li>
+
+                            <div id="unapproved-content-{{ document.doc_id }}"
+                                class="expand-detail">
+                                <p class="break-lines">內容：<br/>{{ document.content|safe }}</p>
+
+                                <li class="d-flex justify-content-between align-items-center activity">
+                                    <p>修改紀錄：<br/>{{ document.status_remark|safe }}</p>
+                                </li>
+                                <li class="d-flex justify-content-between align-items-center activity">
+                                    <span class="ml-2">建立時間： {{ document.create_time }}</span>
+                                    <span class="ml-2">最後更改： {{ document.last_update }}</span>
+                                </li>
+                                <li class="d-flex justify-content-between align-items-center activity">
+                                    {% if document.status == 1 %}
+                                    <a onclick="confirmAction({{ document.doc_id }})"
+                                       class="btn btn-success btn-icon-split">
+                                        <span class="icon text-white-50">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                        <span class="text">Approve</span>
+                                    </a>
+                                    {% endif %}
+                                </li>
+                            </div>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmAction(doc_id) {
+      if (confirm('是否確認要核可？')) {
+        $.ajax({
+            type: 'POST',
+            url: '/approve',
+            data: {
+              doc_id: doc_id
+            },
+            success: function(response) {
+              alert('執行成功！');
+              location.reload();
+            },
+            error: function(error) {
+              console.log('發生錯誤：', error);
+              alert('執行失敗！');
+            }
+        });
+      }
+    }
+</script>
+
+{% endblock %}

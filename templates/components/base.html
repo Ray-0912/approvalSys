@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head %}
+    <title>Electronic Signature System - {% block title %}{% endblock %}</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Limwris">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/choices.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sb-admin-2.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sb-admin.min.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" type="text/css">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+
+    <script src="{{ url_for('static', filename='tinymce/tinymce.min.js') }}"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="{{ url_for('static', filename='js/choices.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/homepage.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='vendor/chart.js/Chart.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/demo/chart-area-demo.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/demo/chart-pie-demo.js') }}"></script>
+    {% endblock head %}
+</head>
+<body>
+    {% for message in get_flashed_messages(with_categories=True) %}
+        <div class="alert alert-{{ message[0] }}">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ message[1]}}
+        </div>
+    {% endfor %}
+
+
+    <div id="wrapper" style="width: 100%">
+        {% include 'components/navbar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div class="content">
+                {% include 'components/topbar.html' %}
+                <div class="container-fluid">
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </div>
+            {% include 'components/footer.html' %}
+        </div>
+    </div>
+
+    {% include 'components/scrollTopBtn.html' %}
+    {% include 'components/logoutModal.html' %}
+
+    <script>
+        document.getElementById('sidebarToggle').addEventListener('click', function () {
+            document.getElementById('accordionSidebar').classList.toggle('toggled');
+        });
+
+        document.getElementById('sidebarToggleTop').addEventListener('click', function () {
+            document.getElementById('accordionSidebar').classList.toggle('toggled');
+        });
+    </script>
+</body>
+</html>

@@ -1,8 +1,10 @@
 from database import get_db_connection
-from database.models import Role, Team, Document
+from database.models import User, Role, Team, Document
+from datetime import datetime
 import bcrypt
 
-# 獲取角色列表
+
+# About User
 def get_roles():
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
@@ -28,7 +30,6 @@ def get_teams():
             return teams
 
 
-# 檢查使用者名稱是否已存在
 def check_existing_username(username):
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
@@ -37,20 +38,18 @@ def check_existing_username(username):
             return result is not None
 
 
-# 插入使用者資訊到資料庫中
-def insert_user(username, password, role_id, team_id, phone):
+def insert_user(username, password, first_name, last_name, role_id, team_id, phone, email):
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
-            # 檢查是否有重複的使用者名稱
             if check_existing_username(username):
                 return False
 
-            # 使用 bcrypt 加密密碼
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-            # 將使用者資訊插入到資料庫中
-            query = "INSERT INTO user (username, password, role_id, team_id, phone) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(query, (username, hashed_password.decode('utf-8'), role_id, team_id, phone))
+            query = "INSERT INTO user (username, password, first_name, last_name, role_id, team_id, phone, email) " \
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(query, (username, hashed_password.decode('utf-8'), first_name, last_name, role_id,
+                                   team_id, phone, email))
             connection.commit()
 
     return True
@@ -59,26 +58,40 @@ def insert_user(username, password, role_id, team_id, phone):
 def verify_password(username, password):
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
-            # 查詢資料庫中的密碼哈希值
-            query = "SELECT password FROM user WHERE username = %s"
+            query = "SELECT user_id, username, password, role_id, team_id, phone " \
+                    "FROM user " \
+                    "WHERE username = %s"
             cursor.execute(query, (username,))
             result = cursor.fetchone()
 
-            # 如果查詢結果不為空，則檢查密碼是否匹配
             if result is not None:
-                hashed_password = result[0]
+                hashed_password = result[2]
 
-                # 使用 bcrypt 的 checkpw 函式來驗證密碼
                 if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-                    return True
+                    return result
 
-    return False
+    return None
 
-def get_pending_documents():
+
+def update_password(username, password):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            query = "UPDATE user SET password = %s WHERE username = %s"
+
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+            cursor.execute(query, (hashed_password, username))
+        connection.commit()
+    return 1
+
+
+# About Document
+def get_pending_doc_by_user(creator):
     with get_db_connection() as connection:
         with connection.cursor(dictionary=True) as cursor:
-            query = "SELECT * FROM document"
-            cursor.execute(query)
+            query = "SELECT * FROM documents_data " \
+                    "WHERE (create_time > CURDATE() - INTERVAL 30 DAY) AND creator = %s AND status = 1"
+            cursor.execute(query, (creator,))
             result = cursor.fetchall()
 
             pending_documents = []
@@ -86,7 +99,8 @@ def get_pending_documents():
                 document = Document(
                     doc_id=row['doc_id'],
                     creator=row['creator'],
-                    name=row['name'],
+                    creator_name=row['creator_name'],
+                    title=row['title'],
                     doc_type=row['type'],
                     signature_required=row['signature_required'],
                     content=row['content'],
@@ -98,3 +112,172 @@ def get_pending_documents():
                 pending_documents.append(document)
 
             return pending_documents
+
+
+def get_unapproved_doc_by_user(user_id):
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            query = "SELECT vw_data.doc_id, vw_data.creator, vw_data.creator_name, vw_data.title, vw_data.type, " \
+                    "vw_data.signature_required, vw_data.content, vw_data.status, vw_data.status_remark, " \
+                    "vw_data.create_time, vw_data.last_update " \
+                    "FROM doc_approval_record as record " \
+                    "INNER JOIN documents_data as vw_data ON record.pk_doc_id = vw_data.doc_id " \
+                    "WHERE record.pk_user_id = %s AND record.status = 0"
+
+            cursor.execute(query, (user_id,))
+            result = cursor.fetchall()
+
+            pending_documents = []
+            for row in result:
+                document = Document(
+                    doc_id=row['doc_id'],
+                    creator=row['creator'],
+                    creator_name=row['creator_name'],
+                    title=row['title'],
+                    doc_type=row['type'],
+                    signature_required=row['signature_required'],
+                    content=row['content'],
+                    status=row['status'],
+                    status_remark=row['status_remark'],
+                    create_time=row['create_time'],
+                    last_update=row['last_update']
+                )
+                pending_documents.append(document)
+
+            return pending_documents
+
+
+def get_approval_objects(creator_id, except_team_id):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            query = "SELECT user_id FROM user WHERE (role_id = 0 OR role_id = 1) AND user_id != %s "
+            if except_team_id is not None:
+                print('to do: plus AND into SQL')
+            cursor.execute(query, (creator_id,))
+
+            result = cursor.fetchall()
+            users = []
+            for user in result:
+                users.append(user[0])
+            return users
+
+
+def insert_document(creator, creator_name, signature_required, doc_type, doc_title, doc_content, user_agent):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            query = "INSERT INTO document (creator, signature_required, type, title, content, status, status_remark) " \
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s)"
+
+            current_time = datetime.now()
+            formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+            status_remark = "Editor: " + creator_name + ", Time: " + formatted_time + ", Agent: " + user_agent
+
+            cursor.execute(query, (creator, signature_required, doc_type, doc_title, doc_content, 1, status_remark))
+
+        connection.commit()
+
+        inserted_id = cursor.lastrowid
+
+    return inserted_id
+
+
+def insert_doc_approval(doc_id, object_ids):
+    if object_ids is not None:
+        with get_db_connection() as connection:
+            with connection.cursor() as cursor:
+                query = "INSERT INTO doc_approval_record (pk_doc_id, pk_user_id) VALUES (%s, %s)"
+
+                for object_id in object_ids:
+                    cursor.execute(query, (doc_id, object_id))
+
+            connection.commit()
+
+        return True
+    else:
+        return False
+
+
+def update_doc(doc_id, title, doc_type, signature_required, content, user_agent, creator_name):
+    original_app = get_single_documents(doc_id)
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            current_time = datetime.now()
+            formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+            status_remark = "Editor: " + creator_name + ", Time: " + formatted_time + ", Agent: " + user_agent
+            new_status_remark = original_app.status_remark + "<br>" + status_remark
+            doc_query = "UPDATE document " \
+                        "SET title = %s, type = %s, signature_required = %s, content = %s, status_remark = %s " \
+                        "WHERE doc_id = %s"
+
+            approval_user_query = "UPDATE doc_approval_record " \
+                                  "SET status = 0 " \
+                                  "WHERE pk_doc_id = %s"
+
+            cursor.execute(doc_query, (title, doc_type, signature_required, content, new_status_remark, doc_id))
+            cursor.execute(approval_user_query, (doc_id,))
+            connection.commit()
+        return True
+
+
+def update_doc_app(doc_id, user_id):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            current_time = datetime.now()
+            formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+            query = "UPDATE doc_approval_record " \
+                    "SET status = 1, approval_time = %s " \
+                    "WHERE pk_doc_id = %s AND pk_user_id = %s"
+
+            cursor.execute(query, (formatted_time, doc_id, user_id))
+            connection.commit()
+        return True
+
+
+def get_approval_users(user_id):
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            query = "SELECT * FROM vw_user_data_combine WHERE user_id != %s ORDER BY team_id ASC"
+            cursor.execute(query, (user_id,))
+            result = cursor.fetchall()
+
+            pending_users = []
+            for row in result:
+                user = User(
+                    user_id=row['user_id'],
+                    username=row['username'],
+                    first_name=row['first_name'],
+                    last_name=row['last_name'],
+                    role_id=row['role_id'],
+                    team_id=row['team_id'],
+                    role_name=row['role_name'],
+                    team_name=row['team_name']
+                )
+                pending_users.append(user)
+
+            return pending_users
+
+
+def get_single_documents(doc_id):
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            query = "SELECT * FROM document WHERE doc_id = %s"
+            cursor.execute(query, (doc_id,))
+            result = cursor.fetchall()
+
+            if result is not None:
+                document = Document(
+                    doc_id=result[0]['doc_id'],
+                    creator=result[0]['creator'],
+                    title=result[0]['title'],
+                    doc_type=result[0]['type'],
+                    signature_required=result[0]['signature_required'],
+                    content=result[0]['content'],
+                    status=result[0]['status'],
+                    status_remark=result[0]['status_remark'],
+                    create_time=result[0]['create_time'],
+                    last_update=result[0]['last_update']
+                )
+
+                return document
+            else:
+                return None

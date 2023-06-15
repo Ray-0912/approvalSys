@@ -1,49 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Electronic Signature System</title>
-    <style>
-        /* CSS 樣式可以在這裡自訂 */
-    </style>
-</head>
-<body>
-    <!-- 功能列 -->
-    <div id="navbar">
-        <a href="/">首頁</a>
-        <a href="/search">搜尋</a>
+{% extends 'components/base.html' %}
+{% block title %}HomePage{% endblock %}
+{% block content %}
+
+<div class="row">
+    <div class="col mb-4">
+        <p>HomePage</p>
     </div>
+</div>
 
-    <!-- 等待簽呈清單 -->
-    <div id="pending-list">
-        <h2>等待簽呈的清單</h2>
-        <ul>
-            <!-- 根據資料庫的內容動態生成清單項目 -->
-            {% for document in pending_documents %}
-                <li>
-                    <a href="#" onclick="toggleContent('{{ document.id }}')">{{ document.name }}</a>
-                    <div id="content-{{ document.id }}" style="display: none;">
-                        <!-- 簽呈的內容 -->
-                        <p>內容：{{ document.content }}</p>
-                        <p>簽呈人：{{ document.creator }}</p>
-                        <!-- 更多內容 -->
-                    </div>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
 
-    <!-- 其他區塊 -->
-
-    <script>
-        // JavaScript 可以在這裡撰寫
-        function toggleContent(id) {
-            var content = document.getElementById("content-" + id);
-            if (content.style.display === "none") {
-                content.style.display = "block";
-            } else {
-                content.style.display = "none";
-            }
-        }
-    </script>
-</body>
-</html>
+{% endblock %}

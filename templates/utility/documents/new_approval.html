@@ -1,0 +1,87 @@
+{% extends 'components/base.html' %}
+{% block title %}新增簽呈{% endblock %}
+{% block content %}
+
+<h2>新增簽呈</h2>
+<div class="row">
+    <div class="col mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">簽呈內容</h6>
+            </div>
+            <div class="card-body">
+                <form id="newApproval" action="/new_approval" method="POST">
+                    <div class="col mt-4 mb-2">
+                        <label for="title">類型：</label>
+                        <select id="type" name="type">
+                            {% for item in type_list %}
+                                <option value="{{ item[0] }}">{{ item[1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                        <label for="title">標題：</label>
+                        <input type="text" id="title" name="title">
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                        <label for="content">內容：</label>
+                        <textarea id="content" name="content"></textarea>
+                    </div>
+
+                    <div class="col mb-4">
+                        <div class="card shadow mb-4">
+                            <a href="#collapseCardMyself" class="d-block card-header py-3" data-toggle="collapse"
+                               role="button" aria-expanded="true" aria-controls="collapseCardMyself">
+                                <h6 class="m-0 font-weight-bold text-primary">簽呈遞交對象</h6>
+                            </a>
+                            <div class="collapse" id="collapseCardMyself">
+                                <div class="card-body">
+                                    <select name="mySelect" id="mySelect" multiple>
+                                        {% for item in app_users %}
+                                        <option value="{{ item.user_id }}" selected>{{ item.team_name }} {{ item.role_name }}  {{ item.first_name }}</option>
+                                        {% endfor %}
+                                    </select>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                        <a
+                            href="#"
+                            class="btn btn-sm btn-primary shadow-sm"
+                            onclick="document.getElementById('newApproval').submit()"
+                            type="submit">
+                            <i class="fas fa-download fa-sm text-white-50"></i>
+                            Submit
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const selectElement = document.querySelector('#mySelect');
+    const choices = new Choices(selectElement, { removeItemButton: true });
+
+    tinymce.init({
+        selector: 'textarea',
+        plugins: 'advlist autolink lists link image charmap print preview',
+                  toolbar: 'undo redo | formatselect | bold italic backcolor | \
+                  alignleft aligncenter alignright alignjustify | \
+                  bullist numlist outdent indent | removeformat | help',
+        menubar: '',
+        tinycomments_mode: 'embedded',
+        tinycomments_author: 'Author name',
+        mergetags_list: [
+            { value: 'First.Name', title: 'First Name' },
+            { value: 'Email', title: 'Email' },
+        ]
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,38 @@
+.navbar a {
+    text-decoration: none;
+    margin-right: 10px;
+}
+
+.activity-done {
+  font-weight: 600;
+}
+
+.list-group li {
+  margin-bottom: 12px;
+}
+
+.list li {
+  list-style: none;
+  padding: 10px;
+  border: 2px solid #e3dada;
+  margin-top: 15px;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.expand-detail {
+    position: relative;
+    padding-right:50px !important;
+    padding-left: 50px !important;
+    background-image: url("/static/images/watercolor.jpg");
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.expand-detail.active {
+}
+
+.break-lines {
+    white-space: pre-line;
+}
