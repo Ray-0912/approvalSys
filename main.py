@@ -32,7 +32,8 @@ def check_authentication():
     if 'username' not in session:
         check_login = False
     if request.endpoint != 'login' and not check_login:
-        return redirect('/login')
+        if not request.path.endswith(('.js', '.css')):
+            return render_template('login.html')
 
 
 @app.route('/')
