@@ -86,12 +86,14 @@ def update_password(username, password):
 
 
 # About Document
-def get_pending_doc_by_user(creator):
+def get_pending_doc(creator=None):
     with get_db_connection() as connection:
         with connection.cursor(dictionary=True) as cursor:
             query = "SELECT * FROM documents_data " \
-                    "WHERE (create_time > CURDATE() - INTERVAL 30 DAY) AND creator = %s AND status = 1"
-            cursor.execute(query, (creator,))
+                    "WHERE (create_time > CURDATE() - INTERVAL 30 DAY)"
+            if creator is not None:
+                query = query + " AND creator = " + str(creator)
+            cursor.execute(query)
             result = cursor.fetchall()
 
             pending_documents = []
@@ -145,21 +147,6 @@ def get_unapproved_doc_by_user(user_id):
                 pending_documents.append(document)
 
             return pending_documents
-
-
-def get_approval_objects(creator_id, except_team_id):
-    with get_db_connection() as connection:
-        with connection.cursor() as cursor:
-            query = "SELECT user_id FROM user WHERE (role_id = 0 OR role_id = 1) AND user_id != %s "
-            if except_team_id is not None:
-                print('to do: plus AND into SQL')
-            cursor.execute(query, (creator_id,))
-
-            result = cursor.fetchall()
-            users = []
-            for user in result:
-                users.append(user[0])
-            return users
 
 
 def insert_document(creator, creator_name, signature_required, doc_type, doc_title, doc_content, user_agent):
@@ -219,18 +206,50 @@ def update_doc(doc_id, title, doc_type, signature_required, content, user_agent,
         return True
 
 
-def update_doc_app(doc_id, user_id):
+def update_doc_app(doc_id, user_id, status):
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
-            current_time = datetime.now()
-            formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
-            query = "UPDATE doc_approval_record " \
-                    "SET status = 1, approval_time = %s " \
-                    "WHERE pk_doc_id = %s AND pk_user_id = %s"
+            if status == 3 or 4:
+                del_query = "DELETE FROM doc_approval_record WHERE pk_doc_id = %s"
+                cursor.execute(del_query, (doc_id,))
 
-            cursor.execute(query, (formatted_time, doc_id, user_id))
-            connection.commit()
+                return True
+            else:
+                current_time = datetime.now()
+                formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+                query = "UPDATE doc_approval_record " \
+                        "SET status = %s, approval_time = %s " \
+                        "WHERE pk_doc_id = %s AND pk_user_id = %s"
+
+                cursor.execute(query, (status, formatted_time, doc_id, user_id))
+                connection.commit()
+
+                return True
+
         return True
+
+
+def update_doc_status(doc_id, status):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            if status == 2:
+                check_query = "SELECT COUNT(*) as amount FROM doc_approval_record WHERE pk_doc_id = %s AND status = 0"
+                cursor.execute(check_query, (doc_id,))
+                result = cursor.fetchall()
+                if result[0][0] == 0:
+                    update_query = "UPDATE document SET status = %s WHERE doc_id = %s"
+                    cursor.execute(update_query, (status, doc_id))
+                    connection.commit()
+            elif status == 3:
+                update_query = "UPDATE document SET status = %s WHERE doc_id = %s"
+                cursor.execute(update_query, (status, doc_id))
+                connection.commit()
+            elif status == 4:
+                delete_query = "DELETE FROM document WHERE doc_id = %s"
+                cursor.execute(delete_query, (doc_id,))
+                connection.commit()
+    return True
+
 
 
 def get_approval_users(user_id):

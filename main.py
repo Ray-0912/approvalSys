@@ -104,24 +104,16 @@ def update_password():
     return render_template('reset_password.html')
 
 
-@app.route('/checkUser', methods=['POST'])
-def check_user():
-    data = request.get_json()
-    username = data.get('username')
-
-    exists = db.check_existing_username(username)
-
-    return jsonify({'exists': exists})
-
-
 @app.route('/plist', methods=['GET', 'POST'])
 def approval_list():
-    creator_pending_documents = db.get_pending_doc_by_user(session['user_id'])
+    creator_pending_documents = db.get_pending_doc(session['user_id'])
     unapproved_documents = db.get_unapproved_doc_by_user(session['user_id'])
+    all_documents = db.get_pending_doc()
 
     return render_template('utility/documents/approval_list.html',
                            creator_pending_documents=creator_pending_documents,
-                           unapproved_documents=unapproved_documents)
+                           unapproved_documents=unapproved_documents,
+                           all_documents=all_documents)
 
 
 @app.route('/new_approval', methods=['GET', 'POST'])
@@ -196,19 +188,39 @@ def search():
     return render_template('search.html')
 
 
-@app.route('/approve', methods=['POST'])
-def approve():
+@app.route('/p/approve', methods=['POST'])
+def p_approve():
     if request.method == 'POST':
         doc_id = request.form.get('doc_id')
-        db.update_doc_app(doc_id, session['user_id'])
+        db.update_doc_app(doc_id, session['user_id'], 2)
+        db.update_doc_status(doc_id, 2)
 
         return redirect('/plist')
 
 
+@app.route('/p/reject', methods=['POST'])
+def p_reject():
+    if request.method == 'POST':
+        doc_id = request.form.get('doc_id')
+        db.update_doc_app(doc_id, session['user_id'], 3)
+        db.update_doc_status(doc_id, 3)
+
+        return redirect('/plist')
+
+
+@app.route('/p/delete', methods=['POST'])
+def p_delete():
+    if request.method == 'POST':
+        doc_id = request.form.get('doc_id')
+        db.update_doc_app(doc_id, session['user_id'], 4)
+        db.update_doc_status(doc_id, 4)
+
+        return redirect('/plist')
+
 @app.route('/testPage', methods=['GET', 'POST'])
 def test():
-    if request.method == 'POST':
-        return render_template('test.html')
+    db.update_doc_status(6, 2)
+    db.update_doc_status(5, 2)
 
     return render_template('test.html')
 

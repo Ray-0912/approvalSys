@@ -41,6 +41,14 @@
                                         </span>
                                         <span class="text">Alter</span>
                                     </a>
+
+                                    <a onclick="confirmAction_delete({{ document.doc_id }})"
+                                       class="btn btn-danger btn-icon-split">
+                                        <span class="icon text-white-50">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                        <span class="text">Delete</span>
+                                    </a>
                                     {% endif %}
                                 </li>
                             </div>
@@ -82,12 +90,20 @@
                                 </li>
                                 <li class="d-flex justify-content-between align-items-center activity">
                                     {% if document.status == 1 %}
-                                    <a onclick="confirmAction({{ document.doc_id }})"
+                                    <a onclick="confirmAction_approve({{ document.doc_id }})"
                                        class="btn btn-success btn-icon-split">
                                         <span class="icon text-white-50">
                                             <i class="fas fa-check"></i>
                                         </span>
                                         <span class="text">Approve</span>
+                                    </a>
+
+                                    <a onclick="confirmAction_unapprove({{ document.doc_id }})"
+                                       class="btn btn-success btn-icon-split">
+                                        <span class="icon text-white-50">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                        <span class="text">unApprove</span>
                                     </a>
                                     {% endif %}
                                 </li>
@@ -98,15 +114,93 @@
             </div>
             </div>
         </div>
+
+        <div class="card shadow mb-4">
+            <a href="#collapseCardAll" class="d-block card-header py-3" data-toggle="collapse"
+            role="button" aria-expanded="true" aria-controls="collapseCardAll">
+                <h6 class="m-0 font-weight-bold text-primary">近期所有簽呈</h6>
+            </a>
+            <div class="collapse" id="collapseCardAll">
+                <div class="card-body">
+                <div class="mt-3">
+                    <ul class="list list-inline">
+                        {% for document in all_documents %}
+                            <li class="d-flex justify-content-between align-items-center activity"
+                                onclick="toggleContentAll('{{ document.doc_id }}');">
+                                <h6 class="mb-0">{{ document.title }}</h6>
+                                <span class="ml-2">Type: {{ document.doc_type }}</span>
+                                <span class="ml-2">Creator: {{ document.creator_name }}</span>
+                            </li>
+
+                            <div id="all-content-{{ document.doc_id }}"
+                                class="expand-detail">
+                                <p class="break-lines">內容：<br/>{{ document.content|safe }}</p>
+
+                                <li class="d-flex justify-content-between align-items-center activity">
+                                    <p>修改紀錄：<br/>{{ document.status_remark|safe }}</p>
+                                </li>
+                                <li class="d-flex justify-content-between align-items-center activity">
+                                    <span class="ml-2">建立時間： {{ document.create_time }}</span>
+                                    <span class="ml-2">最後更改： {{ document.last_update }}</span>
+                                </li>
+                            </div>
+
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
-    function confirmAction(doc_id) {
+    function confirmAction_approve(doc_id) {
       if (confirm('是否確認要核可？')) {
         $.ajax({
             type: 'POST',
-            url: '/approve',
+            url: '/p/approve',
+            data: {
+              doc_id: doc_id
+            },
+            success: function(response) {
+              alert('執行成功！');
+              location.reload();
+            },
+            error: function(error) {
+              console.log('發生錯誤：', error);
+              alert('執行失敗！');
+            }
+        });
+      }
+    }
+
+    function confirmAction_delete(doc_id) {
+      if (confirm('是否確認要刪除？')) {
+        $.ajax({
+            type: 'POST',
+            url: '/p/delete',
+            data: {
+              doc_id: doc_id
+            },
+            success: function(response) {
+              alert('執行成功！');
+              location.reload();
+            },
+            error: function(error) {
+              console.log('發生錯誤：', error);
+              alert('執行失敗！');
+            }
+        });
+      }
+    }
+
+    function confirmAction_unapprove(doc_id) {
+      if (confirm('是否確認要退回？')) {
+        $.ajax({
+            type: 'POST',
+            url: '/p/unapprove',
             data: {
               doc_id: doc_id
             },
