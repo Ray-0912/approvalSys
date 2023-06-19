@@ -226,8 +226,6 @@ def update_doc_app(doc_id, user_id, status):
 
                 return True
 
-        return True
-
 
 def update_doc_status(doc_id, status):
     with get_db_connection() as connection:
@@ -249,7 +247,6 @@ def update_doc_status(doc_id, status):
                 cursor.execute(delete_query, (doc_id,))
                 connection.commit()
     return True
-
 
 
 def get_approval_users(user_id):

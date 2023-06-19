@@ -3,9 +3,54 @@
 
 {% block content %}
 
-
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">DataTables Example</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Creator</th>
+                        <th>Created Time</th>
+                        <th>View Page</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Creator</th>
+                        <th>Created Time</th>
+                        <th>View Page</th>
+                    </tr>
+                </tfoot>
+                <tbody>
+                    <tr>
+                        <td>Tiger Nixon</td>
+                        <td>System Architect</td>
+                        <td>Edinburgh</td>
+                        <td>61</td>
+                        <td>View Page</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 <script>
+var type = {{ type|safe }};
+for (const t in type) {
+const item = type[t];
+    console.log(item[0]); <!--    //index  -->
+    console.log(item[1]); <!--    //content-->
+}
+
+
 </script>
 
 {% endblock %}

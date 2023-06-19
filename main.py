@@ -33,7 +33,7 @@ def check_authentication():
         check_login = False
     if request.endpoint != 'login' and not check_login:
         if not request.path.endswith(('.js', '.css')):
-            return render_template('login.html')
+            return render_template('/utility/personal/login.html')
 
 
 @app.route('/')
@@ -82,7 +82,7 @@ def register():
         phone = request.form['phone']
         if db.check_existing_username(username):
             error_message = '用戶名稱已存在'
-            return render_template('register.html', error_message=error_message)
+            return render_template('presonal_profile.html', error_message=error_message)
         db.insert_user(username, password, firstname, lastname, role_id, team_id, phone, email)
 
         return redirect(url_for('login'))
@@ -90,7 +90,7 @@ def register():
     roles = db.get_roles()
     teams = db.get_teams()
 
-    return render_template('register.html', roles=roles, teams=teams)
+    return render_template('presonal_profile.html', roles=roles, teams=teams)
 
 
 @app.route('/resetPassword', methods=['GET', 'POST'])
@@ -100,7 +100,7 @@ def update_password():
         password = request.form.get('password')
 
         db.update_password(username, password)
-        return render_template('login.html')
+        return render_template('/utility/personal/login.html')
 
     return render_template('reset_password.html')
 
@@ -129,7 +129,7 @@ def new_approval():
                     type_list.append([sub_key, sub_value])
 
     if request.method == 'POST':
-        user_agent = request.user_agent.string
+        user_agent = get_agent(request)
         doc_type = request.form.get('type')
         title = request.form.get('title')
         content = request.form.get('content')
@@ -156,7 +156,7 @@ def new_approval():
 def edit_doc(doc_id):
     if request.method == 'POST':
         db.update_doc(doc_id, request.form.get('title'), request.form.get('type'), 0,
-                      request.form.get('content'), request.user_agent.string, session['username'])
+                      request.form.get('content'), get_agent(request), session['username'])
         flash('成功送出', category='success')
         return redirect('/plist')
     doc = db.get_single_documents(doc_id)
@@ -182,11 +182,30 @@ def edit_doc(doc_id):
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     if request.method == 'POST':
-        user_agent = request.user_agent.string
+        user_agent = get_agent(request)
 
         return render_template('search.html')
 
     return render_template('search.html')
+
+
+@app.route('/p/view', methods=['GET', 'POST'])
+def p_view(doc_id):
+    d_type = None
+    doc = db.get_single_documents(doc_id)
+    with open(file_path) as file:
+        data = json.load(file)
+        for key, value in data.items():
+            if isinstance(value, dict):
+                for sub_key, sub_value in value.items():
+                    if doc.doc_type == sub_key:
+                        d_type = sub_value
+
+    if request.method == 'POST':
+        return True
+    return render_template('/utility/documents/doc_view.html',
+                           document=doc,
+                           d_type=d_type)
 
 
 @app.route('/p/approve', methods=['POST'])
@@ -218,12 +237,27 @@ def p_delete():
 
         return redirect('/plist')
 
-@app.route('/testPage', methods=['GET', 'POST'])
-def test():
-    db.update_doc_status(6, 2)
-    db.update_doc_status(5, 2)
 
-    return render_template('test.html')
+@app.route('/test', methods=['GET', 'POST'])
+def test():
+    type_list = []
+    with open(file_path) as file:
+        data = json.load(file)
+        for key, value in data.items():
+            if isinstance(value, dict):
+                for sub_key, sub_value in value.items():
+                    type_list.append([sub_key, sub_value])
+    creator_pending_documents = db.get_pending_doc(session['user_id'])
+
+    return render_template('test.html',
+                           docs=creator_pending_documents,
+                           type=type_list)
+
+
+def get_agent(requests):
+    platform = requests.user_agent.platform
+    browser = requests.user_agent.browser
+    return f"Platform: {platform}, Browser: {browser}"
 
 
 if __name__ == '__main__':

@@ -1,0 +1,45 @@
+{% extends 'components/base.html' %}
+{% block title %}檢閱簽呈{% endblock %}
+{% block content %}
+
+<h2>檢閱簽呈</h2>
+<div class="row">
+    <div class="col mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">簽呈內容</h6>
+            </div>
+            <div class="card-body">
+                <form id="edit_doc" action="/edit_doc/{{ doc.doc_id }}" method="POST">
+                    <div class="col mt-4 mb-2">
+                        <label for="title">類型：</label>
+                        <p>{{ type }}</p>
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                        <label for="title">標題：</label>
+                        <P>{{ doc.title }}</P>
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                        <label for="content">內容：</label>
+                        <p>{{ doc.content|safe }}</p>
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                        <a
+                            href="#"
+                            class="btn btn-sm btn-primary shadow-sm"
+                            onclick="document.getElementById('edit_doc').submit()"
+                            type="submit">
+                            <i class="fas fa-download fa-sm text-white-50"></i>
+                            Submit
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
