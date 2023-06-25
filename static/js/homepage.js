@@ -97,3 +97,20 @@ function confirmAction_unapprove(doc_id) {
         });
     }
 }
+
+function p_view(doc_id) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/p/view', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        var response = JSON.parse(xhr.responseText);
+        // 在此處理回應的內容
+        console.log(response);
+      } else {
+        // 處理回應失敗的情況
+      }
+    };
+    var data = JSON.stringify({ doc_id: doc_id });
+    xhr.send(data);
+  }

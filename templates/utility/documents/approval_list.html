@@ -11,52 +11,50 @@
             </a>
             <div class="collapse" id="collapseCardMyself">
                 <div class="card-body">
-                <div class="mt-3">
-                    <ul class="list list-inline">
-                        {% for document in creator_pending_documents %}
-                            <li class="d-flex justify-content-between align-items-center activity"
-                                onclick="toggleContentCreator('{{ document.doc_id }}');">
-                                <h6 class="mb-0">{{ document.title }}</h6>
-                                <span class="ml-2">Type: {{ document.doc_type }}</span>
-                                <span class="ml-2">Creator: {{ document.creator_name }}</span>
-                            </li>
 
-                            <div id="creator-content-{{ document.doc_id }}"
-                                class="expand-detail">
-                                <p class="break-lines">內容：<br/>{{ document.content|safe }}</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="creator_table" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Creator</th>
+                                    <th>Created Time</th>
+                                    <th>View Page</th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Creator</th>
+                                    <th>Created Time</th>
+                                    <th>View Page</th>
+                                </tr>
+                            </tfoot>
+                            <tbody>
+                            {% for document in creator_pending_documents %}
+                                <tr>
+                                    <td>{{ document.title }}</td>
+                                    <td>{{ document.doc_type_cht }}</td>
+                                    <td>{{ document.creator_name }}</td>
+                                    <td>{{ document.create_time.strftime('%Y-%m-%d')[:10] }}</td>
+                                    <td>
+                                        <a href="/p/view/{{ document.doc_id }}"
+                                           class="btn btn-primary btn-icon-split">
+                                                <span class="icon text-white-50">
+                                                    <i class="fas fa-file-code"></i>
+                                                </span>
+                                                <span class="text">View</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        </table>
+                    </div>
 
-                                <li class="d-flex justify-content-between align-items-center activity">
-                                    <p>修改紀錄：<br/>{{ document.status_remark|safe }}</p>
-                                </li>
-                                <li class="d-flex justify-content-between align-items-center activity">
-                                    <span class="ml-2">建立時間： {{ document.create_time.strftime('%Y-%m-%d')[:10] }}</span>
-                                    <span class="ml-2">最後更改： {{ document.last_update.strftime('%Y-%m-%d')[:10] }}</span>
-                                </li>
-                                <li class="d-flex justify-content-between align-items-center activity">
-                                    {% if document.status == 1 %}
-                                    <a href="/edit_doc/{{ document.doc_id }}"
-                                       class="btn btn-primary btn-icon-split">
-                                        <span class="icon text-white-50">
-                                            <i class="fas fa-file-code"></i>
-                                        </span>
-                                        <span class="text">Alter</span>
-                                    </a>
-
-                                    <a onclick="confirmAction_delete({{ document.doc_id }})"
-                                       class="btn btn-danger btn-icon-split">
-                                        <span class="icon text-white-50">
-                                            <i class="fas fa-check"></i>
-                                        </span>
-                                        <span class="text">Delete</span>
-                                    </a>
-                                    {% endif %}
-                                </li>
-                            </div>
-
-                        {% endfor %}
-                    </ul>
                 </div>
-            </div>
             </div>
         </div>
 
@@ -67,51 +65,50 @@
             </a>
             <div class="collapse" id="collapseCardUnapproved">
                 <div class="card-body">
-                <div class="mt-3">
-                    <ul class="list list-inline">
-                        {% for document in unapproved_documents %}
-                            <li class="d-flex justify-content-between align-items-center activity"
-                                onclick="toggleContentUnapproved('{{ document.doc_id }}');">
-                                <h6 class="mb-0">{{ document.title }}</h6>
-                                <span class="ml-2">Type: {{ document.doc_type }}</span>
-                                <span class="ml-2">Creator: {{ document.creator_name }}</span>
-                            </li>
 
-                            <div id="unapproved-content-{{ document.doc_id }}"
-                                class="expand-detail">
-                                <p class="break-lines">內容：<br/>{{ document.content|safe }}</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="approval_table" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Creator</th>
+                                    <th>Created Time</th>
+                                    <th>View Page</th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Creator</th>
+                                    <th>Created Time</th>
+                                    <th>View Page</th>
+                                </tr>
+                            </tfoot>
+                            <tbody>
+                            {% for document in unapproved_documents %}
+                                <tr>
+                                    <td>{{ document.title }}</td>
+                                    <td>{{ document.doc_type_cht }}</td>
+                                    <td>{{ document.creator_name }}</td>
+                                    <td>{{ document.create_time.strftime('%Y-%m-%d')[:10] }}</td>
+                                    <td>
+                                        <a href="/p/view/{{ document.doc_id }}"
+                                           class="btn btn-primary btn-icon-split">
+                                                <span class="icon text-white-50">
+                                                    <i class="fas fa-file-code"></i>
+                                                </span>
+                                                <span class="text">View</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        </table>
+                    </div>
 
-                                <li class="d-flex justify-content-between align-items-center activity">
-                                    <p>修改紀錄：<br/>{{ document.status_remark|safe }}</p>
-                                </li>
-                                <li class="d-flex justify-content-between align-items-center activity">
-                                    <span class="ml-2">建立時間： {{ document.create_time }}</span>
-                                    <span class="ml-2">最後更改： {{ document.last_update }}</span>
-                                </li>
-                                <li class="d-flex justify-content-between align-items-center activity">
-                                    {% if document.status == 1 %}
-                                    <a onclick="confirmAction_approve({{ document.doc_id }})"
-                                       class="btn btn-success btn-icon-split">
-                                        <span class="icon text-white-50">
-                                            <i class="fas fa-check"></i>
-                                        </span>
-                                        <span class="text">Approve</span>
-                                    </a>
-
-                                    <a onclick="confirmAction_unapprove({{ document.doc_id }})"
-                                       class="btn btn-success btn-icon-split">
-                                        <span class="icon text-white-50">
-                                            <i class="fas fa-check"></i>
-                                        </span>
-                                        <span class="text">unApprove</span>
-                                    </a>
-                                    {% endif %}
-                                </li>
-                            </div>
-                        {% endfor %}
-                    </ul>
                 </div>
-            </div>
             </div>
         </div>
 
@@ -122,32 +119,48 @@
             </a>
             <div class="collapse" id="collapseCardAll">
                 <div class="card-body">
-                <div class="mt-3">
-                    <ul class="list list-inline">
-                        {% for document in all_documents %}
-                            <li class="d-flex justify-content-between align-items-center activity"
-                                onclick="toggleContentAll('{{ document.doc_id }}');">
-                                <h6 class="mb-0">{{ document.title }}</h6>
-                                <span class="ml-2">Type: {{ document.doc_type }}</span>
-                                <span class="ml-2">Creator: {{ document.creator_name }}</span>
-                            </li>
 
-                            <div id="all-content-{{ document.doc_id }}"
-                                class="expand-detail">
-                                <p class="break-lines">內容：<br/>{{ document.content|safe }}</p>
-
-                                <li class="d-flex justify-content-between align-items-center activity">
-                                    <p>修改紀錄：<br/>{{ document.status_remark|safe }}</p>
-                                </li>
-                                <li class="d-flex justify-content-between align-items-center activity">
-                                    <span class="ml-2">建立時間： {{ document.create_time }}</span>
-                                    <span class="ml-2">最後更改： {{ document.last_update }}</span>
-                                </li>
-                            </div>
-
-                        {% endfor %}
-                    </ul>
-                </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="recently_table" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Creator</th>
+                                    <th>Created Time</th>
+                                    <th>View Page</th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Creator</th>
+                                    <th>Created Time</th>
+                                    <th>View Page</th>
+                                </tr>
+                            </tfoot>
+                            <tbody>
+                            {% for document in all_documents %}
+                                <tr>
+                                    <td>{{ document.title }}</td>
+                                    <td>{{ document.doc_type_cht }}</td>
+                                    <td>{{ document.creator_name }}</td>
+                                    <td>{{ document.create_time.strftime('%Y-%m-%d')[:10] }}</td>
+                                    <td>
+                                        <a href="/p/view/{{ document.doc_id }}"
+                                           class="btn btn-primary btn-icon-split">
+                                                <span class="icon text-white-50">
+                                                    <i class="fas fa-file-code"></i>
+                                                </span>
+                                                <span class="text">View</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        </table>
+                    </div>
             </div>
             </div>
         </div>

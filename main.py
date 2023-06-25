@@ -1,14 +1,18 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, g
 from datetime import timedelta
+from flask_babel import Babel
 import database.queries as db
 import json
 import os
-
 
 file_path = os.path.join(os.getcwd(), 'static', 'js', 'p_type_data.json')
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'a3af8aea6ef1c50418b8a1b485ab6582'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
+app.config['BABEL_DEFAULT_LOCALE'] = 'zh_TW'
+app.config['BABEL_DEFAULT_TIMEZONE'] = 'UTC'
+app.config['BABEL_TRANSLATION_DIRECTORIES'] = os.path.join(os.getcwd(), 'translations')
+babel = Babel(app)
 
 
 @app.context_processor
@@ -38,13 +42,13 @@ def check_authentication():
 
 @app.route('/')
 def homepage():
-
     return render_template('homepage.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        app.config['BABEL_DEFAULT_LOCALE'] = 'zh_TW'
         username = request.form['username']
         password = request.form['password']
 
@@ -64,9 +68,9 @@ def login():
         else:
             flash('用戶名稱不存在', category='success')
 
-        return render_template('login.html')
+        return render_template('/utility/personal/login.html')
 
-    return render_template('login.html')
+    return render_template('/utility/personal/login.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -82,7 +86,7 @@ def register():
         phone = request.form['phone']
         if db.check_existing_username(username):
             error_message = '用戶名稱已存在'
-            return render_template('presonal_profile.html', error_message=error_message)
+            return render_template('personal_profile.html', error_message=error_message)
         db.insert_user(username, password, firstname, lastname, role_id, team_id, phone, email)
 
         return redirect(url_for('login'))
@@ -90,7 +94,7 @@ def register():
     roles = db.get_roles()
     teams = db.get_teams()
 
-    return render_template('presonal_profile.html', roles=roles, teams=teams)
+    return render_template('/utility/personal/personal_profile.html', roles=roles, teams=teams)
 
 
 @app.route('/resetPassword', methods=['GET', 'POST'])
@@ -152,8 +156,8 @@ def new_approval():
     return render_template('utility/documents/new_approval.html', type_list=type_list, app_users=approval_user_list)
 
 
-@app.route('/edit_doc/<doc_id>', methods=['GET', 'POST'])
-def edit_doc(doc_id):
+@app.route('/p/edit/<doc_id>', methods=['GET', 'POST'])
+def p_edit(doc_id):
     if request.method == 'POST':
         db.update_doc(doc_id, request.form.get('title'), request.form.get('type'), 0,
                       request.form.get('content'), get_agent(request), session['username'])
@@ -179,7 +183,7 @@ def edit_doc(doc_id):
         return render_template('utility/basic_page/no_permission.html')
 
 
-@app.route('/search', methods=['GET', 'POST'])
+@app.route('/p/search', methods=['GET', 'POST'])
 def search():
     if request.method == 'POST':
         user_agent = get_agent(request)
@@ -189,23 +193,15 @@ def search():
     return render_template('search.html')
 
 
-@app.route('/p/view', methods=['GET', 'POST'])
+@app.route('/p/view/<doc_id>', methods=['GET'])
 def p_view(doc_id):
-    d_type = None
     doc = db.get_single_documents(doc_id)
-    with open(file_path) as file:
-        data = json.load(file)
-        for key, value in data.items():
-            if isinstance(value, dict):
-                for sub_key, sub_value in value.items():
-                    if doc.doc_type == sub_key:
-                        d_type = sub_value
+    creator = 0
+    approve = db.get_approve_record_by_user(session['user_id'], doc_id)
+    if session['username'] == doc.creator_name:
+        creator = 1
 
-    if request.method == 'POST':
-        return True
-    return render_template('/utility/documents/doc_view.html',
-                           document=doc,
-                           d_type=d_type)
+    return render_template('utility/documents/doc_view.html', document=doc, creator=creator, approve=approve)
 
 
 @app.route('/p/approve', methods=['POST'])
@@ -238,20 +234,19 @@ def p_delete():
         return redirect('/plist')
 
 
+@app.route('/set_locale', methods=['POST'])
+def set_locale():
+    selected_locale = request.form['locale']
+    session['locale'] = selected_locale
+    return redirect(request.referrer)
+
+
 @app.route('/test', methods=['GET', 'POST'])
 def test():
-    type_list = []
-    with open(file_path) as file:
-        data = json.load(file)
-        for key, value in data.items():
-            if isinstance(value, dict):
-                for sub_key, sub_value in value.items():
-                    type_list.append([sub_key, sub_value])
     creator_pending_documents = db.get_pending_doc(session['user_id'])
 
     return render_template('test.html',
-                           docs=creator_pending_documents,
-                           type=type_list)
+                           docs=creator_pending_documents)
 
 
 def get_agent(requests):

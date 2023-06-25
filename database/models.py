@@ -1,5 +1,8 @@
 # database/models.py
 import json
+import os
+
+file_path = os.path.join(os.getcwd(), 'static', 'js', 'p_type_data.json')
 
 
 class User:
@@ -35,26 +38,19 @@ class Document:
         self.title = title
         self.creator_name = creator_name
         self.doc_type = doc_type
+        self.doc_type_cht = get_type_cht(doc_type)
         self.signature_required = signature_required
         self.content = content
         self.status = status
         self.status_remark = status_remark
         self.create_time = create_time
         self.last_update = last_update
-    # Status =
-    # 1：簽呈流程中
-    # 2：已簽呈完畢（董事長/執行長已核准）
-    # 3：退回
-    # type =
-    # 01：福利事項
-    # 02：慶弔慰問
-    # 03：行事項目
-    # 04：人事項目
-    # 05：購買設備
-    # 06：公事事項
-    # 07：修繕事項
-    # 08：捐贈事項
-    # 09：廣告事項
-    # 10：職工訓練
-    # 11：採購制服
-    # 12：其他
+
+
+def get_type_cht(type_code):
+    with open(file_path) as file:
+        data = json.load(file)
+        if type_code in data['type']:
+            return data['type'][type_code]
+        else:
+            return 'Not Found'

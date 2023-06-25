@@ -280,7 +280,7 @@ def get_single_documents(doc_id):
             cursor.execute(query, (doc_id,))
             result = cursor.fetchall()
 
-            if result is not None:
+            if result is not []:
                 document = Document(
                     doc_id=result[0]['doc_id'],
                     creator=result[0]['creator'],
@@ -297,3 +297,14 @@ def get_single_documents(doc_id):
                 return document
             else:
                 return None
+
+
+def get_approve_record_by_user(user_id, doc_id):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            check_query = "SELECT COUNT(*) as amount FROM doc_approval_record " \
+                          "WHERE pk_doc_id = %s AND status = 0 AND pk_user_id = %s"
+            cursor.execute(check_query, (doc_id, user_id))
+            result = cursor.fetchall()
+
+            return result[0][0]
