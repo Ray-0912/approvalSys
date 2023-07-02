@@ -1,113 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
 {% extends 'components/base.html' %}
-{% block title %}Personal Data{% endblock %}
-
+{% block title %}更新用戶資訊{% endblock %}
 {% block content %}
-{% endblock %}
-</head>
 
-<body class="bg-gradient-primary">
-
-    <section class="u-clearfix u-section-2" id="carousel_5829">
-      <div class="u-clearfix u-sheet u-sheet-1">
-        <div class="u-clearfix u-layout-wrap u-layout-wrap-1">
-          <div class="u-layout">
-            <div class="u-layout-row">
-              <div class="u-align-left u-container-style u-image u-layout-cell u-shape-rectangle u-size-30 u-image-1" data-image-width="1000" data-image-height="1500">
-                <div class="u-container-layout u-container-layout-1"></div>
-              </div>
-              <div class="u-container-style u-layout-cell u-shape-rectangle u-size-30 u-layout-cell-2">
-                <div class="u-container-layout u-valign-middle-sm u-valign-middle-xl u-valign-middle-xs u-container-layout-2">
-                  <div class="u-border-20 u-border-palette-1-base u-container-style u-group u-shape-rectangle u-group-1 animated customAnimationIn-played" data-animation-name="customAnimationIn" data-animation-duration="2000" style="will-change: transform, opacity; animation-duration: 2000ms;">
-                    <div class="u-container-layout u-valign-middle u-container-layout-3">
-                      <h2 class="u-text u-text-default u-text-1">About Us</h2>
-                    </div>
-                  </div>
-                  <p class="u-align-left u-text u-text-2">Dictum sit amet justo donec enim diam vulputate. Sociis natoque penatibus et magnis dis parturient.</p>
-                  <p class="u-align-justify u-text u-text-3">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.<br>
-                  </p>
-                </div>
-              </div>
+<h2>更新用戶資訊</h2>
+<div class="row">
+    <div class="col mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">簽呈內容</h6>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
+            <div class="card-body">
+                <form id="user_update" action="/u/update" method="POST">
 
-    <div class="container">
-
-        <div class="card o-hidden border-0 shadow-lg my-5">
-            <div class="card-body p-0">
-                <div class="row">
-                    <div class="col-lg-5 d-none d-lg-block bg-register-image"></div>
-                    <div class="col-lg-7">
-                        <div class="p-5">
-                            <div class="text-center">
-                                <h1 class="h4 text-gray-900 mb-4">Create an Account!</h1>
-                            </div>
-                            <form class="user">
-                                <div class="form-group row">
-                                    <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="text" class="form-control form-control-user" id="exampleFirstName"
-                                            placeholder="First Name">
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <input type="text" class="form-control form-control-user" id="exampleLastName"
-                                            placeholder="Last Name">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <input type="email" class="form-control form-control-user" id="exampleInputEmail"
-                                        placeholder="Email Address">
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="password" class="form-control form-control-user"
-                                            id="exampleInputPassword" placeholder="Password">
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <input type="password" class="form-control form-control-user"
-                                            id="exampleRepeatPassword" placeholder="Repeat Password">
-                                    </div>
-                                </div>
-                                <a href="login.html" class="btn btn-primary btn-user btn-block">
-                                    Register Account
-                                </a>
-                                <hr>
-                                <a href="index.html" class="btn btn-google btn-user btn-block">
-                                    <i class="fab fa-google fa-fw"></i> Register with Google
-                                </a>
-                                <a href="index.html" class="btn btn-facebook btn-user btn-block">
-                                    <i class="fab fa-facebook-f fa-fw"></i> Register with Facebook
-                                </a>
-                            </form>
-                            <hr>
-                            <div class="text-center">
-                                <a class="small" href="forgot-password.html">Forgot Password?</a>
-                            </div>
-                            <div class="text-center">
-                                <a class="small" href="login.html">Already have an account? Login!</a>
-                            </div>
-                        </div>
+                    <div class="col mt-4 mb-2">
+                        <code>如需調整 User Name ，請洽資訊人員</code><br>
+                        <label for="user_name">UserName：  {{ user_name }}</label>
                     </div>
-                </div>
+
+                    <div class="col mt-4 mb-2">
+                        <label for="password">Password：  </label>
+                        <input type="password" id="password" name="password">
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                        <label for="first_name">First Name：  </label>
+                        <input type="text" id="first_name" name="first_name" value="{{ first_name }}">
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                        <label for="last_name">Last Name：  </label>
+                        <input type="text" id="last_name" name="last_name" value="{{ last_name }}">
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                        <label for="Phone">Phone：  </label>
+                        <input type="text" id="Phone" name="Phone" value="{{ phone }}">
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                        <label for="email">E-mail：  </label>
+                        <input type="text" id="email" name="email" value="{{ email }}">
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                        <a
+                            href="#"
+                            class="btn btn-sm btn-primary shadow-sm"
+                            onclick="document.getElementById('user_update').submit()"
+                            type="submit">
+                            <i class="fas fa-download fa-sm text-white-50"></i>
+                            Submit
+                        </a>
+                    </div>
+
+                </form>
             </div>
         </div>
-
     </div>
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="vendor/jquery/jquery.min.js"></script>
-    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="js/sb-admin-2.min.js"></script>
-
-</body>
-
-</html>
+</div>
+{% endblock %}

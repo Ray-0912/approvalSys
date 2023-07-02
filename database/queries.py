@@ -56,7 +56,7 @@ def insert_user(username, password, first_name, last_name, role_id, team_id, pho
 def verify_password(username, password):
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
-            query = "SELECT user_id, username, password, role_id, team_id, phone, email, first_name. last_name " \
+            query = "SELECT user_id, username, password, role_id, team_id, phone, email, first_name, last_name " \
                     "FROM user " \
                     "WHERE username = %s"
             cursor.execute(query, (username,))
@@ -104,7 +104,7 @@ def update_user_profile(user_id, firstname, lastname, e_mail, phone, password=''
 
 
 # About Document
-def get_pending_doc(creator=None):
+def get_30days_doc(creator=None):
     with get_db_connection() as connection:
         with connection.cursor(dictionary=True) as cursor:
             query = "SELECT * FROM documents_data " \

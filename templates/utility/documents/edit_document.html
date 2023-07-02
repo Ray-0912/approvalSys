@@ -11,7 +11,7 @@
             </div>
             <div class="card-body">
                 <code>若編輯後存擋，所有簽呈對象需要重新核可。如要調整簽呈對象，請刪除後重新新增簽呈</code>
-                <form id="edit_doc" action="/edit_doc/{{ doc.doc_id }}" method="POST">
+                <form id="edit_doc" action="/p/edit/{{ doc.doc_id }}" method="POST">
                     <div class="col mt-4 mb-2">
                         <label for="title">類型：</label>
                         <select id="type" name="type">

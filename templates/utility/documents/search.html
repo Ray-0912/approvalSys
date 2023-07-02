@@ -1,0 +1,138 @@
+{% extends 'components/base.html' %}
+{% block title %}Approval List{% endblock %}
+{% block content %}
+
+<div class="row">
+    <div class="col mb-4">
+
+        <form id="search_doc" action="/p/search" method="POST">
+            <div class="col mt-4 mb-2">
+                <div class="row">
+                    <div class="col">
+                        <label for="created_time">建立時間：</label>
+                    </div>
+                    <div class="col">
+                        <input id="createdtime" name="createdtime" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col mt-4 mb-2">
+                <div class="row">
+                    <div class="col">
+                        <label for="title">類型：</label>
+                    </div>
+                    <div class="col">
+                        <select id="type" name="type">
+                            {% for item in type_list %}
+                                <option value="{{ item[0] }}">{{ item[1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col mt-4 mb-2">
+                <div class="row">
+                    <div class="col">
+                        <label for="title">全文搜尋：</label>
+                    </div>
+                    <div class="col">
+                        <input type="text" id="content" name="content">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col mt-4 mb-2">
+                <a
+                    href="#"
+                    class="btn btn-sm btn-primary shadow-sm"
+                    onclick="document.getElementById('search_doc').submit()"
+                    type="submit">
+                    <i class="fas fa-magnet fa-sm text-white-50"></i>
+                    Search
+                </a>
+            </div>
+
+        </form>
+        <hr>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">搜尋結果</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="creator_table" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Creator</th>
+                                <th>Created Time</th>
+                                <th>View Page</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Creator</th>
+                                <th>Created Time</th>
+                                <th>View Page</th>
+                            </tr>
+                        </tfoot>
+                        <tbody>
+                        {% for document in documents %}
+                            <tr>
+                                <td>{{ document.title }}</td>
+                                <td>{{ document.doc_type_cht }}</td>
+                                <td>{{ document.creator_name }}</td>
+                                <td>{{ document.create_time.strftime('%Y-%m-%d')[:10] }}</td>
+                                <td>
+                                    <a href="/p/view/{{ document.doc_id }}"
+                                       class="btn btn-primary btn-icon-split">
+                                            <span class="icon text-white-50">
+                                                <i class="fas fa-file-code"></i>
+                                            </span>
+                                            <span class="text">View</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function() {
+        var start = moment().subtract(29, 'days');
+        var end = moment();
+
+        function cb(start, end) {
+            $('#createdtime span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+        }
+
+        $('#createdtime').daterangepicker({
+            startDate: start,
+            endDate: end,
+            ranges: {
+               'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+               'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+               'This Month': [moment().startOf('month'), moment().endOf('month')],
+               'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+               'Last 6 Month': [moment().subtract(6, 'month'), moment()]
+            }
+        }, cb);
+
+        cb(start, end);
+
+    });
+</script>
+
+{% endblock %}

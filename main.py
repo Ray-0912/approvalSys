@@ -95,12 +95,12 @@ def register():
         lastname = request.form['lastname']
         role_id = request.form['role']
         team_id = request.form['team']
-        email = request.form['email']
+        e_mail = request.form['email']
         phone = request.form['phone']
         if db.check_existing_username(username):
             error_message = '用戶名稱已存在'
             return render_template('/utility/personal/login.html', error_message=error_message)
-        db.insert_user(username, password, firstname, lastname, role_id, team_id, phone, email)
+        db.insert_user(username, password, firstname, lastname, role_id, team_id, phone, e_mail)
 
         return redirect(url_for('login'))
 
@@ -145,9 +145,9 @@ def reset_password():
 @app.route('/p/list', methods=['GET', 'POST'])
 def p_list():
     if has_permission('p_list', session['user_id'], session['team_id'], session['role_id']):
-        creator_pending_documents = db.get_pending_doc(session['user_id'])
+        creator_pending_documents = db.get_30days_doc(session['user_id'])
         unapproved_documents = db.get_unapproved_doc_by_user(session['user_id'])
-        all_documents = db.get_pending_doc()
+        all_documents = db.get_30days_doc()
 
         return render_template('/utility/documents/approval_list.html',
                                creator_pending_documents=creator_pending_documents,
@@ -229,12 +229,27 @@ def p_edit(doc_id):
 
 @app.route('/p/search', methods=['GET', 'POST'])
 def p_search():
-    if request.method == 'POST':
-        user_agent = get_agent(request)
+    if has_permission('p_new', session['user_id'], session['team_id'], session['role_id']):
+        if request.method == 'POST':
+            print(request.form.get('createdtime'))
+            print(request.form.get('type'))
+            print(request.form.get('content'))
 
-        return render_template('search.html')
+        type_list = []
+        with open(file_path) as file:
+            data = json.load(file)
+            for key, value in data.items():
+                if isinstance(value, dict):
+                    for sub_key, sub_value in value.items():
+                        type_list.append([sub_key, sub_value])
 
-    return render_template('search.html')
+        documents = db.get_30days_doc()
+
+        return render_template('/utility/documents/search.html',
+                               type_list=type_list,
+                               documents=documents)
+    else:
+        abort(403)
 
 
 @app.route('/p/view/<doc_id>', methods=['GET'])
