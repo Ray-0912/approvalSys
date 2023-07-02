@@ -44,11 +44,32 @@
                         </div>
                     </div>
 
+                    <div class="card shadow mb-4">
+                        <a href="#collapseCardAppRecord" class="d-block card-header py-3" data-toggle="collapse"
+                            role="button" aria-expanded="true" aria-controls="collapseCardAppRecord">
+                            <h6 class="m-0 font-weight-bold text-primary">簽呈紀錄</h6>
+                        </a>
+                        <div class="collapse" id="collapseCardAppRecord">
+                            <div class="card-body">
+                                {% for record in app_record %}
+                                <p>{{ record.username }} ：
+                                    {% if record.status == 0 %}
+                                    Wating for approval
+                                    {% elif record.status == 1 %}
+                                    Approved at <code>{{ record.approval_time.strftime('%Y-%m-%d')[:10] }}</code>
+                                    {% else %}
+                                    <code>Unapproved</code>
+                                    {% endif %}
+                                </p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="card shadow mb-4">
                         <a href="#collapseCardStatusRecord" class="d-block card-header py-3" data-toggle="collapse"
                             role="button" aria-expanded="true" aria-controls="collapseCardStatusRecord">
-                            <h6 class="m-0 font-weight-bold text-primary">簽呈紀錄</h6>
+                            <h6 class="m-0 font-weight-bold text-primary">簽呈編輯紀錄</h6>
                         </a>
                         <div class="collapse" id="collapseCardStatusRecord">
                             <div class="card-body">
@@ -56,7 +77,6 @@
                             </div>
                         </div>
                     </div>
-
 
                     <div class="col mt-4 mb-2">
                         <div class="row">

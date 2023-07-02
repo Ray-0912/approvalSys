@@ -1,5 +1,6 @@
 import mysql.connector
 
+
 def get_db_connection():
     connection = mysql.connector.connect(
         host='192.168.1.4',

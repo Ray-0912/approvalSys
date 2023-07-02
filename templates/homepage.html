@@ -2,11 +2,48 @@
 {% block title %}{{ _('HomePage') }}{% endblock %}
 {% block content %}
 
-<div class="row">
-    <div class="col mb-4">
-        <p>HomePage</p>
+
+<div class="card shadow mb-4">
+    <a href="#process" class="d-block card-header py-3" data-toggle="collapse"
+    role="button" aria-expanded="true" aria-controls="process">
+        <h5 class="m-0 font-weight-bold text-primary">系統開發進度</h5>
+    </a>
+    <div class="collapse" id="process">
+        <div class="card-body">
+            <div class="row">
+                <p>簽證已完善，缺一些小功能，但仍可正常使用。需加強：<code>知會系統</code></p>
+            </div>
+            <div class="row">
+                <p>預計完成：<code>2023-07/03</code></p>
+            </div>
+            <hr>
+            <div class="row">
+                <p>後續完成：<code>使用者自我編輯系統</code></p>
+            </div>
+            <div class="row">
+                <p>預計完成：<code>2023-07/28</code></p>
+            </div>
+            <hr>
+            <div class="row">
+                <p>後續完成：<code>FD 文件簽署交接</code></p>
+            </div>
+            <div class="row">
+                <p>預計完成：<code>2023-08/28</code></p>
+            </div>
+            <hr>
+            <div class="row">
+                <p>後續完成：<code>FD 值班紀錄</code></p>
+            </div>
+            <div class="row">
+                <p>預計完成：<code>2023-09/28</code></p>
+            </div>
+
+
+
+
+
+        </div>
     </div>
 </div>
-
 
 {% endblock %}

@@ -6,11 +6,12 @@ file_path = os.path.join(os.getcwd(), 'static', 'js', 'p_type_data.json')
 
 
 class User:
-    def __init__(self, user_id, username, first_name, last_name, role_id, team_id, role_name, team_name):
+    def __init__(self, user_id, username, first_name, last_name, email, role_id, team_id, role_name, team_name):
         self.user_id = user_id
         self.username = username
         self.first_name = first_name
         self.last_name = last_name
+        self.email = email
         self.role_id = role_id
         self.team_id = team_id
         self.role_id = role_id
@@ -45,6 +46,15 @@ class Document:
         self.status_remark = status_remark
         self.create_time = create_time
         self.last_update = last_update
+
+
+class app_record:
+    def __init__(self, doc_ap_id, status, approval_time, username, create_time):
+        self.doc_ap_id = doc_ap_id
+        self.status = status
+        self.approval_time = approval_time
+        self.username = username
+        self.create_time = create_time
 
 
 def get_type_cht(type_code):

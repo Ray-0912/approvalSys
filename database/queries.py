@@ -1,10 +1,9 @@
 from database import get_db_connection
-from database.models import User, Role, Team, Document
+from database.models import User, Role, Team, Document, app_record
 from datetime import datetime
 import bcrypt
 
 
-# About User
 def get_roles():
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
@@ -17,7 +16,6 @@ def get_roles():
             return roles
 
 
-# 獲取團隊列表
 def get_teams():
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
@@ -58,7 +56,7 @@ def insert_user(username, password, first_name, last_name, role_id, team_id, pho
 def verify_password(username, password):
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
-            query = "SELECT user_id, username, password, role_id, team_id, phone " \
+            query = "SELECT user_id, username, password, role_id, team_id, phone, email, first_name. last_name " \
                     "FROM user " \
                     "WHERE username = %s"
             cursor.execute(query, (username,))
@@ -81,6 +79,26 @@ def update_password(username, password):
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
             cursor.execute(query, (hashed_password, username))
+        connection.commit()
+    return 1
+
+
+def update_user_profile(user_id, firstname, lastname, e_mail, phone, password=''):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            if password:
+                query = "UPDATE user SET first_name = %s, last_name = %s, email = %s, phone = %s, password = %s " \
+                        "WHERE user_id = %s"
+
+                hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+                cursor.execute(query, (firstname, lastname, e_mail, phone, hashed_password, user_id))
+            else:
+                query = "UPDATE user SET first_name = %s, last_name = %s, email = %s, phone = %s " \
+                        "WHERE user_id = %s"
+
+                cursor.execute(query, (firstname, lastname, e_mail, phone, user_id))
+
         connection.commit()
     return 1
 
@@ -263,6 +281,7 @@ def get_approval_users(user_id):
                     username=row['username'],
                     first_name=row['first_name'],
                     last_name=row['last_name'],
+                    email=row['email'],
                     role_id=row['role_id'],
                     team_id=row['team_id'],
                     role_name=row['role_name'],
@@ -308,3 +327,31 @@ def get_approve_record_by_user(user_id, doc_id):
             result = cursor.fetchall()
 
             return result[0][0]
+
+
+def get_approve_record_all(doc_id):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            check_query = "SELECT " \
+                          "record.doc_ap_id, record.status, record.approval_time, record.create_time, user.username " \
+                          "FROM doc_approval_record as record " \
+                          "LEFT JOIN user " \
+                          "ON user.user_id = record.pk_user_id " \
+                          "WHERE record.pk_doc_id = %s"
+            cursor.execute(check_query, (doc_id,))
+            result = cursor.fetchall()
+
+            records = []
+            if result is not []:
+                for row in result:
+                    app_Record = app_record(
+                        doc_ap_id=row[0],
+                        status=row[1],
+                        approval_time=row[2],
+                        create_time=row[3],
+                        username=row[4]
+                    )
+                    records.append(app_Record)
+                return records
+            else:
+                return None
