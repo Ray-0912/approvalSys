@@ -7,8 +7,6 @@ import functions.email as email
 import json
 import os
 
-# Get Root Path
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 file_path = os.path.join(os.getcwd(), 'static', 'js', 'p_type_data.json')
 app = Flask(__name__, template_folder='templates')

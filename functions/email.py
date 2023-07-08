@@ -2,7 +2,7 @@ import smtplib
 import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from main import ROOT_DIR
+from config import ROOT_DIR
 
 sender_email = 's1034603@gmail.com'
 server = smtplib.SMTP('smtp.gmail.com', 587)
