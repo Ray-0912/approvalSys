@@ -230,11 +230,6 @@ def p_edit(doc_id):
 @app.route('/p/search', methods=['GET', 'POST'])
 def p_search():
     if has_permission('p_new', session['user_id'], session['team_id'], session['role_id']):
-        if request.method == 'POST':
-            print(request.form.get('createdtime'))
-            print(request.form.get('type'))
-            print(request.form.get('content'))
-
         type_list = []
         with open(file_path) as file:
             data = json.load(file)
@@ -243,11 +238,14 @@ def p_search():
                     for sub_key, sub_value in value.items():
                         type_list.append([sub_key, sub_value])
 
+        if request.method == 'POST':
+            documents = db.get_in_search_doc(created_time=request.form.get('createdtime'),
+                                             p_type=request.form.get('type'), content=request.form.get('content'))
+            return render_template('/utility/documents/search.html', type_list=type_list, documents=documents)
+
         documents = db.get_30days_doc()
 
-        return render_template('/utility/documents/search.html',
-                               type_list=type_list,
-                               documents=documents)
+        return render_template('/utility/documents/search.html', type_list=type_list, documents=documents)
     else:
         abort(403)
 
@@ -259,7 +257,7 @@ def p_view(doc_id):
         doc_sign_record = db.get_approve_record_all(doc_id)
         creator = 0
         approve = db.get_approve_record_by_user(session['user_id'], doc_id)
-        if session['username'] == doc.creator_name:
+        if session['user_id'] == doc.creator:
             creator = 1
 
         return render_template('/utility/documents/doc_view.html',

@@ -134,6 +134,48 @@ def get_30days_doc(creator=None):
             return pending_documents
 
 
+def get_in_search_doc(created_time, p_type, content):
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            start_time, end_time = format_date_for_sql(created_time)
+            query = "SELECT * FROM documents_data " \
+                    "WHERE (create_time >= '" + start_time + "' AND create_time <= '" + end_time + "')"
+            if p_type is not None:
+                query = query + " AND type = " + p_type
+            if content != '':
+                query = query + " MATCH(title, content) AGAINST('" + content + "')"
+            cursor.execute(query)
+            result = cursor.fetchall()
+
+            pending_documents = []
+            for row in result:
+                document = Document(
+                    doc_id=row['doc_id'],
+                    creator=row['creator'],
+                    creator_name=row['creator_name'],
+                    title=row['title'],
+                    doc_type=row['type'],
+                    signature_required=row['signature_required'],
+                    content=row['content'],
+                    status=row['status'],
+                    status_remark=row['status_remark'],
+                    create_time=row['create_time'],
+                    last_update=row['last_update']
+                )
+                pending_documents.append(document)
+
+            return pending_documents
+
+
+def format_date_for_sql(date):
+    start_date, end_date = date.split(" - ")
+    start_date_obj = datetime.strptime(start_date, "%m/%d/%Y")
+    end_date_obj = datetime.strptime(end_date, "%m/%d/%Y")
+    formatted_start_date = start_date_obj.strftime("%Y-%m-%d")
+    formatted_end_date = end_date_obj.strftime("%Y-%m-%d")
+    return formatted_start_date, formatted_end_date
+
+
 def get_unapproved_doc_by_user(user_id):
     with get_db_connection() as connection:
         with connection.cursor(dictionary=True) as cursor:
