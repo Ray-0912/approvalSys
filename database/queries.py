@@ -269,7 +269,7 @@ def update_doc(doc_id, title, doc_type, signature_required, content, user_agent,
 def update_doc_app(doc_id, user_id, status):
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
-            if status == 3 or 4:
+            if status == 3:
                 del_query = "DELETE FROM doc_approval_record WHERE pk_doc_id = %s"
                 cursor.execute(del_query, (doc_id,))
 

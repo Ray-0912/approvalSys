@@ -82,7 +82,7 @@
                             {% if document.status == 1 %}
                                 {% if creator == 1 %}
                                     <div class="col">
-                                        <a href="/edit_doc/{{ document.doc_id }}"
+                                        <a href="/p/edit/{{ document.doc_id }}"
                                            class="btn btn-primary btn-icon-split">
                                             <span class="icon text-white-50">
                                                 <i class="fas fa-file-code"></i>
@@ -111,6 +111,7 @@
                                             <span class="text">Approve</span>
                                         </a>
                                     </div>
+
                                     <div class="col">
                                         <a onclick="confirmAction_unapprove({{ document.doc_id }})"
                                            class="btn btn-danger btn-icon-split">

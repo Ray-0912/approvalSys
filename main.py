@@ -84,6 +84,12 @@ def login():
     return render_template('/utility/personal/login.html')
 
 
+@app.route('/logout', methods=['GET'])
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -102,10 +108,7 @@ def register():
 
         return redirect(url_for('login'))
 
-    roles = db.get_roles()
-    teams = db.get_teams()
-
-    return render_template('/utility/personal/login.html', roles=roles, teams=teams)
+    return render_template('/utility/personal/login.html')
 
 
 @app.route('/u/update', methods=['GET', 'POST'])
@@ -268,7 +271,7 @@ def p_view(doc_id):
 def p_approve():
     if request.method == 'POST':
         doc_id = request.form.get('doc_id')
-        db.update_doc_app(doc_id, session['user_id'], 2)
+        db.update_doc_app(doc_id, session['user_id'], 1)
         db.update_doc_status(doc_id, 2)
 
         return redirect('/p/list')
@@ -278,7 +281,7 @@ def p_approve():
 def p_reject():
     if request.method == 'POST':
         doc_id = request.form.get('doc_id')
-        db.update_doc_app(doc_id, session['user_id'], 3)
+        db.update_doc_app(doc_id, session['user_id'], 2)
         db.update_doc_status(doc_id, 3)
 
         return redirect('/p/list')
