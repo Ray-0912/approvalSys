@@ -1,5 +1,5 @@
 from database import get_db_connection
-from database.models import User, Role, Team, Document, app_record
+from database.models import User, Role, Team, Document, app_record, currency
 from datetime import datetime
 import bcrypt
 
@@ -397,3 +397,26 @@ def get_approve_record_all(doc_id):
                 return records
             else:
                 return None
+
+
+def get_currency(country, date):
+    if country == 'USD':
+        cur = currency(date, country, 0, 0, 0, 30.0)
+
+        return cur
+    elif country == 'SGD':
+        cur = currency(date, country, 0, 0, 0, 22.0)
+
+        return cur
+    elif country == 'JPY':
+        cur = currency(date, country, 0, 0, 0, 0.20)
+
+        return cur
+    elif country == 'EUR':
+        cur = currency(date, country, 0, 0, 0, 33.0)
+
+        return cur
+    elif country == 'CNY':
+        cur = currency(date, country, 0, 0, 0, 4.20)
+
+        return cur

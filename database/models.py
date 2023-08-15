@@ -57,6 +57,16 @@ class app_record:
         self.create_time = create_time
 
 
+class currency:
+    def __init__(self, date, country, bank_buying_rate, bank_selling_rate, spot_buying_rate, spot_selling_rate):
+        self.date = date
+        self.country = country
+        self.bank_buying_rate = bank_buying_rate
+        self.bank_selling_rate = bank_selling_rate
+        self.spot_buying_rate = spot_buying_rate
+        self.spot_selling_rate = spot_selling_rate
+
+
 def get_type_cht(type_code):
     with open(file_path) as file:
         data = json.load(file)

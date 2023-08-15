@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
 from functions.permission import has_permission
-from datetime import timedelta
+from datetime import timedelta, datetime
 from flask_babel import Babel
 import database.queries as db
 import functions.email as email
@@ -39,8 +39,9 @@ def check_authentication():
     if 'username' not in session:
         check_login = False
     if request.endpoint != 'login' and not check_login:
-        if not request.path.endswith(('.js', '.css')):
-            return render_template('/utility/personal/login.html')
+        if not request.path.endswith(('.js', '.css', '.jpg', '.png')):
+            if request.endpoint != 'w_menu':
+                return render_template('/utility/personal/login.html')
 
 
 @app.errorhandler(403)
@@ -51,6 +52,21 @@ def forbidden_error(error):
 @app.route('/')
 def homepage():
     return render_template('homepage.html')
+
+
+@app.route('/w_menu')
+def w_menu():
+    current_time = datetime.now()
+    formatted_time = current_time.strftime("%Y-%m-%d")
+
+    USD = db.get_currency('USD', formatted_time)
+    SGD = db.get_currency('SGD', formatted_time)
+    JPY = db.get_currency('JPY', formatted_time)
+    EUR = db.get_currency('EUR', formatted_time)
+    CNY = db.get_currency('CNY', formatted_time)
+
+    return render_template('front_desk_wheel_menu.html', USD=USD.spot_selling_rate, SGD=SGD.spot_selling_rate,
+                           JPY=JPY.spot_selling_rate, EUR=EUR.spot_selling_rate, CNY=CNY.spot_selling_rate)
 
 
 @app.route('/login', methods=['GET', 'POST'])
