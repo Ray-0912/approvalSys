@@ -39,7 +39,7 @@ def check_authentication():
     if 'username' not in session:
         check_login = False
     if request.endpoint != 'login' and not check_login:
-        if not request.path.endswith(('.js', '.css', '.jpg', '.png')):
+        if not request.path.endswith(('.js', '.css', '.jpg', '.png', '.jpeg')):
             if request.endpoint != 'w_menu':
                 return render_template('/utility/personal/login.html')
 

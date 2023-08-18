@@ -13,23 +13,29 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
 
     <style>
-        .styled-table {
-            border-collapse: collapse;
-            margin: 25px 0;
-            font-size: 0.9em;
-            font-family: sans-serif;
-            min-width: 400px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        .carousel {
+            position: fixed;
+            top: 0;
+            height: 40%;
+            width: 100%;
+            overflow: hidden;
         }
-        .styled-table tbody tr.active-row {
-            font-weight: bold;
-            color: #009879;
+
+        .photo {
+            position: fixed;
+            top: 60%;
+            bottom: 0;
+            width: 100%;
         }
-        .center-fit {
-            max-width: 100%;
-            max-height: 100vh;
-            margin: auto;
+
+        .table-container {
+            position: fixed;
+            top: 40%;
+            bottom: 0;
+            width: 100%;
+            overflow-y: auto;
         }
+
         .zstack {
             display: grid;
             align-items: center;
@@ -38,68 +44,120 @@
         .zstack > * {
             grid-area: 1/1/1/1;
         }
-        .tm-site-header { height: 20%; }
         .tm-flex-center {
             display: flex;
             flex-direction: row;
             align-items: center;
             justify-content: center;
         }
-        .tm-mb-50 { margin-bottom: 50px; }
-        .tm-bgcolor-1 { background-c
-        .tm-border-rounded { border-radius: 15px; }
+        .styled-table {
+            border-collapse: collapse;
+            font-size: 0.9em;
+            font-family: sans-serif;
+            width: 100%;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            overflow-y: auto;
+        }
+        .styled-table thead tr {
+            background-color: #009879;
+            color: #ffffff;
+            text-align: left;
+        }
+        .styled-table th,
+        .styled-table td {
+            padding: 12px 15px;
+        }
+        .styled-table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid #009879;
+        }
+        .styled-table tbody tr.active-row {
+            font-weight: bold;
+            color: #009879;
+        }
     </style>
 
 </head>
 <body>
-    <div id="carouselExampleFade" class="carousel slide carousel-fade" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            <div class="carousel-item active">
 
-                <div class="zstack">
-                    <img src="{{ url_for('static', filename='images/watercolor_r.jpg') }}" class="d-block w-100 center-fit">
-
-                    <div>
-                        <div class="tm-flex-center" style="padding: 0px 0px 20px 0px">
-                            <img src="{{ url_for('static', filename='images/logo_no_words.png') }}" style="width:100px; height:120px">
-                            <div style="display: flex; flex-direction: column; align-items:center; justify-content: center">
-                                <h1>新苑即期匯率表</h1>
-                                <h2>Foreign Exchange Rate</h2>
-                            </div>
-
+    <div class="carousel">
+        <div style="flex:7; overflow: hidden">
+            <div class="tm-flex-center">
+                <div id="carouselExampleFade" class="carousel slide carousel-fade" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <img class="d-block w-100" src="{{ url_for('static', filename='images/01.jpeg') }}">
                         </div>
-
-
-                        <section class="tm-site-header tm-flex-center tm-mb-50 tm-bgcolor-1 tm-border-rounded">
-                            <img src="{{ url_for('static', filename='images/flag_usd.png') }}" style="padding: 0px 30px 0px 0px; width: 30%; height: 30%">
-                            <h1>USD   $  {{ USD }}</h1>
-                        </section>
-
-                        <section class="tm-site-header tm-flex-center tm-mb-50 tm-bgcolor-1 tm-border-rounded">
-                            <img src="{{ url_for('static', filename='images/flag_sgd.png') }}" style="padding: 0px 30px 0px 0px; width: 30%; height: 30%">
-                            <h1>SGD  S$  {{ SGD }}</h1>
-                        </section>
-
-                        <section class="tm-site-header tm-flex-center tm-mb-50 tm-bgcolor-1 tm-border-rounded">
-                            <img src="{{ url_for('static', filename='images/flag_jpy.png') }}" style="padding: 0px 30px 0px 0px; width: 30%; height: 30%">
-                            <h1>JPY   ¥  {{ JPY }}</h1>
-                        </section>
-
-                        <section class="tm-site-header tm-flex-center tm-mb-50 tm-bgcolor-1 tm-border-rounded">
-                            <img src="{{ url_for('static', filename='images/flag_eur.png') }}" style="padding: 0px 30px 0px 0px; width: 30%; height: 30%">
-                            <h1>EUR   €  {{ EUR }}</h1>
-                        </section>
-
-                        <section class="tm-site-header tm-flex-center tm-mb-50 tm-bgcolor-1 tm-border-rounded">
-                            <img src="{{ url_for('static', filename='images/flag_cny.png') }}" style="padding: 0px 30px 0px 0px; width: 30%; height: 30%">
-                            <h1>CNY  RMB {{ CNY }}</h1>
-                        </section>
+                        <div class="carousel-item">
+                            <img class="d-block w-100" src="{{ url_for('static', filename='images/02.jpeg') }}">
+                        </div>
+                        <div class="carousel-item">
+                            <img class="d-block w-100" src="{{ url_for('static', filename='images/03.jpeg') }}">
+                        </div>
+                        <div class="carousel-item">
+                            <img class="d-block w-100" src="{{ url_for('static', filename='images/04.jpeg') }}">
+                        </div>
+                        <div class="carousel-item">
+                            <img class="d-block w-100" src="{{ url_for('static', filename='images/05.jpeg') }}">
+                        </div>
+                        <div class="carousel-item">
+                            <img class="d-block w-100" src="{{ url_for('static', filename='images/06.jpeg') }}">
+                        </div>
+                        <div class="carousel-item">
+                            <img class="d-block w-100" src="{{ url_for('static', filename='images/07.jpeg') }}">
+                        </div>
                     </div>
-
-
                 </div>
             </div>
         </div>
+
+        <div class="photo">
+            <img class="d-block w-100" src="{{ url_for('static', filename='images/night.jpg') }}">
+        </div>
+
+        <div class="table-container">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Currency</th>
+                        <th>Exchange Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>USD</td>
+                        <td>NTD    {{ USD }}</td>
+                    </tr>
+                    <tr class="active-row">
+                        <td>SGD</td>
+                        <td>NTD    {{ SGD }}</td>
+                    </tr>
+                    <tr>
+                        <td>JPY</td>
+                        <td>NTD    {{ JPY }}</td>
+                    </tr>
+                    <tr class="active-row">
+                        <td>EUR</td>
+                        <td>NTD    {{ EUR }}</td>
+                    </tr>
+                    <tr>
+                        <td>CNY</td>
+                        <td>NTD    {{ CNY }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="center">新苑庭園大飯店     新苑名流都會館</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
+
 </body>
 </html>
