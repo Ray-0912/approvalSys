@@ -66,7 +66,8 @@ def w_menu():
     CNY = db.get_currency('CNY', formatted_time)
 
     return render_template('front_desk_wheel_menu.html', USD=USD.spot_selling_rate, SGD=SGD.spot_selling_rate,
-                           JPY=JPY.spot_selling_rate, EUR=EUR.spot_selling_rate, CNY=CNY.spot_selling_rate)
+                           JPY=JPY.spot_selling_rate, EUR=EUR.spot_selling_rate, CNY=CNY.spot_selling_rate,
+                           date=formatted_time)
 
 
 @app.route('/login', methods=['GET', 'POST'])
