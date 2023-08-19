@@ -2,11 +2,14 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from functions.permission import has_permission
 from datetime import timedelta, datetime
 from flask_babel import Babel
+from database.models import currency
 import database.queries as db
 import functions.email as email
+import requests
+import time
+import schedule
 import json
 import os
-
 
 file_path = os.path.join(os.getcwd(), 'static', 'js', 'p_type_data.json')
 app = Flask(__name__, template_folder='templates')
@@ -59,14 +62,16 @@ def w_menu():
     current_time = datetime.now()
     formatted_time = current_time.strftime("%Y-%m-%d")
 
-    USD = db.get_currency('USD', formatted_time)
-    SGD = db.get_currency('SGD', formatted_time)
-    JPY = db.get_currency('JPY', formatted_time)
-    EUR = db.get_currency('EUR', formatted_time)
-    CNY = db.get_currency('CNY', formatted_time)
+    currency_list = update_currency(formatted_time)
 
-    return render_template('front_desk_wheel_menu.html', USD=USD.spot_selling_rate, SGD=SGD.spot_selling_rate,
-                           JPY=JPY.spot_selling_rate, EUR=EUR.spot_selling_rate, CNY=CNY.spot_selling_rate,
+    USD = float(next((curr for curr in currency_list if curr.country == 'USD'), None).bank_buying_rate) - 1
+    SGD = float(next((curr for curr in currency_list if curr.country == 'SGD'), None).bank_buying_rate) - 1
+    JPY = float(next((curr for curr in currency_list if curr.country == 'JPY'), None).bank_buying_rate) - 0.01
+    EUR = float(next((curr for curr in currency_list if curr.country == 'EUR'), None).bank_buying_rate) - 1
+    CNY = float(next((curr for curr in currency_list if curr.country == 'CNY'), None).bank_buying_rate) - 0.1
+
+    return render_template('front_desk_wheel_menu.html', USD=USD, SGD=SGD,
+                           JPY=JPY, EUR=EUR, CNY=CNY,
                            date=formatted_time)
 
 
@@ -210,7 +215,8 @@ def p_new():
                 else:
                     flash('送出失敗！', category='success')
 
-        return render_template('/utility/documents/new_approval.html', type_list=type_list, app_users=approval_user_list)
+        return render_template('/utility/documents/new_approval.html', type_list=type_list,
+                               app_users=approval_user_list)
     else:
         abort(403)
 
@@ -330,6 +336,32 @@ def get_agent(requests):
     platform = requests.user_agent.platform
     browser = requests.user_agent.browser
     return f"Platform: {platform}, Browser: {browser}"
+
+
+def update_currency(date):
+    currency_list = []
+
+    url = 'https://rate.bot.com.tw/xrt/flcsv/0/day'
+    rate = requests.get(url)
+    rate.encoding = 'utf-8'
+    rt = rate.text
+    rts = rt.split('\n')
+    for i in rts:
+        try:
+            a = i.split(',')
+            currency_list.append(currency(date, a[0], a[2], a[12]))
+            print(a[0] + ': ' + a[2] + ', ' + a[12])
+        except:
+            break
+
+    return currency_list
+
+
+def schedule_task():
+    schedule.every().day.at("23:30").do(update_currency())
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 
 if __name__ == '__main__':
