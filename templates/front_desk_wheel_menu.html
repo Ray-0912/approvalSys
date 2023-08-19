@@ -13,27 +13,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
 
     <script>
-        function fetchData() {
-            $.ajax({
-                url: '/w_menu',
-                method: 'GET',
-                success: function(response) {
-                    document.getElementById('data-container').innerHTML = response.data;
-                },
-                error: function(error) {
-                    console.error('Ajax Error:', error);
-                }
-            });
-        }
-
-        var now = new Date();
-        var millisTillMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0) - now;
-
-        setTimeout(function() {
-            fetchData();
-            setInterval(fetchData, 24 * 60 * 60 * 1000);
-        }, millisTillMidnight);
-
+    function autoRefresh() {
+        window.location = window.location.href;
+    }
+    setInterval('autoRefresh()', 12 * 60 * 60 * 1000);
 
     </script>
 
