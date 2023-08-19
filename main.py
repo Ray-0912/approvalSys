@@ -350,7 +350,6 @@ def update_currency(date):
         try:
             a = i.split(',')
             currency_list.append(currency(date, a[0], a[2], a[12]))
-            print(a[0] + ': ' + a[2] + ', ' + a[12])
         except:
             break
 
