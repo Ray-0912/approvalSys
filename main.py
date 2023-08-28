@@ -70,6 +70,12 @@ def w_menu():
     EUR = float(next((curr for curr in currency_list if curr.country == 'EUR'), None).bank_buying_rate) - 1
     CNY = float(next((curr for curr in currency_list if curr.country == 'CNY'), None).bank_buying_rate) - 0.1
 
+    USD = round(USD, 1)
+    SGD = round(SGD, 1)
+    JPY = round(JPY, 3)
+    EUR = round(EUR, 1)
+    CNY = round(CNY, 2)
+
     return render_template('front_desk_wheel_menu.html', USD=USD, SGD=SGD,
                            JPY=JPY, EUR=EUR, CNY=CNY,
                            date=formatted_time)
