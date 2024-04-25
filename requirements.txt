@@ -14,7 +14,7 @@ mysql-connector-python==8.0.33
 protobuf==3.20.3
 pytz==2023.3
 uWSGI==2.0.21
-Werkzeug==2.3.4
+Werkzeug==3.0.1
 zipp==3.15.0
 
 schedule~=1.2.0
