@@ -104,6 +104,7 @@ def update_user_profile(user_id, firstname, lastname, e_mail, phone, password=''
     return 1
 
 
+# todo exception function
 def get_single_email_from_user_id(user_id):
     with get_db_connection() as connection:
         with connection.cursor(dictionary=True) as cursor:
@@ -112,7 +113,7 @@ def get_single_email_from_user_id(user_id):
             cursor.execute(query, (user_id,))
             result = cursor.fetchall()
 
-            print(result[0]['email'])
+            return result[0]['email']
 
 
 # About Document
