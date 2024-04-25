@@ -87,7 +87,7 @@
     const choices = new Choices(selectElement, { removeItemButton: true });
 
     const selectNotify = document.querySelector('#notify');
-    const choicesNotify = new Choices(selectElement, { removeItemButton: true });
+    const choicesNotify = new Choices(selectNotify, { removeItemButton: true });
 
     tinymce.init({
         selector: 'textarea',
