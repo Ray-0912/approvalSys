@@ -86,6 +86,9 @@
     const selectElement = document.querySelector('#mySelect');
     const choices = new Choices(selectElement, { removeItemButton: true });
 
+    const selectNotify = document.querySelector('#notify');
+    const choicesNotify = new Choices(selectElement, { removeItemButton: true });
+
     tinymce.init({
         selector: 'textarea',
         plugins: 'advlist autolink lists link image charmap print preview',
