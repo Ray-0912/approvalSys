@@ -6,10 +6,10 @@ from email.mime.multipart import MIMEMultipart
 from config import ROOT_DIR
 
 sender_email = 's1034603@gmail.com'
-server = smtplib.SMTP('smtp.gmail.com', 587)
 
 
 def send_email(doc_id, receiver_app_users, receiver_notify_users, subject, message):
+    server = smtplib.SMTP('smtp.gmail.com', 587)
     template_path = os.path.join(ROOT_DIR, 'templates', 'utility', 'email_template', 'email_notifyNewApproval.html')
 
     with open(template_path, 'r') as file:
@@ -18,7 +18,7 @@ def send_email(doc_id, receiver_app_users, receiver_notify_users, subject, messa
     html_content = html_content.replace('{title}', subject)
     html_content = html_content.replace('{content}', message)
     html_content = html_content.replace('{doc_id}', str(doc_id))
-    receiver_emails = []
+    receiver_emails = ['limwris0912@icloud.com']
 
     for item in receiver_app_users:
         receiver_emails.append(db.get_single_email_from_user_id(item))
