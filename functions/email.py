@@ -29,6 +29,7 @@ def send_email(doc_id, receiver_app_users, receiver_notify_users, subject, messa
         msg = MIMEMultipart()
         msg['From'] = sender_email
         msg['To'] = ', '.join(receiver_emails)
+        print(msg['To'])
         msg['Subject'] = f'New*新簽呈通知郵件 - {subject}'
         msg.attach(MIMEText(html_content, 'html'))
 
@@ -41,4 +42,5 @@ def send_email(doc_id, receiver_app_users, receiver_notify_users, subject, messa
         print('郵件發送失敗:', str(e))
 
     finally:
+        print('郵件發送成功')
         server.quit()
