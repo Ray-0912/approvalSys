@@ -4,6 +4,7 @@ from datetime import datetime
 import bcrypt
 
 
+# About Users
 def get_roles():
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
@@ -101,6 +102,17 @@ def update_user_profile(user_id, firstname, lastname, e_mail, phone, password=''
 
         connection.commit()
     return 1
+
+
+def get_single_email_from_user_id(user_id):
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            query = "SELECT email FROM user WHERE user_id = %s"
+
+            cursor.execute(query, (user_id,))
+            result = cursor.fetchall()
+
+            print(result[0]['email'])
 
 
 # About Document
