@@ -56,7 +56,7 @@
                             </a>
                             <div class="collapse" id="collapseCardNotify">
                                 <div class="card-body">
-                                    <select name="mySelect" id="notify" multiple>
+                                    <select name="notify" id="notify" multiple>
                                         {% for item in app_users %}
                                         <option value="{{ item.email }}" selected>{{ item.team_name }} {{ item.role_name }}  {{ item.first_name }}</option>
                                         {% endfor %}
