@@ -1,0 +1,116 @@
+{% extends 'components/base.html' %}
+{% block title %}新增人員{% endblock %}
+{% block content %}
+
+<h2 class="text-primary mb-4">新增人員</h2>
+<div class="row">
+    <div class="col mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3 bg-primary text-white">
+                <h6 class="m-0 font-weight-bold">人員資訊</h6>
+            </div>
+            <div class="card-body">
+                <form id="hrForm" action="/hr/new" method="POST">
+                    <label class="form-label">選擇組織：</label>
+                    <select id="organization" name="organization" class="form-select">
+                        <option value="new_garden">新苑庭園</option>
+                        <option value="new_dev">新苑開發</option>
+                    </select>
+
+                    <label class="form-label mt-3">選擇部門：</label>
+                    <select id="department" name="department" class="form-select">
+                        <option value="hr">人事部</option>
+                        <option value="it">資訊部</option>
+                        <option value="marketing">行銷部</option>
+                        <option value="finance">財務部</option>
+                    </select>
+
+                    <div class="col mt-4 mb-2">
+                      <label class="form-label mt-3">姓氏：</label>
+                      <input type="text" id="first_name" name="first_name" class="form-control" required>
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                      <label class="form-label mt-3">名稱：</label>
+                      <input type="text" id="last_name" name="last_name" class="form-control" required>
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                      <label class="form-label mt-3">身分證字號：</label>
+                      <input type="text" id="ssn" name="ssn" class="form-control">
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                      <label class="form-label mt-3">Email：</label>
+                      <input type="email" id="e_mail" name="e_mail" class="form-control">
+                    </div>
+
+                    <div class="col mt-4 mb-2">
+                      <label class="form-label mt-3">電話號碼：</label>
+                      <input type="text" id="phone" name="phone" class="form-control">
+                    </div>
+
+                    <button id="previewBtn" class="btn btn-primary mt-4">預覽</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 預覽 Modal -->
+<div id="overlay" class="overlay" style="display:none;"></div>
+<div id="previewModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <h5>請確認輸入資訊</h5>
+        <div id="previewContent"></div>
+        <input type="text" id="verifyCode" placeholder="請輸入驗證碼" class="form-control mt-2">
+        <button id="confirmBtn" class="btn btn-success mt-2">確認送出</button>
+        <button onclick="closeModal()" class="btn btn-secondary mt-2">關閉</button>
+    </div>
+</div>
+
+<script>
+document.getElementById('previewBtn').addEventListener('click', function() {
+  const firstName = document.getElementById('first_name').value;
+  const lastName = document.getElementById('last_name').value;
+  if (!firstName || !lastName) {
+    alert('姓氏和名稱為必填項目！');
+    return;
+  }
+
+  const formData = new FormData(document.getElementById('hrForm'));
+  let content = '';
+  formData.forEach((value, key) => {
+    content += `<p><strong>${key}:</strong> ${value}</p>`;
+  });
+
+  document.getElementById('previewContent').innerHTML = content;
+  document.getElementById('overlay').style.display = 'block';
+  document.getElementById('previewModal').style.display = 'block';
+});
+
+document.getElementById('verifyCode').addEventListener('input', function() {
+  const code = document.getElementById('verifyCode').value;
+  const confirmBtn = document.getElementById('confirmBtn');
+  if (code === '1234') {
+    confirmBtn.disabled = false;
+    confirmBtn.classList.add('btn-success');
+    confirmBtn.classList.remove('btn-secondary');
+  } else {
+    confirmBtn.disabled = true;
+    confirmBtn.classList.add('btn-secondary');
+    confirmBtn.classList.remove('btn-success');
+  }
+});
+
+function closeModal() {
+  document.getElementById('overlay').style.display = 'none';
+  document.getElementById('previewModal').style.display = 'none';
+}
+
+document.getElementById('confirmBtn').addEventListener('click', function() {
+  document.getElementById('hrForm').submit();
+});
+</script>
+
+{% endblock %}

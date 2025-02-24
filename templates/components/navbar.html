@@ -9,11 +9,14 @@
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Homepage</span></a>
             </li>
+
             <hr class="sidebar-divider">
+
             <div class="sidebar-heading">
                 Utilities
             </div>
 
+            {% if session['logged_in'] and session['role_id'] in [99, 1, 2, 3] %}
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
                     aria-expanded="true" aria-controls="collapseTwo">
@@ -28,6 +31,7 @@
                     </div>
                 </div>
             </li>
+            {% endif %}
 
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUser"
@@ -42,6 +46,46 @@
                     </div>
                 </div>
             </li>
+
+            <hr class="sidebar-divider">
+
+            <div class="sidebar-heading">
+                Human Resource
+            </div>
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseHR"
+                    aria-expanded="true" aria-controls="collapseHR">
+                    <i class="fas fa-fw fa-people-arrows"></i>
+                    <span>Working Shift</span>
+                </a>
+
+                <div id="collapseHR" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="/hr/schedule/FD">Schedule</a>
+                        <a class="collapse-item" href="/hr/clockRecord">Clock Record</a>
+                    </div>
+                </div>
+            </li>
+
+            {% if session['logged_in'] and session['role_id'] in [99, 1, 4] %}
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseACC"
+                    aria-expanded="true" aria-controls="collapseACC">
+                    <i class="fas fa-fw fa-people-arrows"></i>
+                    <span>Accountant</span>
+                </a>
+
+
+                <div id="collapseACC" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="/hr/salary/cal">Salary Calculate</a>
+                        <a class="collapse-item" href="/hr/new">New Member</a>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+
 
             <hr class="sidebar-divider d-none d-md-block">
 

@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
+from flask import Flask, jsonify, render_template, request, redirect, url_for, session, flash, abort
 from functions.permission import has_permission
 from datetime import timedelta, datetime
 from flask_babel import Babel
-from database.models import currency
+from database.models import Currency
+from database.CI_API_Client import APIClient
 import database.queries as db
 import functions.email as email
+import threading
 import requests
 import time
 import schedule
@@ -19,6 +21,9 @@ app.config['BABEL_DEFAULT_LOCALE'] = 'zh_TW'
 app.config['BABEL_DEFAULT_TIMEZONE'] = 'UTC'
 app.config['BABEL_TRANSLATION_DIRECTORIES'] = os.path.join(os.getcwd(), 'translations')
 babel = Babel(app)
+
+# API client for bioLife
+client = APIClient()
 
 
 @app.context_processor
@@ -48,7 +53,7 @@ def check_authentication():
 
 
 @app.errorhandler(403)
-def forbidden_error(error):
+def forbidden_error():
     return render_template('/utility/basic_page/no_permission.html'), 403
 
 
@@ -99,6 +104,7 @@ def login():
                 session['email'] = user[6]
                 session['first_name'] = user[7]
                 session['last_name'] = user[8]
+                session['clock_id'] = user[9]
                 session['logged_in'] = True
 
                 return redirect('/')
@@ -191,7 +197,7 @@ def p_new():
     if has_permission('p_new', session['user_id'], session['team_id'], session['role_id']):
         type_list = []
         approval_user_list = db.get_approval_users(session['user_id'])
-        with open(file_path) as file:
+        with open(file_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
             for key, value in data.items():
                 if isinstance(value, dict):
@@ -241,7 +247,7 @@ def p_edit(doc_id):
 
         if doc.creator == session['user_id'] and doc.status == 1:
             type_list = []
-            with open(file_path) as file:
+            with open(file_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
                 for key, value in data.items():
                     if isinstance(value, dict):
@@ -261,7 +267,7 @@ def p_edit(doc_id):
 def p_search():
     if has_permission('p_new', session['user_id'], session['team_id'], session['role_id']):
         type_list = []
-        with open(file_path) as file:
+        with open(file_path, 'r', encoding='utf-8') as file:
             data = json.load(file)
             for key, value in data.items():
                 if isinstance(value, dict):
@@ -325,6 +331,125 @@ def p_delete():
 
         return redirect('/p/list')
 
+# Human Resource
+@app.route('/hr/new', methods=['GET', 'POST'])
+def hr_new_member():
+    if request.method == 'POST':
+        organization_id = request.form.get('organization_id')
+        ssn = request.form.get('ssn')
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        e_mail = request.form.get('e_mail')
+        phone = request.form.get('phone')
+        team_id = check_team_id(organization_id)
+        clock_id = client.get_persons(organization_unit_id=organization_id)
+
+        print(organization_id)
+        print(ssn)
+        print(first_name)
+        print(last_name)
+        print(e_mail)
+        print(phone)
+        print(team_id)
+        print(clock_id)
+        # add_result = hr_new_person_result(pin=clock_id, name=first_name+last_name, og_id=organization_id, ssn=ssn)
+        # while add_result == 0:
+        #     clock_id = int(clock_id) + 1
+        #     add_result = hr_new_person_result(pin=clock_id, name=first_name+last_name, og_id=organization_id, ssn=ssn)
+        #
+        # db.insert_user(clock_id, '123456', first_name, last_name, '3', team_id, phone, e_mail)
+
+        return redirect('/hr/new')
+    return render_template('/utility/hr/hr_new.html')
+
+@app.route('/hr/schedule/<department>', methods=['GET', 'POST'])
+def hr_main(department):
+    if department == 'FD':
+        # Front Desk
+        # 下面補參數
+        return render_template('/hr/schedule')
+    elif department == 'RT':
+        # Restaurant
+        # 下面補參數
+        return render_template('/hr/schedule')
+    elif department == 'HK':
+        # Housekeeping
+        # 下面補參數
+        return render_template('/hr/schedule')
+    elif department == 'AC':
+        # Accountant
+        # 下面補參數
+        return render_template('/hr/schedule')
+
+    return render_template('/hr/schedule')
+
+@app.route('/hr/salary/cal', methods=['GET', 'POST'])
+def hr_salary_cal():
+    if request.method == 'GET':
+
+
+        return redirect('/hr/salary/cal')
+
+@app.route('/hr/salary/ma', methods=['GET', 'POST'])
+def hr_salary_ma():
+    if request.method == 'GET':
+
+
+        return redirect('/hr/salary/ma')
+
+
+@app.route('/hr/clockRecord', methods=['GET', 'POST'])
+def hr_clock_record():
+    return render_template("/utility/hr/hr_clock_record.html")
+
+@app.route('/hr/clockRecordPost', methods=['POST'])
+def hr_clock_record_post():
+    pin = str(session.get('clock_id'))
+    if not pin:
+        return jsonify({"error": "Unauthorized: No PIN provided"}), 401
+
+    if not isinstance(pin, str) or not pin.isdigit():
+        return jsonify({"error": "Invalid PIN format"}), 400
+
+    data = request.get_json()
+
+    start_date = data["Start"]
+    end_date = data["End"]
+
+    if not start_date or not end_date:
+        return jsonify({"error": "Invalid date range"}), 400
+
+    start_date = datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S").date()
+    end_date = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S").date()
+
+    att_logs = client.get_att_logs(pin, start_date, end_date)
+
+    if not att_logs['result']['items']:
+        employee_info = client.get_employee_info(pin)
+
+        if not employee_info:
+            return jsonify({"error": "Employee not found"}), 404
+
+        return jsonify({
+            "result": {
+                "items": [],
+                "date": {
+                    "start": start_date,
+                    "end": end_date},
+                "employee": employee_info
+            }
+        })
+
+    return jsonify({
+        "result": {
+            "items": att_logs,
+            "date": {
+                "start": start_date,
+                "end": end_date
+            }
+        }
+    })
+
 
 @app.route('/set_locale', methods=['POST'])
 def set_locale():
@@ -338,9 +463,9 @@ def test():
     return render_template('practice/practicing.html')
 
 
-def get_agent(requests):
-    platform = requests.user_agent.platform
-    browser = requests.user_agent.browser
+def get_agent(req):
+    platform = req.user_agent.platform
+    browser = req.user_agent.browser
     return f"Platform: {platform}, Browser: {browser}"
 
 
@@ -355,7 +480,7 @@ def update_currency(date):
     for i in rts:
         try:
             a = i.split(',')
-            currency_list.append(currency(date, a[0], a[2], a[12]))
+            currency_list.append(Currency(date, a[0], a[2], a[12]))
         except:
             break
 
@@ -363,11 +488,45 @@ def update_currency(date):
 
 
 def schedule_task():
-    schedule.every().day.at("23:30").do(update_currency())
+    def job():
+        formatted_time = datetime.now().strftime("%Y-%m-%d")
+        update_currency(formatted_time)
+
+    schedule.every().day.at("23:30").do(job)
+
     while True:
         schedule.run_pending()
-        time.sleep(1)
+        time.sleep(60)
 
 
-if __name__ == '__main__':
-    app.run()
+def hr_new_person_result(pin, name, og_id, ssn):
+    try:
+        client.create_person(pin=pin, name=name, organization_unit_id=og_id, ssn=ssn)
+        return 1
+    except Exception as e:
+        print("新增人員資訊時發生錯誤:", e)
+        return 0
+
+
+def check_team_id(team_id):
+    if team_id == 7 or team_id == 12:
+        return 0
+    elif team_id == 8 or team_id == 13:
+        return 1
+    elif team_id == 9 or team_id == 14:
+        return 2
+    elif team_id == 10 or team_id == 15:
+        return 3
+    elif team_id == 16 or team_id == 17:
+        return 4
+    elif team_id == 18 or team_id == 19:
+        return 5
+    else:
+        return 6
+
+
+if __name__ == "__main__":
+    scheduler_thread = threading.Thread(target=schedule_task, daemon=True)
+    scheduler_thread.start()
+
+    app.run(host="0.0.0.0", port=80)

@@ -1,5 +1,5 @@
 from database import get_db_connection
-from database.models import User, Role, Team, Document, app_record
+from database.models import User, Role, Team, Document, AppRecord
 from datetime import datetime
 import bcrypt
 
@@ -57,7 +57,7 @@ def insert_user(username, password, first_name, last_name, role_id, team_id, pho
 def verify_password(username, password):
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
-            query = "SELECT user_id, username, password, role_id, team_id, phone, email, first_name, last_name " \
+            query = "SELECT user_id, username, password, role_id, team_id, phone, email, first_name, last_name, clock_id " \
                     "FROM user " \
                     "WHERE username = %s"
             cursor.execute(query, (username,))
@@ -340,7 +340,8 @@ def get_approval_users(user_id):
                     role_id=row['role_id'],
                     team_id=row['team_id'],
                     role_name=row['role_name'],
-                    team_name=row['team_name']
+                    team_name=row['team_name'],
+                    clock_id=0
                 )
                 pending_users.append(user)
 
@@ -399,7 +400,7 @@ def get_approve_record_all(doc_id):
             records = []
             if result is not []:
                 for row in result:
-                    app_Record = app_record(
+                    app_Record = app_Record(
                         doc_ap_id=row[0],
                         status=row[1],
                         approval_time=row[2],

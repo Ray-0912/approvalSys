@@ -1,0 +1,36 @@
+{% extends 'components/base.html' %}
+{% block title %}HR 班表{% endblock %}
+{% block content %}
+
+<div class="card shadow mb-4">
+    <a href="#schedule" class="d-block card-header py-3" data-toggle="collapse"
+    role="button" aria-expanded="true" aria-controls="schedule">
+        <h5 class="m-0 font-weight-bold text-primary">{{ _('當月工作班表') }}</h5>
+    </a>
+    <div class="collapse show" id="schedule">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>{{ _('日期') }}</th>
+                            <th>{{ _('值班人員') }}</th>
+                            <th>{{ _('班別') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in schedule_data %}
+                        <tr>
+                            <td>{{ row.date }}</td>
+                            <td>{{ row.employee }}</td>
+                            <td>{{ row.shift }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

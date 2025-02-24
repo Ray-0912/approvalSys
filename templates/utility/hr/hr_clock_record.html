@@ -1,0 +1,201 @@
+{% extends 'components/base.html' %}
+{% block title %}Clock Record{% endblock %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="text-center">打卡紀錄查詢</h2>
+
+    <div class="d-flex justify-content-center mb-3">
+        <button id="currentMonthBtn" class="btn btn-secondary" disabled>當月</button>
+        <button id="lastMonthBtn" class="btn btn-primary ml-2">上個月</button>
+        <button id="customDateBtn" class="btn btn-success ml-2">自訂日期</button>
+    </div>
+
+    <!-- 顯示員工資料 -->
+    <div id="employee-info" class="mb-3 text-center">
+        <!-- 員工編號與姓名會顯示在這裡 -->
+    </div>
+
+    <table class="table table-bordered text-center">
+        <thead>
+            <tr>
+                <th>打卡時間</th>
+                <th>驗證方式</th>
+            </tr>
+        </thead>
+        <tbody id="logsTableBody">
+            <tr><td colspan="2">載入中...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- 日期選擇視窗 -->
+<div id="datePickerModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">選擇日期範圍</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label>開始日期：</label>
+                <input type="date" id="startDate" class="form-control mb-2">
+                <label>結束日期：</label>
+                <input type="date" id="endDate" class="form-control mb-2">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" id="confirmDateBtn">確定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block head %}
+{{ super() }}
+<script>
+    $(document).ready(function () {
+        let currentDate = new Date();
+        let startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1); // 當月第一天
+        let endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0); // 當月最後一天
+
+        // 格式化日期為 YYYY-MM-DD 格式
+        let formattedStartDate = startDate.toISOString().split('T')[0];
+        let formattedEndDate = endDate.toISOString().split('T')[0];
+
+        // 設定到日期選擇器
+        $("#startDate").val(formattedStartDate);
+        $("#endDate").val(formattedEndDate);
+
+        fetchAttLogs("currentMonth");
+
+        $("#lastMonthBtn").click(() => fetchAttLogs("lastMonth"));
+
+        $("#customDateBtn").click(() => {
+            $("#datePickerModal").modal("show");
+        });
+
+        $("#confirmDateBtn").click(() => {
+            let startDate = $("#startDate").val();
+            let endDate = $("#endDate").val();
+
+            if (!startDate || !endDate) {
+                alert("請選擇完整的日期範圍");
+                return;
+            }
+
+            fetchAttLogs("custom", startDate, endDate);
+            $("#datePickerModal").modal("hide");
+        });
+    });
+
+    function fetchAttLogs(dateType, startDate = "", endDate = "") {
+        function formatDateForApi(dateStr, isEnd = false) {
+            if (!dateStr) return "";
+            let date = new Date(dateStr);
+            if (isEnd) {
+                date.setHours(23, 59, 59);
+            } else {
+                date.setHours(0, 0, 0);
+            }
+            return date.toISOString().replace("T", " ").split(".")[0];
+        }
+
+        let postData = {
+            page: 1,
+            MaxResultCount: 500,
+            Sort: 0,
+            SN: "",
+            Pin: "",
+            Name: "",
+            SSN: "",
+            OrganizationUnitId: ""
+        };
+
+        if (dateType === "currentMonth") {
+            let now = new Date();
+            postData.Start = formatDateForApi(new Date(now.getFullYear(), now.getMonth(), 1));
+            postData.End = formatDateForApi(new Date(), true);
+        } else if (dateType === "lastMonth") {
+            let now = new Date();
+            postData.Start = formatDateForApi(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+            postData.End = formatDateForApi(new Date(now.getFullYear(), now.getMonth(), 0), true);
+        } else if (startDate && endDate) {
+            postData.Start = formatDateForApi(startDate);
+            postData.End = formatDateForApi(endDate, true);
+        }
+
+        $.ajax({
+            url: "/hr/clockRecordPost",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(postData),
+            success: function (data) {
+                let tableBody = $("#logsTableBody");
+                tableBody.empty();
+
+                if (!data.result || !data.result.items || data.result.items.length === 0) {
+                    let employee = data.result.employee;
+                    let date = data.result.date;
+                    $('#employee-info').html(`
+                        <p style="display: flex; justify-content: space-between;">
+                            Start: ${date.start} ~ <span> End: ${date.end}
+                        </p>
+                        <p style="display: flex; justify-content: space-between;">
+                            Employee ID: ${employee.pin} <span> Name: ${employee.name}</span>
+                        </p>
+                    `);
+                    tableBody.append("<tr><td colspan='2'>無打卡紀錄</td></tr>");
+                    return;
+                }
+
+                if (Array.isArray(data.result.items.result.items)) {
+                    const items = data.result.items.result.items;
+                    const employee = items[0];
+                    let date = data.result.date;
+
+                    $('#employee-info').html(`
+                        <p style="display: flex; justify-content: space-between;">
+                            Start: ${date.start} ~ <span> End: ${date.end}
+                        </p>
+                        <p style="display: flex; justify-content: space-between;">
+                            員工編號: ${employee.pin} <span> 姓名: ${employee.personName}
+                        </p>
+                    `);
+
+                    items.sort((a, b) => new Date(b.attLogTime) - new Date(a.attLogTime));
+
+                    items.forEach(log => {
+                        const logDate = new Date(log.attLogTime);
+                        const today = new Date();
+                        const isToday = logDate.toDateString() === today.toDateString();
+
+                        let row = `
+                            <tr ${isToday ? 'style="font-weight: bold;"' : ''}>
+                                <td>${log.attLogTime}</td>
+                                <td>${log.verifyName}</td>
+                            </tr>
+                        `;
+                        tableBody.append(row);
+                    });
+                } else {
+                    tableBody.append("<tr><td colspan='2'>無打卡紀錄</td></tr>");
+                }
+                updateButtonState(dateType);
+            },
+            error: function (err) {
+                let tableBody = $("#logsTableBody");
+                tableBody.empty();
+                tableBody.append("<tr><td colspan='2'>查無紀錄</td></tr>");
+            }
+        });
+    }
+
+    function updateButtonState(dateType) {
+        $("#currentMonthBtn").prop("disabled", dateType === "currentMonth");
+        $("#lastMonthBtn").prop("disabled", dateType === "lastMonth");
+        $("#customDateBtn").prop("disabled", dateType === "custom");
+    }
+</script>
+{% endblock %}
