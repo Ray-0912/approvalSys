@@ -11,20 +11,45 @@
         <button id="customDateBtn" class="btn btn-success ml-2">自訂日期</button>
     </div>
 
+    {% if all_users %}
+    <div class="d-flex justify-content-center mb-3">
+        <div class="form-group">
+            <label for="employeeSelect">選擇員工 (管理員功能):</label>
+            <select class="form-control" id="employeeSelect">
+                <!-- Current User Default -->
+                <option value="" selected>我的紀錄</option>
+                {% for user in all_users %}
+                <option value="{{ user.clock_id }}">{{ user.department }} - {{ user.first_name }} {{ user.last_name }}
+                    ({{ user.username }})</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-center mb-3">
+        <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="summarySwitch">
+            <label class="custom-control-label" for="summarySwitch">顯示每日統計 (Daily Summary)</label>
+        </div>
+    </div>
+
     <!-- 顯示員工資料 -->
     <div id="employee-info" class="mb-3 text-center">
         <!-- 員工編號與姓名會顯示在這裡 -->
     </div>
 
-    <table class="table table-bordered text-center">
-        <thead>
+    <table class="table table-bordered text-center" id="resultTable">
+        <thead id="tableHead">
             <tr>
                 <th>打卡時間</th>
                 <th>驗證方式</th>
             </tr>
         </thead>
         <tbody id="logsTableBody">
-            <tr><td colspan="2">載入中...</td></tr>
+            <tr>
+                <td colspan="2">載入中...</td>
+            </tr>
         </tbody>
     </table>
 </div>
@@ -55,6 +80,12 @@
 {% block head %}
 {{ super() }}
 <script>
+    let currentFetchParams = {
+        dateType: "currentMonth",
+        startDate: "",
+        endDate: ""
+    };
+
     $(document).ready(function () {
         let currentDate = new Date();
         let startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1); // 當月第一天
@@ -68,9 +99,11 @@
         $("#startDate").val(formattedStartDate);
         $("#endDate").val(formattedEndDate);
 
+        // Initial Fetch
         fetchAttLogs("currentMonth");
 
         $("#lastMonthBtn").click(() => fetchAttLogs("lastMonth"));
+        $("#currentMonthBtn").click(() => fetchAttLogs("currentMonth"));
 
         $("#customDateBtn").click(() => {
             $("#datePickerModal").modal("show");
@@ -88,9 +121,28 @@
             fetchAttLogs("custom", startDate, endDate);
             $("#datePickerModal").modal("hide");
         });
+
+        // Refresh when selector changes
+        $("#employeeSelect").change(() => {
+            fetchAttLogs(currentFetchParams.dateType, currentFetchParams.startDate, currentFetchParams.endDate);
+        });
+
+        // Refresh when switch changes
+        $("#summarySwitch").change(() => {
+            renderTable(lastFetchedData);
+        });
     });
 
+    let lastFetchedData = null;
+
     function fetchAttLogs(dateType, startDate = "", endDate = "") {
+        // Update current params
+        currentFetchParams.dateType = dateType;
+        currentFetchParams.startDate = startDate;
+        currentFetchParams.endDate = endDate;
+
+        updateButtonState(dateType);
+
         function formatDateForApi(dateStr, isEnd = false) {
             if (!dateStr) return "";
             let date = new Date(dateStr);
@@ -113,6 +165,12 @@
             OrganizationUnitId: ""
         };
 
+        // Target PIN
+        let targetPin = $("#employeeSelect").val();
+        if (targetPin) {
+            postData.target_pin = targetPin;
+        }
+
         if (dateType === "currentMonth") {
             let now = new Date();
             postData.Start = formatDateForApi(new Date(now.getFullYear(), now.getMonth(), 1));
@@ -126,70 +184,133 @@
             postData.End = formatDateForApi(endDate, true);
         }
 
+        $("#logsTableBody").html("<tr><td colspan='5'>載入中...</td></tr>");
+
         $.ajax({
             url: "/hr/clockRecordPost",
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify(postData),
             success: function (data) {
-                let tableBody = $("#logsTableBody");
-                tableBody.empty();
-
-                if (!data.result || !data.result.items || data.result.items.length === 0) {
-                    let employee = data.result.employee;
-                    let date = data.result.date;
-                    $('#employee-info').html(`
-                        <p style="display: flex; justify-content: space-between;">
-                            Start: ${date.start} ~ <span> End: ${date.end}
-                        </p>
-                        <p style="display: flex; justify-content: space-between;">
-                            Employee ID: ${employee.pin} <span> Name: ${employee.name}</span>
-                        </p>
-                    `);
-                    tableBody.append("<tr><td colspan='2'>無打卡紀錄</td></tr>");
-                    return;
-                }
-
-                if (Array.isArray(data.result.items.result.items)) {
-                    const items = data.result.items.result.items;
-                    const employee = items[0];
-                    let date = data.result.date;
-
-                    $('#employee-info').html(`
-                        <p style="display: flex; justify-content: space-between;">
-                            Start: ${date.start} ~ <span> End: ${date.end}
-                        </p>
-                        <p style="display: flex; justify-content: space-between;">
-                            員工編號: ${employee.pin} <span> 姓名: ${employee.personName}
-                        </p>
-                    `);
-
-                    items.sort((a, b) => new Date(b.attLogTime) - new Date(a.attLogTime));
-
-                    items.forEach(log => {
-                        const logDate = new Date(log.attLogTime);
-                        const today = new Date();
-                        const isToday = logDate.toDateString() === today.toDateString();
-
-                        let row = `
-                            <tr ${isToday ? 'style="font-weight: bold;"' : ''}>
-                                <td>${log.attLogTime}</td>
-                                <td>${log.verifyName}</td>
-                            </tr>
-                        `;
-                        tableBody.append(row);
-                    });
-                } else {
-                    tableBody.append("<tr><td colspan='2'>無打卡紀錄</td></tr>");
-                }
-                updateButtonState(dateType);
+                lastFetchedData = data;
+                renderTable(data);
             },
             error: function (err) {
                 let tableBody = $("#logsTableBody");
                 tableBody.empty();
-                tableBody.append("<tr><td colspan='2'>查無紀錄</td></tr>");
+                tableBody.append("<tr><td colspan='2'>查無紀錄或權限不足</td></tr>");
             }
         });
+    }
+
+    function renderTable(data) {
+        if (!data) return;
+
+        let tableBody = $("#logsTableBody");
+        let tableHead = $("#tableHead");
+        tableBody.empty();
+        tableHead.empty();
+
+        let isSummary = $("#summarySwitch").is(":checked");
+
+        if (!data.result || !data.result.items) {
+            tableBody.append("<tr><td colspan='5'>無資料</td></tr>");
+            return;
+        }
+
+        let employee = data.result.employee;
+
+        // Safe check for employee name
+        let empName = employee ? employee.name : (employee ? employee.personName : "Unknown");
+        let empPin = employee ? employee.pin : "Unknown";
+
+        let date = data.result.date;
+        $('#employee-info').html(`
+            <p style="display: flex; justify-content: space-between;">
+                Start: ${date.start} ~ <span> End: ${date.end}
+            </p>
+            <p style="display: flex; justify-content: space-between;">
+                員工編號: ${empPin} <span> 姓名: ${empName}</span>
+            </p>
+        `);
+
+        if (isSummary) {
+            // Render Summary
+            tableHead.html(`
+                <tr>
+                    <th>日期</th>
+                    <th>上班 (Start)</th>
+                    <th>下班 (End)</th>
+                    <th>工時 (Duration)</th>
+                    <th>狀態</th>
+                </tr>
+            `);
+
+            let summaryItems = data.result.items.summary;
+            if (!summaryItems || summaryItems.length === 0) {
+                tableBody.append("<tr><td colspan='5'>無打卡紀錄</td></tr>");
+                return;
+            }
+
+            summaryItems.forEach(item => {
+                let statusColor = "text-success";
+                if (item.status === "Late") statusColor = "text-danger";
+
+                let row = `
+                    <tr>
+                        <td>${item.date}</td>
+                        <td>${item.start}</td>
+                        <td>${item.end}</td>
+                        <td>${item.duration}</td>
+                        <td class="${statusColor}">${item.status}</td>
+                    </tr>
+                `;
+                tableBody.append(row);
+            });
+
+        } else {
+            // Render Raw Logs
+            tableHead.html(`
+                <tr>
+                    <th>打卡時間</th>
+                    <th>驗證方式</th>
+                </tr>
+            `);
+
+            let rawItems = data.result.items.result ? data.result.items.result.items : [];
+            // Handle if structure is slightly different or flatten
+            if (!rawItems && Array.isArray(data.result.items)) {
+                // Determine if data.result.items is the array itself or inside result
+                // Based on main.py: att_logs = client.get_att_logs(...)
+                // att_logs has 'summary' key added.
+                // checking logic..
+            }
+            // Actually in main.py: items = att_logs.
+            // client.get_att_logs structure: { result: { items: [...] } }
+            // So data.result.items IS that dict.
+            // So raw logs are in data.result.items.result.items
+
+            if (rawItems && rawItems.length > 0) {
+                // Sort just in case, though backend might have sorted, user might want desc
+                rawItems.sort((a, b) => new Date(b.attLogTime) - new Date(a.attLogTime));
+
+                rawItems.forEach(log => {
+                    const logDate = new Date(log.attLogTime);
+                    const today = new Date();
+                    const isToday = logDate.toDateString() === today.toDateString();
+
+                    let row = `
+                        <tr ${isToday ? 'style="font-weight: bold;"' : ''}>
+                            <td>${log.attLogTime.replace("T", " ")}</td>
+                            <td>${log.verifyName}</td>
+                        </tr>
+                    `;
+                    tableBody.append(row);
+                });
+            } else {
+                tableBody.append("<tr><td colspan='2'>無打卡紀錄</td></tr>");
+            }
+        }
     }
 
     function updateButtonState(dateType) {

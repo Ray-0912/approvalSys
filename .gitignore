@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+venv/
+approval_system/
+.env
+.idea/
+.pytest_cache/
+output/

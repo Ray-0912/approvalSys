@@ -45,14 +45,32 @@ def insert_user(username, password, first_name, last_name, role_id, team_id, pho
 
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-            query = "INSERT INTO user (username, password, first_name, last_name, role_id, team_id, phone, email) " \
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+            query = "INSERT INTO user (username, password, first_name, last_name, role_id, team_id, phone, email, activation) " \
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 1)"
             cursor.execute(query, (username, hashed_password.decode('utf-8'), first_name, last_name, role_id,
                                    team_id, phone, email))
             connection.commit()
 
+
+            connection.commit()
+
     return True
 
+
+def import_user(username, password, first_name, last_name, role_id, team_id, phone, email, clock_id):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            if check_existing_username(username):
+                return False
+
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+            query = "INSERT INTO user (username, password, first_name, last_name, role_id, team_id, phone, email, clock_id, activation) " \
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 1)"
+            cursor.execute(query, (username, hashed_password.decode('utf-8'), first_name, last_name, role_id,
+                                   team_id, phone, email, clock_id))
+            connection.commit()
+    return True
 
 def verify_password(username, password):
     with get_db_connection() as connection:
@@ -120,11 +138,13 @@ def get_single_email_from_user_id(user_id):
 def get_30days_doc(creator=None):
     with get_db_connection() as connection:
         with connection.cursor(dictionary=True) as cursor:
-            query = "SELECT * FROM documents_data " \
-                    "WHERE (create_time > CURDATE() - INTERVAL 30 DAY)"
+            query = "SELECT * FROM documents_data WHERE (create_time > CURDATE() - INTERVAL 30 DAY)"
+            params = []
             if creator is not None:
-                query = query + " AND creator = " + str(creator)
-            cursor.execute(query)
+                query += " AND creator = %s"
+                params.append(creator)
+            
+            cursor.execute(query, tuple(params))
             result = cursor.fetchall()
 
             pending_documents = []
@@ -151,13 +171,20 @@ def get_in_search_doc(created_time, p_type, content):
     with get_db_connection() as connection:
         with connection.cursor(dictionary=True) as cursor:
             start_time, end_time = format_date_for_sql(created_time)
-            query = "SELECT * FROM documents_data " \
-                    "WHERE (create_time >= '" + start_time + "' AND create_time <= '" + end_time + "')"
+            query = "SELECT * FROM documents_data WHERE (create_time >= %s AND create_time <= %s)"
+            params = [start_time, end_time]
+            
             if p_type is not None:
-                query = query + " AND type = " + p_type
+                query += " AND type = %s"
+                params.append(p_type)
+            
             if content != '':
-                query = query + " MATCH(title, content) AGAINST('" + content + "')"
-            cursor.execute(query)
+                # Using parameter for MATCH AGAINST is tricky in some drivers, but standard %s works in most for string literals.
+                # However, full text search MATCH(title, content) AGAINST (%s) should work.
+                query += " AND MATCH(title, content) AGAINST(%s)"
+                params.append(content)
+                
+            cursor.execute(query, tuple(params))
             result = cursor.fetchall()
 
             pending_documents = []
@@ -411,3 +438,76 @@ def get_approve_record_all(doc_id):
                 return records
             else:
                 return None
+
+
+def get_all_users_with_clock_id():
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            query = "SELECT user_id, username, first_name, last_name, clock_id, team_id FROM user WHERE clock_id IS NOT NULL AND clock_id != '' ORDER BY team_id ASC"
+            cursor.execute(query)
+            result = cursor.fetchall()
+            return result
+
+
+# Schedule Management
+def get_shift_types(only_active=True):
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            query = "SELECT * FROM shift_type"
+            if only_active:
+                query += " WHERE is_active = 1"
+            cursor.execute(query)
+            return cursor.fetchall()
+
+def save_shift_type(name, start_time, end_time, color, shift_id=None, is_active=True):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            if shift_id:
+                query = "UPDATE shift_type SET name=%s, start_time=%s, end_time=%s, color=%s, is_active=%s WHERE id=%s"
+                cursor.execute(query, (name, start_time, end_time, color, is_active, shift_id))
+            else:
+                query = "INSERT INTO shift_type (name, start_time, end_time, color, is_active) VALUES (%s, %s, %s, %s, %s)"
+                cursor.execute(query, (name, start_time, end_time, color, is_active))
+            connection.commit()
+            return True
+
+def get_schedules(start_date, end_date):
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            query = """
+                SELECT s.*, u.first_name, u.last_name, st.name as shift_name, st.color as shift_color, st.start_time, st.end_time 
+                FROM schedule s
+                JOIN user u ON s.user_id = u.user_id
+                JOIN shift_type st ON s.shift_type_id = st.id
+                WHERE s.date >= %s AND s.date <= %s
+            """
+            cursor.execute(query, (start_date, end_date))
+            return cursor.fetchall()
+
+def save_schedule(user_id, date, shift_type_id, creator_id):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            # Check if exists
+            check_query = "SELECT id FROM schedule WHERE user_id=%s AND date=%s"
+            cursor.execute(check_query, (user_id, date))
+            result = cursor.fetchone()
+            
+            if result:
+                # Update
+                query = "UPDATE schedule SET shift_type_id=%s, created_by=%s WHERE id=%s"
+                cursor.execute(query, (shift_type_id, creator_id, result[0]))
+            else:
+                # Insert
+                query = "INSERT INTO schedule (user_id, date, shift_type_id, created_by) VALUES (%s, %s, %s, %s)"
+                cursor.execute(query, (user_id, date, shift_type_id, creator_id))
+            
+            connection.commit()
+            return True
+
+def delete_schedule(user_id, date):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            query = "DELETE FROM schedule WHERE user_id=%s AND date=%s"
+            cursor.execute(query, (user_id, date))
+            connection.commit()
+            return True

@@ -1,6 +1,13 @@
 {% extends 'components/base.html' %}
 {% block title %}新增人員{% endblock %}
 {% block content %}
+<style>
+    #previewModal .modal-content {
+        padding-left: 15px;
+        padding-right: 15px;
+        padding-bottom: 20px;
+    }
+</style>
 
 <h2 class="text-primary mb-4">新增人員</h2>
 <div class="row">
@@ -19,10 +26,12 @@
 
                     <label class="form-label mt-3">選擇部門：</label>
                     <select id="department" name="department" class="form-select">
-                        <option value="hr">人事部</option>
-                        <option value="it">資訊部</option>
-                        <option value="marketing">行銷部</option>
-                        <option value="finance">財務部</option>
+                        <option value="manage">管理部</option>
+                        <option value="front">櫃台部</option>
+                        <option value="housekeeping">房務部</option>
+                        <option value="marketing">業務部</option>
+                        <option value="finance">會計部</option>
+                        <option value="restaurant">餐飲部</option>
                     </select>
 
                     <div class="col mt-4 mb-2">
@@ -50,44 +59,90 @@
                       <input type="text" id="phone" name="phone" class="form-control">
                     </div>
 
-                    <button id="previewBtn" class="btn btn-primary mt-4">預覽</button>
+                    <button type="button" id="previewBtn" class="btn btn-primary mt-4">預覽</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 預覽 Modal -->
-<div id="overlay" class="overlay" style="display:none;"></div>
-<div id="previewModal" class="modal" style="display:none;">
-    <div class="modal-content">
-        <h5>請確認輸入資訊</h5>
-        <div id="previewContent"></div>
-        <input type="text" id="verifyCode" placeholder="請輸入驗證碼" class="form-control mt-2">
-        <button id="confirmBtn" class="btn btn-success mt-2">確認送出</button>
-        <button onclick="closeModal()" class="btn btn-secondary mt-2">關閉</button>
+<!-- 預覽內容 Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-labelledby="previewLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document"> <!-- 可視需要調整 modal-lg/sm -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewLabel">預覽內容</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body" id="previewContent">
+            <!-- JavaScript 會把預覽內容塞進這裡 -->
+            </div>
+            <input type="text" id="verifyCode" placeholder="請輸入驗證碼" class="form-control mt-2">
+
+            <button id="confirmBtn" class="btn btn-success mt-2" disabled>確認送出</button>
+            <button onclick="closeModal()" class="btn btn-secondary mt-2">關閉</button>
+        </div>
     </div>
 </div>
 
+
 <script>
-document.getElementById('previewBtn').addEventListener('click', function() {
-  const firstName = document.getElementById('first_name').value;
-  const lastName = document.getElementById('last_name').value;
-  if (!firstName || !lastName) {
-    alert('姓氏和名稱為必填項目！');
-    return;
-  }
+const fieldLabels = {
+    organization: '選擇組織',
+    department: '選擇部門',
+    first_name: '姓氏',
+    last_name: '名稱',
+    ssn: '身分證字號',
+    e_mail: 'Email',
+    phone: '電話號碼'
+};
 
-  const formData = new FormData(document.getElementById('hrForm'));
-  let content = '';
-  formData.forEach((value, key) => {
-    content += `<p><strong>${key}:</strong> ${value}</p>`;
-  });
+const organizationOptions = {
+    new_garden: '新苑庭園',
+    new_dev: '新苑開發'
+};
 
-  document.getElementById('previewContent').innerHTML = content;
-  document.getElementById('overlay').style.display = 'block';
-  document.getElementById('previewModal').style.display = 'block';
+const departmentOptions = {
+    manage: '管理部',
+    front: '櫃台部',
+    housekeeping: '房務部',
+    marketing: '業務部',
+    finance: '會計部',
+    restaurant: '餐飲部'
+};
+
+document.getElementById('previewBtn').addEventListener('click', function () {
+    const firstName = document.getElementById('first_name').value;
+    const lastName = document.getElementById('last_name').value;
+
+    if (!firstName || !lastName) {
+        alert('姓氏和名稱為必填項目！');
+        return;
+    }
+
+    const formData = new FormData(document.getElementById('hrForm'));
+    let content = '';
+    formData.forEach((value, key) => {
+        let label = fieldLabels[key] || key;
+        let displayValue = value;
+
+        if (key === 'organization') {
+            displayValue = organizationOptions[value] || value;
+        } else if (key === 'department') {
+            displayValue = departmentOptions[value] || value;
+        }
+
+        content += `<p><strong>${label}：</strong> ${displayValue}</p>`;
+    });
+
+    document.getElementById('previewContent').innerHTML = content;
+    $('#previewModal').modal('show');
 });
+
+
 
 document.getElementById('verifyCode').addEventListener('input', function() {
   const code = document.getElementById('verifyCode').value;

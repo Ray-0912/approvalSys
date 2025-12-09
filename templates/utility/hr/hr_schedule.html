@@ -1,36 +1,543 @@
 {% extends 'components/base.html' %}
-{% block title %}HR 班表{% endblock %}
+{% block title %}HR Schedule{% endblock %}
 {% block content %}
 
-<div class="card shadow mb-4">
-    <a href="#schedule" class="d-block card-header py-3" data-toggle="collapse"
-    role="button" aria-expanded="true" aria-controls="schedule">
-        <h5 class="m-0 font-weight-bold text-primary">{{ _('當月工作班表') }}</h5>
-    </a>
-    <div class="collapse show" id="schedule">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>{{ _('日期') }}</th>
-                            <th>{{ _('值班人員') }}</th>
-                            <th>{{ _('班別') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in schedule_data %}
-                        <tr>
-                            <td>{{ row.date }}</td>
-                            <td>{{ row.employee }}</td>
-                            <td>{{ row.shift }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+<style>
+    .schedule-container {
+        display: flex;
+        height: calc(100vh - 150px);
+    }
+
+    .sidebar {
+        width: 250px;
+        background: #f8f9fa;
+        border-right: 1px solid #ddd;
+        padding: 15px;
+        overflow-y: auto;
+    }
+
+    .main-calendar {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+    }
+
+    .calendar-header {
+        font-weight: bold;
+        text-align: center;
+        padding: 10px;
+        background: #eee;
+    }
+
+    .calendar-cell {
+        border: 1px solid #ddd;
+        min-height: 120px;
+        padding: 5px;
+        position: relative;
+    }
+
+    .calendar-cell.other-month {
+        background: #fdfdfd;
+        color: #ccc;
+    }
+
+    .day-number {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .shift-slot {
+        background: #fff;
+        border: 1px dashed #ccc;
+        margin-bottom: 2px;
+        padding: 2px;
+        min-height: 25px;
+        font-size: 0.85em;
+        cursor: pointer;
+    }
+
+    .shift-slot:hover {
+        background: #f0f0f0;
+    }
+
+    .employee-card {
+        background: #fff;
+        border: 1px solid #007bff;
+        border-radius: 4px;
+        padding: 5px;
+        margin-bottom: 5px;
+        cursor: grab;
+        font-size: 0.9em;
+    }
+
+    .employee-card:active {
+        cursor: grabbing;
+    }
+
+    .shift-item {
+        color: white;
+        padding: 2px 5px;
+        border-radius: 3px;
+        margin-bottom: 2px;
+        font-size: 0.8em;
+        display: flex;
+        justify-content: space-between;
+        cursor: grab;
+    }
+
+    .shift-palette-item {
+        padding: 5px;
+        margin-bottom: 5px;
+        border-radius: 4px;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    @media print {
+
+        .sidebar,
+        .no-print {
+            display: none !important;
+        }
+
+        .schedule-container {
+            height: auto;
+            display: block;
+        }
+
+        .calendar-cell {
+            page-break-inside: avoid;
+        }
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+    <div>
+        <button class="btn btn-secondary" id="prevMonthBtn">&lt;</button>
+        <span id="currentMonthLabel" class="h4 mx-3"></span>
+        <button class="btn btn-secondary" id="nextMonthBtn">&gt;</button>
+    </div>
+    <div>
+        <button class="btn btn-info" onclick="window.print()">Print</button>
+        {% if session.get('role_id') in [0, 1] %}
+        <button class="btn btn-primary" data-toggle="modal" data-target="#shiftTypeModal">Manage Shift Types</button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="schedule-container">
+    {% if session.get('role_id') in [0, 1] %}
+    <div class="sidebar no-print">
+        <h5>Employees</h5>
+        <div class="input-group mb-2">
+            <input type="text" class="form-control" id="empSearch" placeholder="Search...">
+        </div>
+        <div id="employeePalette">
+            <!-- Employees loaded via JS -->
+        </div>
+
+        <hr>
+        <h5>Shift Types (Filter)</h5>
+        <div id="shiftPalette">
+            <!-- Shift Types loaded via JS -->
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="main-calendar">
+        <div class="calendar-grid" id="calendarGrid">
+            <!-- Calendar loaded via JS -->
+        </div>
+
+        {% if session.get('role_id') in [0, 1] %}
+        <div class="mt-4 no-print">
+            <h5>Statistics (This View)</h5>
+            <table class="table table-sm table-bordered">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Days Worked</th>
+                        <th>Total Hours</th>
+                        <th>Morning</th>
+                        <th>Night</th>
+                        <th>Big Night</th>
+                    </tr>
+                </thead>
+                <tbody id="statsTableBody">
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Shift Type Modal -->
+<div class="modal fade" id="shiftTypeModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Shift Types</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="shiftTypeForm">
+                    <input type="hidden" id="shiftId">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" class="form-control" id="shiftName" required>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col">
+                            <label>Start Time</label>
+                            <input type="time" class="form-control" id="shiftStart" required>
+                        </div>
+                        <div class="col">
+                            <label>End Time</label>
+                            <input type="time" class="form-control" id="shiftEnd" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Color</label>
+                        <input type="color" class="form-control" id="shiftColor" value="#007bff">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="saveShiftTypeBtn">Save</button>
             </div>
         </div>
     </div>
 </div>
 
+{% endblock %}
+{% block head %}
+{{ super() }}
+<script>
+    let currentDate = new Date();
+    let employees = [];
+    let shiftTypes = [];
+    let schedules = [];
+
+    // Config
+    const isManager = {{ 'true' if session.get('role_id') in [0, 1] else 'false' }};
+
+    $(document).ready(function () {
+        renderCalendarHeader();
+        fetchScheduleData();
+
+        $("#prevMonthBtn").click(() => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendarHeader();
+            fetchScheduleData();
+        });
+
+        $("#nextMonthBtn").click(() => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendarHeader();
+            fetchScheduleData();
+        });
+
+        $("#empSearch").on("keyup", function () {
+            renderEmployeePalette($(this).val());
+        });
+
+        $("#saveShiftTypeBtn").click(saveShiftType);
+    });
+
+    function renderCalendarHeader() {
+        const monthNames = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+        $("#currentMonthLabel").text(`${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`);
+    }
+
+    function fetchScheduleData() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        // Get first day of month
+        const firstDay = new Date(year, month, 1);
+        // Get last day of month
+        const lastDay = new Date(year, month + 1, 0);
+
+        // Adjust for calendar grid (start from Sunday)
+        const startOffset = firstDay.getDay();
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - startOffset);
+
+        const endOffset = 6 - lastDay.getDay();
+        const endDate = new Date(lastDay);
+        endDate.setDate(endDate.getDate() + endOffset);
+
+        $.ajax({
+            url: "/hr/schedule/list",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                start_date: startDate.toISOString().split('T')[0],
+                end_date: endDate.toISOString().split('T')[0]
+            }),
+            success: function (data) {
+                employees = data.employees || [];
+                shiftTypes = data.shift_types || [];
+                schedules = data.schedules || [];
+
+                renderEmployeePalette();
+                renderShiftPalette();
+                renderCalendar(startDate, endDate);
+                if (isManager) calculateStats();
+            }
+        });
+    }
+
+    function renderEmployeePalette(filter = "") {
+        if (!isManager) return;
+        const container = $("#employeePalette");
+        container.empty();
+
+        employees.filter(e => {
+            const fullName = `${e.first_name} ${e.last_name} ${e.username}`.toLowerCase();
+            return fullName.includes(filter.toLowerCase());
+        }).forEach(emp => {
+            const card = $(`<div class="employee-card" draggable="true" data-user-id="${emp.user_id}">
+                ${emp.first_name} ${emp.last_name}
+            </div>`);
+
+            card.on("dragstart", function (e) {
+                e.originalEvent.dataTransfer.setData("text/plain", JSON.stringify({
+                    type: "new_assignment",
+                    userId: emp.user_id
+                }));
+            });
+
+            container.append(card);
+        });
+    }
+
+    function renderShiftPalette() {
+        // Just for info/Edit
+        if (!isManager) return;
+        const container = $("#shiftPalette");
+        container.empty();
+
+        shiftTypes.forEach(st => {
+            const item = $(`<div class="shift-palette-item" style="background-color: ${st.color}">
+                <span>${st.name} (${st.start_time.slice(0, 5)}-${st.end_time.slice(0, 5)})</span>
+                <i class="fas fa-edit ml-2" style="font-size: 0.8em"></i>
+             </div>`);
+            item.find('i').click(() => openShiftModal(st));
+            container.append(item);
+        });
+
+        // Add New Button
+        container.append(`<button class="btn btn-sm btn-outline-primary w-100 mt-2" onclick="openShiftModal()">+ Add Type</button>`);
+    }
+
+    function renderCalendar(startDate, endDate) {
+        const grid = $("#calendarGrid");
+        grid.empty();
+
+        // Headers
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        days.forEach(d => grid.append(`<div class="calendar-header">${d}</div>`));
+
+        let loopDate = new Date(startDate);
+        while (loopDate <= endDate) {
+            const dateStr = loopDate.toISOString().split('T')[0];
+            const isCurrentMonth = loopDate.getMonth() === currentDate.getMonth();
+            const cell = $(`<div class="calendar-cell ${isCurrentMonth ? '' : 'other-month'}" data-date="${dateStr}">
+                <div class="day-number">${loopDate.getDate()}</div>
+            </div>`);
+
+            // Allow Drop on Day
+            if (isManager) {
+                cell.on("dragover", e => e.preventDefault()); // Allow drop
+                cell.on("drop", handleDrop);
+            }
+
+            // Render Assignments
+            const daySchedules = schedules.filter(s => s.date === dateStr);
+            daySchedules.forEach(sch => {
+                const shiftColor = sch.shift_color || '#ccc';
+                const item = $(`<div class="shift-item" style="background-color: ${shiftColor}" draggable="${isManager}" data-user-id="${sch.user_id}" data-date="${sch.date}" data-shift-id="${sch.shift_type_id}">
+                    <span>${sch.first_name} ${sch.last_name} - ${sch.shift_name}</span>
+                    ${isManager ? '<span class="remove-shift">&times;</span>' : ''}
+                </div>`);
+
+                if (isManager) {
+                    item.on("dragstart", function (e) {
+                        e.originalEvent.dataTransfer.setData("text/plain", JSON.stringify({
+                            type: "move_assignment",
+                            userId: sch.user_id,
+                            oldDate: sch.date
+                        }));
+                    });
+
+                    item.find('.remove-shift').click((e) => {
+                        e.stopPropagation();
+                        if (confirm("Remove shift?")) {
+                            updateSchedule(sch.user_id, sch.date, null);
+                        }
+                    });
+                }
+
+                cell.append(item);
+            });
+
+            grid.append(cell);
+
+            // Next day
+            loopDate.setDate(loopDate.getDate() + 1);
+        }
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        const dataStr = e.originalEvent.dataTransfer.getData("text/plain");
+        if (!dataStr) return;
+
+        const data = JSON.parse(dataStr);
+        const targetDate = $(this).attr("data-date");
+        const targetCell = $(this);
+
+        // We need to know WHICH shift type to assign.
+        // For simplicity, let's auto-assign "Morning" (or first available) OR prompt user?
+        // Better UX: Show a small context menu or just Default to first active shift, then user can click to change?
+        // Let's implement: Drop -> Defaults to "Morning" (ID 1 usually) or find first one. User can then move it?
+        // Or simpler: Dragging employee creates a generic slot, then prompt?
+
+        // Let's assume Shift ID 1 is default for now, or find first one.
+        let defaultShift = shiftTypes[0] ? shiftTypes[0].id : null;
+        if (!defaultShift) { alert("Please create a shift type first."); return; }
+
+        if (data.type === "new_assignment") {
+            updateSchedule(data.userId, targetDate, defaultShift);
+        } else if (data.type === "move_assignment") {
+            // Move: Delete old, create new
+            // Ideally atomic, but here 2 steps or backend handles 'move' logic if we send distinct endpoint.
+            // Actually, `hr_schedule_save` updates if exists.
+            // But user_id + date is unique key. So moving to same date = no op. Moving to new date = delete old, insert new.
+            if (data.oldDate !== targetDate) {
+                // Remove old
+                $.ajax({
+                    url: "/hr/schedule/save", type: "POST", contentType: "application/json",
+                    data: JSON.stringify({ user_id: data.userId, date: data.oldDate, shift_type_id: null }),
+                    success: () => {
+                        // Add new
+                        updateSchedule(data.userId, targetDate, defaultShift);
+                    }
+                });
+            }
+        }
+    }
+
+    function updateSchedule(userId, date, shiftTypeId) {
+        $.ajax({
+            url: "/hr/schedule/save",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                user_id: userId,
+                date: date,
+                shift_type_id: shiftTypeId
+            }),
+            success: function (res) {
+                if (res.success) fetchScheduleData();
+                else alert("Error saving schedule");
+            }
+        });
+    }
+
+    // Modal & Shift Management
+    function openShiftModal(shift = null) {
+        if (shift) {
+            $("#shiftId").val(shift.id);
+            $("#shiftName").val(shift.name);
+            $("#shiftStart").val(shift.start_time);
+            $("#shiftEnd").val(shift.end_time);
+            $("#shiftColor").val(shift.color);
+        } else {
+            $("#shiftId").val("");
+            $("#shiftForm")[0].reset();
+        }
+        $("#shiftTypeModal").modal("show");
+    }
+
+    function saveShiftType() {
+        const payload = {
+            id: $("#shiftId").val(),
+            name: $("#shiftName").val(),
+            start_time: $("#shiftStart").val(),
+            end_time: $("#shiftEnd").val(),
+            color: $("#shiftColor").val()
+        };
+
+        $.ajax({
+            url: "/hr/shift/save",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(payload),
+            success: function () {
+                $("#shiftTypeModal").modal("hide");
+                fetchScheduleData();
+            }
+        });
+    }
+
+    function calculateStats() {
+        const stats = {};
+
+        // Only count schedules in current view
+        schedules.forEach(s => {
+            const uid = s.user_id;
+            if (!stats[uid]) {
+                stats[uid] = {
+                    name: `${s.first_name} ${s.last_name}`,
+                    days: 0,
+                    hours: 0,
+                    morning: 0,
+                    night: 0,
+                    bigNight: 0
+                };
+            }
+
+            stats[uid].days++;
+
+            // Calculate hours
+            const start = new Date(`1970-01-01T${s.start_time}`);
+            const end = new Date(`1970-01-01T${s.end_time}`);
+            let diff = (end - start) / 1000 / 3600; // hours
+            if (diff < 0) diff += 24; // Cross midnight
+            stats[uid].hours += diff;
+
+            // Shift counts (simple name match or ID check)
+            const sName = s.shift_name.toLowerCase();
+            if (sName.includes("morning")) stats[uid].morning++;
+            else if (sName.includes("big")) stats[uid].bigNight++;
+            else if (sName.includes("night")) stats[uid].night++;
+        });
+
+        const tbody = $("#statsTableBody");
+        tbody.empty();
+        Object.values(stats).forEach(st => {
+            tbody.append(`<tr>
+                <td>${st.name}</td>
+                <td>${st.days}</td>
+                <td>${st.hours.toFixed(1)}</td>
+                <td>${st.morning}</td>
+                <td>${st.night}</td>
+                <td>${st.bigNight}</td>
+            </tr>`);
+        });
+    }
+
+</script>
 {% endblock %}

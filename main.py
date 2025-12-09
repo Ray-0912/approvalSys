@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request, redirect, url_for, session, flash, abort
+from flask import Flask, jsonify, render_template, request, redirect, url_for, session, flash, abort, send_from_directory
 from functions.permission import has_permission
 from datetime import timedelta, datetime
 from flask_babel import Babel
@@ -6,16 +6,20 @@ from database.models import Currency
 from database.CI_API_Client import APIClient
 import database.queries as db
 import functions.email as email
+import functions.human_resource as hr
 import threading
 import requests
 import time
 import schedule
 import json
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 file_path = os.path.join(os.getcwd(), 'static', 'js', 'p_type_data.json')
 app = Flask(__name__, template_folder='templates')
-app.secret_key = 'a3af8aea6ef1c50418b8a1b485ab6582'
+app.secret_key = os.getenv('SECRET_KEY', 'a3af8aea6ef1c50418b8a1b485ab6582')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 app.config['BABEL_DEFAULT_LOCALE'] = 'zh_TW'
 app.config['BABEL_DEFAULT_TIMEZONE'] = 'UTC'
@@ -335,23 +339,24 @@ def p_delete():
 @app.route('/hr/new', methods=['GET', 'POST'])
 def hr_new_member():
     if request.method == 'POST':
-        organization_id = request.form.get('organization_id')
+        organization_id = hr.check_organization_id(request.form.get('organization'), request.form.get('department'))
         ssn = request.form.get('ssn')
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
         e_mail = request.form.get('e_mail')
         phone = request.form.get('phone')
-        team_id = check_team_id(organization_id)
-        clock_id = client.get_persons(organization_unit_id=organization_id)
+        team_id = hr.check_team_id(organization_id)
+        clock_id = client.get_latest_person_pin(organization_unit_id=organization_id)
 
-        print(organization_id)
-        print(ssn)
-        print(first_name)
-        print(last_name)
-        print(e_mail)
-        print(phone)
-        print(team_id)
-        print(clock_id)
+        print("123  ", request.form.get('organization'))
+        print("og id : " , organization_id)
+        print("ssn : " , ssn)
+        print("firstname : " , first_name)
+        print("lastname : " , last_name)
+        print("mail : " , e_mail)
+        print("phone : " , phone)
+        print("teamid : " , team_id)
+        print("clockid : " , clock_id)
         # add_result = hr_new_person_result(pin=clock_id, name=first_name+last_name, og_id=organization_id, ssn=ssn)
         # while add_result == 0:
         #     clock_id = int(clock_id) + 1
@@ -367,21 +372,21 @@ def hr_main(department):
     if department == 'FD':
         # Front Desk
         # 下面補參數
-        return render_template('/hr/schedule')
+        return render_template('/utility/hr/hr_schedule.html')
     elif department == 'RT':
         # Restaurant
         # 下面補參數
-        return render_template('/hr/schedule')
+        return render_template('/utility/hr/hr_schedule.html')
     elif department == 'HK':
         # Housekeeping
         # 下面補參數
-        return render_template('/hr/schedule')
+        return render_template('/utility/hr/hr_schedule.html')
     elif department == 'AC':
         # Accountant
         # 下面補參數
-        return render_template('/hr/schedule')
+        return render_template('/utility/hr/hr_schedule.html')
 
-    return render_template('/hr/schedule')
+    return render_template('/utility/hr/hr_schedule.html')
 
 @app.route('/hr/salary/cal', methods=['GET', 'POST'])
 def hr_salary_cal():
@@ -400,49 +405,144 @@ def hr_salary_ma():
 
 @app.route('/hr/clockRecord', methods=['GET', 'POST'])
 def hr_clock_record():
-    return render_template("/utility/hr/hr_clock_record.html")
+    all_users = []
+    # Check if user is manager (Role ID 0 or 1)
+    if session.get('role_id') in [0, 1]:
+        all_users = db.get_all_users_with_clock_id()
+    
+    return render_template("/utility/hr/hr_clock_record.html", all_users=all_users)
 
 @app.route('/hr/clockRecordPost', methods=['POST'])
 def hr_clock_record_post():
-    pin = str(session.get('clock_id'))
-    if not pin:
+    current_user_pin = str(session.get('clock_id'))
+    
+    if not current_user_pin:
         return jsonify({"error": "Unauthorized: No PIN provided"}), 401
+
+    data = request.get_json()
+    start_date = data.get("Start")
+    end_date = data.get("End")
+    target_pin = data.get("target_pin")
+
+    # Permission check for viewing other users
+    if target_pin:
+        if session.get('role_id') not in [0, 1]:
+             return jsonify({"error": "Unauthorized: Insufficient permissions"}), 403
+        pin = str(target_pin)
+    else:
+        pin = current_user_pin
 
     if not isinstance(pin, str) or not pin.isdigit():
         return jsonify({"error": "Invalid PIN format"}), 400
 
-    data = request.get_json()
-
-    start_date = data["Start"]
-    end_date = data["End"]
-
     if not start_date or not end_date:
         return jsonify({"error": "Invalid date range"}), 400
 
-    start_date = datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S").date()
-    end_date = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S").date()
+    start_date_obj = datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S").date()
+    end_date_obj = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S").date()
 
-    att_logs = client.get_att_logs(pin, start_date, end_date)
+    att_logs = client.get_att_logs(pin, start_date_obj, end_date_obj)
 
-    if not att_logs['result']['items']:
+    if not att_logs.get('result') or not att_logs['result'].get('items'):
         employee_info = client.get_employee_info(pin)
-
-        if not employee_info:
-            return jsonify({"error": "Employee not found"}), 404
-
-        return jsonify({
-            "result": {
-                "items": [],
+        
+        response_data = {
+             "result": {
+                "items": [], # Raw items
+                "summary": [], # Calculated summary
                 "date": {
                     "start": start_date,
                     "end": end_date},
-                "employee": employee_info
+                "employee": employee_info if employee_info else {"pin": pin, "name": "Unknown"}
             }
+        }
+        if not employee_info:
+             # Try to get name from DB if API fails or returns nothing (optional fallback)
+             pass
+             
+        return jsonify(response_data)
+    
+    # Calculate Summary
+    raw_logs = att_logs['result']['items']
+    # Ensure logs are sorted by time
+    raw_logs.sort(key=lambda x: x['attLogTime'])
+    
+    daily_groups = {}
+    for log in raw_logs:
+        log_time_str = log['attLogTime'] # Format: 2024-12-09T08:00:00 or similar
+        # Parse ISO string to datetime object
+        # The client.get_att_logs/API usually returns ISO format. 
+        # CAUTION: The frontend code used: items.sort((a, b) => new Date(b.attLogTime) - new Date(a.attLogTime));
+        # We need to be able to parse it in Python.
+        # Assuming ISO format with 'T' or space.
+        
+        try:
+             log_dt = datetime.strptime(log_time_str, "%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+             try:
+                 log_dt = datetime.strptime(log_time_str, "%Y-%m-%d %H:%M:%S")
+             except ValueError:
+                 continue # Skip invalid format
+                 
+        date_key = log_dt.date()
+        
+        if date_key not in daily_groups:
+            daily_groups[date_key] = []
+        daily_groups[date_key].append(log_dt)
+
+    summary_list = []
+    for date_key, times in daily_groups.items():
+        times.sort()
+        start_time = times[0]
+        end_time = times[-1]
+        
+        duration_str = ""
+        status = "Normal"
+        
+        # Calculate duration
+        if len(times) > 1:
+            diff = end_time - start_time
+            total_seconds = int(diff.total_seconds())
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            duration_str = f"{hours}h {minutes}m"
+        else:
+            duration_str = "-"
+            
+        # Check Late Arrival (Threshold: 09:00)
+        # Assuming standard shift start is 9:00 AM
+        threshold_start = start_time.replace(hour=9, minute=0, second=0, microsecond=0)
+        if start_time > threshold_start:
+            status = "Late"
+            
+        # Check Early Leave (Optional, e.g., 18:00)
+        # threshold_end = start_time.replace(hour=18, minute=0, second=0, microsecond=0)
+        # if end_time < threshold_end and len(times) > 1:
+        #    status = "Early Leave" # Simple logic, can be complex
+            
+        summary_list.append({
+            "date": date_key.strftime("%Y-%m-%d"),
+            "start": start_time.strftime("%H:%M:%S"),
+            "end": end_time.strftime("%H:%M:%S") if len(times) > 1 else "-",
+            "duration": duration_str,
+            "status": status
         })
+    
+    # Sort summary by date desc
+    summary_list.sort(key=lambda x: x['date'], reverse=True)
+
+    att_logs['summary'] = summary_list
 
     return jsonify({
         "result": {
-            "items": att_logs,
+            "items": att_logs, # Now contains nested result from API 
+            # WAIT. att_logs from client.get_att_logs structure:
+            # { "result": { "totalCount": N, "items": [...] }, ... }
+            # client.get_att_logs return the dict response from API.
+            # My previous view of client code was not full but usage implies structure.
+            # Let's adjust structure to be safe.
+            # att_logs here IS the dict returned by client.get_att_logs.
+            
             "date": {
                 "start": start_date,
                 "end": end_date
@@ -462,12 +562,220 @@ def set_locale():
 def test():
     return render_template('practice/practicing.html')
 
+# Schedule Management Routes
+@app.route('/hr/schedule/list', methods=['POST'])
+def hr_schedule_list():
+    data = request.get_json()
+    start_date = data.get('start_date')
+    end_date = data.get('end_date')
+    
+    # Get all Schedules
+    schedules = db.get_schedules(start_date, end_date)
+    
+    # Get Shift Types
+    shift_types = db.get_shift_types()
+    
+    # Get Employees (for manager palette)
+    employees = []
+    if session.get('role_id') in [0, 1]: 
+        employees = db.get_all_users_with_clock_id()
+
+    # Convert date/time objects to string for JSON
+    def serialize(obj):
+        if isinstance(obj, (datetime, datetime.date)):
+            return obj.isoformat()
+        if isinstance(obj, timedelta):
+             return str(obj)
+        return obj
+
+    return jsonify({
+        "schedules": [ {**s, "date": str(s['date']), "start_time": str(s['start_time']), "end_time": str(s['end_time'])} for s in schedules],
+        "shift_types": [ {**st, "start_time": str(st['start_time']), "end_time": str(st['end_time'])} for st in shift_types],
+        "employees": employees
+    })
+
+@app.route('/hr/schedule/save', methods=['POST'])
+def hr_schedule_save():
+    if session.get('role_id') not in [0, 1]:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    data = request.get_json()
+    user_id = data.get('user_id')
+    date = data.get('date')
+    shift_type_id = data.get('shift_type_id')
+    
+    if not user_id or not date:
+        return jsonify({"error": "Missing parameters"}), 400
+        
+    # If shift_type_id is null/empty, delete the schedule
+    if not shift_type_id:
+        db.delete_schedule(user_id, date)
+    else:
+        db.save_schedule(user_id, date, shift_type_id, session['user_id'])
+        
+    return jsonify({"success": True})
+
+
+import pandas as pd
+import random
+import string
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+import os
+
+@app.route('/hr/shift/save', methods=['POST'])
+def hr_shift_save():
+    if session.get('role_id') not in [0, 1]:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    data = request.get_json()
+    shift_id = data.get('id')
+    name = data.get('name')
+    start_time = data.get('start_time')
+    end_time = data.get('end_time')
+    color = data.get('color')
+    
+    db.save_shift_type(name, start_time, end_time, color, shift_id)
+    return jsonify({"success": True})
+
+@app.route('/excelimport', methods=['GET', 'POST'])
+def excel_import():
+    if request.method == 'GET':
+        return render_template('/utility/sys/excel_import.html')
+    
+    file = request.files.get('file')
+    if not file or not file.filename.endswith('.xlsx'):
+         flash('Invalid file', 'danger')
+         return redirect('/excelimport')
+         
+    try:
+        df = pd.read_excel(file)
+        
+        summary = {"total": 0, "added": 0, "skipped": 0, "errors": 0}
+        
+        output_dir = os.path.join(os.getcwd(), 'output')
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+            
+        # Register Font for Traditional Chinese
+        try:
+            pdfmetrics.registerFont(UnicodeCIDFont('MSung-Light'))
+            font_name = 'MSung-Light'
+        except:
+             # Fallback if CID font not available (unlikely in reportlab unless minimal)
+             font_name = 'Helvetica'
+        
+        for index, row in df.iterrows():
+            summary["total"] += 1
+            try:
+                emp_id = str(row['員工編號']).strip()
+                name = str(row['姓名']).strip()
+                dept = str(row['部門名稱']).strip()
+                
+                # Name Split
+                if len(name) == 4:
+                    first_name = name[:2]
+                    last_name = name[2:]
+                elif len(name) == 3:
+                    first_name = name[:1]
+                    last_name = name[1:]
+                elif len(name) == 2:
+                    first_name = name[:1]
+                    last_name = name[1:]
+                else:
+                    first_name = name
+                    last_name = ""
+                    
+                # Team ID
+                team_id = 1 
+                if '管理' in dept: team_id = 0
+                elif '櫃台' in dept: team_id = 1
+                elif '房務' in dept: team_id = 2
+                elif '會計' in dept: team_id = 3
+                elif '業務' in dept: team_id = 4
+                elif '餐飲' in dept: team_id = 5
+                
+                chars = string.ascii_lowercase + string.digits
+                password = ''.join(random.choice(chars) for _ in range(10))
+                
+                success = db.import_user(
+                    username=emp_id, 
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                    role_id=3,
+                    team_id=team_id,
+                    phone="",
+                    email="",
+                    clock_id=emp_id
+                )
+                
+                if success:
+                    summary["added"] += 1
+                    
+                    # PDF Generation
+                    filename = f"{first_name}{last_name}.pdf" 
+                    pdf_path = os.path.join(output_dir, filename)
+                    
+                    # Half of A4 (A5 Landscape-ish: 210mm wide, 148mm high)
+                    # A4 is (595.27, 841.89). Half height = 420.
+                    page_size = (A4[0], A4[1] / 2)
+                    w, h = page_size
+                    
+                    c = canvas.Canvas(pdf_path, pagesize=page_size)
+                    
+                    # Draw English text with Helvetica (Safe)
+                    c.setFont("Helvetica", 16)
+                    c.setFillColorRGB(0, 0, 0)
+                    c.drawString(50, h - 50, f"Welcome to the System!")
+                    
+                    # Draw Name (Try Chinese font, fallback to name only)
+                    try:
+                        c.setFont(font_name, 16) # MSung-Light if established
+                        c.drawString(50, h - 80, f"Name: {name}") 
+                    except:
+                        c.setFont("Helvetica", 16)
+                        c.drawString(50, h - 80, f"Name: {name}")
+
+                    # Back to Helvetica for credentials
+                    c.setFont("Helvetica", 16)
+                    c.drawString(50, h - 110, f"Account: {emp_id}")
+                    c.drawString(50, h - 140, f"Password: {password}")
+                    c.save()
+                    
+                    if "files" not in summary:
+                        summary["files"] = []
+                    summary["files"].append(filename)
+                    
+                else:
+                    summary["skipped"] += 1
+                    
+            except Exception as e:
+                print(f"Error row {index}: {e}")
+                summary["errors"] += 1
+                
+        return render_template('/utility/sys/excel_import.html', summary=summary)
+        
+    except Exception as e:
+        flash(f'Error processing file: {str(e)}', 'danger')
+        return redirect('/excelimport')
+
+
+@app.route('/download/pdf/<filename>')
+def download_pdf(filename):
+    if session.get('role_id') not in [99, 1, 2, 3, 4, 5]: # Allow logged in users
+         return jsonify({"error": "Unauthorized"}), 403
+    return send_from_directory(os.path.join(os.getcwd(), 'output'), filename, as_attachment=True)
+
+
 
 def get_agent(req):
     platform = req.user_agent.platform
     browser = req.user_agent.browser
     return f"Platform: {platform}, Browser: {browser}"
-
 
 def update_currency(date):
     currency_list = []
@@ -486,7 +794,6 @@ def update_currency(date):
 
     return currency_list
 
-
 def schedule_task():
     def job():
         formatted_time = datetime.now().strftime("%Y-%m-%d")
@@ -497,33 +804,6 @@ def schedule_task():
     while True:
         schedule.run_pending()
         time.sleep(60)
-
-
-def hr_new_person_result(pin, name, og_id, ssn):
-    try:
-        client.create_person(pin=pin, name=name, organization_unit_id=og_id, ssn=ssn)
-        return 1
-    except Exception as e:
-        print("新增人員資訊時發生錯誤:", e)
-        return 0
-
-
-def check_team_id(team_id):
-    if team_id == 7 or team_id == 12:
-        return 0
-    elif team_id == 8 or team_id == 13:
-        return 1
-    elif team_id == 9 or team_id == 14:
-        return 2
-    elif team_id == 10 or team_id == 15:
-        return 3
-    elif team_id == 16 or team_id == 17:
-        return 4
-    elif team_id == 18 or team_id == 19:
-        return 5
-    else:
-        return 6
-
 
 if __name__ == "__main__":
     scheduler_thread = threading.Thread(target=schedule_task, daemon=True)

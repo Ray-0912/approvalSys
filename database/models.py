@@ -6,7 +6,7 @@ file_path = os.path.join(os.getcwd(), 'static', 'js', 'p_type_data.json')
 
 
 class User:
-    def __init__(self, user_id, username, first_name, last_name, email, role_id, team_id, role_name, team_name, clock_id):
+    def __init__(self, user_id, username, first_name, last_name, email, role_id, team_id, role_name, team_name, clock_id, activation=1):
         self.user_id = user_id
         self.username = username
         self.first_name = first_name
@@ -18,6 +18,7 @@ class User:
         self.role_name = role_name
         self.team_name = team_name
         self.clock_id = clock_id
+        self.activation = activation
 
 
 class Role:

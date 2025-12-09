@@ -1,8 +1,8 @@
 from database.CI_API_Client import APIClient
+import functions.email as email
 
 
 testClient = APIClient()
-
 
 def testadd(pin):
     try:
@@ -15,10 +15,4 @@ def testadd(pin):
         return 0
 
 if __name__ == "__main__":
-    # t = testClient.get_latest_person_pin(8)
-    a = 'aa'
-    b = 'bb'
-    print(a+b)
-
-
-
+    email.send_email('id', ['1'], ['1'], 'test', 'content')
