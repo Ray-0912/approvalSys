@@ -1,0 +1,76 @@
+{% extends 'components/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Edit User</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Edit {{ user.username }}</h6>
+        </div>
+        <div class="card-body">
+            <form action="/sys/user/save" method="POST">
+                <input type="hidden" name="user_id" value="{{ user.user_id }}">
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Username</label>
+                        <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Password (Leave blank to keep unchanged)</label>
+                        <input type="password" class="form-control" name="password" placeholder="New Password">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>First Name</label>
+                        <input type="text" class="form-control" name="first_name" value="{{ user.first_name }}"
+                            required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Last Name</label>
+                        <input type="text" class="form-control" name="last_name" value="{{ user.last_name }}" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Email</label>
+                        <input type="email" class="form-control" name="email" value="{{ user.email }}">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Phone</label>
+                        <input type="text" class="form-control" name="phone" value="{{ user.phone }}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Role</label>
+                        <select name="role_id" class="form-control">
+                            {% for role in roles %}
+                            <option value="{{ role.role_id }}" {% if role.role_id==user.role_id %}selected{% endif %}>{{
+                                role.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Team</label>
+                        <select name="team_id" class="form-control">
+                            {% for team in teams %}
+                            <option value="{{ team.team_id }}" {% if team.team_id==user.team_id %}selected{% endif %}>{{
+                                team.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="/sys/users" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,19 +1,27 @@
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session, flash, abort, send_from_directory
-from functions.permission import has_permission
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
 from datetime import timedelta, datetime
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 from flask_babel import Babel
-from database.models import Currency
+from functions.permission import has_permission
 from database.CI_API_Client import APIClient
+from database.models import Currency
+from dotenv import load_dotenv
+from curl_cffi import requests
 import database.queries as db
 import functions.email as email
 import functions.human_resource as hr
+import pandas as pd
 import threading
-import requests
 import time
 import schedule
 import json
 import os
-from dotenv import load_dotenv
+import random
+import string
 
 load_dotenv()
 
@@ -28,7 +36,6 @@ babel = Babel(app)
 
 # API client for bioLife
 client = APIClient()
-
 
 @app.context_processor
 def inject_global_variables():
@@ -57,7 +64,7 @@ def check_authentication():
 
 
 @app.errorhandler(403)
-def forbidden_error():
+def forbidden_error(e):
     return render_template('/utility/basic_page/no_permission.html'), 403
 
 
@@ -71,19 +78,35 @@ def w_menu():
     current_time = datetime.now()
     formatted_time = current_time.strftime("%Y-%m-%d")
 
-    currency_list = update_currency(formatted_time)
+    currency_list, error_msg = update_currency(formatted_time)
 
-    USD = float(next((curr for curr in currency_list if curr.country == 'USD'), None).bank_buying_rate) - 1
-    SGD = float(next((curr for curr in currency_list if curr.country == 'SGD'), None).bank_buying_rate) - 1
-    JPY = float(next((curr for curr in currency_list if curr.country == 'JPY'), None).bank_buying_rate) - 0.01
-    EUR = float(next((curr for curr in currency_list if curr.country == 'EUR'), None).bank_buying_rate) - 1
-    CNY = float(next((curr for curr in currency_list if curr.country == 'CNY'), None).bank_buying_rate) - 0.1
+    # Format the error fallback string
+    if not error_msg:
+        error_fallback = "missing"
+    else:
+        error_fallback = f"missing ({error_msg})"
 
-    USD = round(USD, 1)
-    SGD = round(SGD, 1)
-    JPY = round(JPY, 3)
-    EUR = round(EUR, 1)
-    CNY = round(CNY, 2)
+    def calculate_rate(country, discount):
+        curr = next((c for c in currency_list if c.country == country), None)
+        if curr and curr.bank_selling_rate:
+            try:
+                rate_val = float(curr.bank_selling_rate)
+                return rate_val - discount
+            except ValueError:
+                pass
+        return error_fallback
+
+    USD_val = calculate_rate('USD', 1)
+    SGD_val = calculate_rate('SGD', 1)
+    JPY_val = calculate_rate('JPY', 0.01)
+    EUR_val = calculate_rate('EUR', 1)
+    CNY_val = calculate_rate('CNY', 0.1)
+
+    USD = round(USD_val, 1) if isinstance(USD_val, (int, float)) else USD_val
+    SGD = round(SGD_val, 1) if isinstance(SGD_val, (int, float)) else SGD_val
+    JPY = round(JPY_val, 3) if isinstance(JPY_val, (int, float)) else JPY_val
+    EUR = round(EUR_val, 1) if isinstance(EUR_val, (int, float)) else EUR_val
+    CNY = round(CNY_val, 2) if isinstance(CNY_val, (int, float)) else CNY_val
 
     return render_template('front_desk_wheel_menu.html', USD=USD, SGD=SGD,
                            JPY=JPY, EUR=EUR, CNY=CNY,
@@ -369,24 +392,11 @@ def hr_new_member():
 
 @app.route('/hr/schedule/<department>', methods=['GET', 'POST'])
 def hr_main(department):
-    if department == 'FD':
-        # Front Desk
-        # 下面補參數
-        return render_template('/utility/hr/hr_schedule.html')
-    elif department == 'RT':
-        # Restaurant
-        # 下面補參數
-        return render_template('/utility/hr/hr_schedule.html')
-    elif department == 'HK':
-        # Housekeeping
-        # 下面補參數
-        return render_template('/utility/hr/hr_schedule.html')
-    elif department == 'AC':
-        # Accountant
-        # 下面補參數
-        return render_template('/utility/hr/hr_schedule.html')
-
-    return render_template('/utility/hr/hr_schedule.html')
+    valid_depts = ['FD', 'RT', 'HK', 'AC']
+    if department not in valid_depts:
+        department = 'FD' # Default or 404
+        
+    return render_template('/utility/hr/hr_schedule.html', department=department)
 
 @app.route('/hr/salary/cal', methods=['GET', 'POST'])
 def hr_salary_cal():
@@ -407,7 +417,7 @@ def hr_salary_ma():
 def hr_clock_record():
     all_users = []
     # Check if user is manager (Role ID 0 or 1)
-    if session.get('role_id') in [0, 1]:
+    if session.get('role_id') in [99, 0, 1, 2]:
         all_users = db.get_all_users_with_clock_id()
     
     return render_template("/utility/hr/hr_clock_record.html", all_users=all_users)
@@ -426,7 +436,7 @@ def hr_clock_record_post():
 
     # Permission check for viewing other users
     if target_pin:
-        if session.get('role_id') not in [0, 1]:
+        if session.get('role_id') not in [99, 0, 1, 2]:
              return jsonify({"error": "Unauthorized: Insufficient permissions"}), 403
         pin = str(target_pin)
     else:
@@ -446,43 +456,58 @@ def hr_clock_record_post():
     if not att_logs.get('result') or not att_logs['result'].get('items'):
         employee_info = client.get_employee_info(pin)
         
+        # Fallback to local DB if unknown
+        if not employee_info:
+            db_user = db.get_user_by_clock_id(pin)
+            if db_user:
+                employee_info = {"pin": pin, "name": f"{db_user['first_name']} {db_user['last_name']}"}
+            else:
+                employee_info = {"pin": pin, "name": "Unknown"}
+        
         response_data = {
              "result": {
-                "items": [], # Raw items
-                "summary": [], # Calculated summary
+                "items": [], 
+                "summary": [], 
                 "date": {
                     "start": start_date,
                     "end": end_date},
-                "employee": employee_info if employee_info else {"pin": pin, "name": "Unknown"}
+                "employee": employee_info
             }
         }
-        if not employee_info:
-             # Try to get name from DB if API fails or returns nothing (optional fallback)
-             pass
-             
         return jsonify(response_data)
     
     # Calculate Summary
     raw_logs = att_logs['result']['items']
-    # Ensure logs are sorted by time
     raw_logs.sort(key=lambda x: x['attLogTime'])
+    
+    # Resolve Name from DB if API fails
+    employee_info = None
+    if 'employee' in att_logs['result']: # Sometimes API returns it inside result
+        employee_info = att_logs['result']['employee']
+    
+    # Check if we need to fetch info (API structure varies, assuming we might need to fetch if not present)
+    if not employee_info:
+         employee_info = client.get_employee_info(pin)
+
+    if not employee_info:
+        db_user = db.get_user_by_clock_id(pin)
+        if db_user:
+            employee_info = {"pin": pin, "name": f"{db_user['first_name']} {db_user['last_name']}"}
+        else:
+            employee_info = {"pin": pin, "name": "Unknown"}
+
+    att_logs['result']['employee'] = employee_info
     
     daily_groups = {}
     for log in raw_logs:
-        log_time_str = log['attLogTime'] # Format: 2024-12-09T08:00:00 or similar
-        # Parse ISO string to datetime object
-        # The client.get_att_logs/API usually returns ISO format. 
-        # CAUTION: The frontend code used: items.sort((a, b) => new Date(b.attLogTime) - new Date(a.attLogTime));
-        # We need to be able to parse it in Python.
-        # Assuming ISO format with 'T' or space.
-        
+        log_time_str = log['attLogTime'] 
         try:
              log_dt = datetime.strptime(log_time_str, "%Y-%m-%dT%H:%M:%S")
         except ValueError:
              try:
                  log_dt = datetime.strptime(log_time_str, "%Y-%m-%d %H:%M:%S")
              except ValueError:
-                 continue # Skip invalid format
+                 continue 
                  
         date_key = log_dt.date()
         
@@ -491,6 +516,11 @@ def hr_clock_record_post():
         daily_groups[date_key].append(log_dt)
 
     summary_list = []
+    
+    # Get User ID for Schedule Lookup
+    db_user_for_schedule = db.get_user_by_clock_id(pin)
+    user_id_for_schedule = db_user_for_schedule['user_id'] if db_user_for_schedule else None
+
     for date_key, times in daily_groups.items():
         times.sort()
         start_time = times[0]
@@ -499,7 +529,6 @@ def hr_clock_record_post():
         duration_str = ""
         status = "Normal"
         
-        # Calculate duration
         if len(times) > 1:
             diff = end_time - start_time
             total_seconds = int(diff.total_seconds())
@@ -509,16 +538,36 @@ def hr_clock_record_post():
         else:
             duration_str = "-"
             
-        # Check Late Arrival (Threshold: 09:00)
-        # Assuming standard shift start is 9:00 AM
-        threshold_start = start_time.replace(hour=9, minute=0, second=0, microsecond=0)
+        # Dynamic Late Check
+        threshold_start = start_time.replace(hour=9, minute=0, second=0, microsecond=0) # Default
+        
+        if user_id_for_schedule:
+            # Fetch assigned schedule
+            sch = db.get_user_schedule_by_date(user_id_for_schedule, date_key)
+            if sch:
+                # sch['start_time'] is a timedelta or time object depending on connector
+                # Assuming it is timedelta (since earlier code used string conversion) 
+                # or string "HH:MM:SS" from previous context
+                # Let's handle string or timedelta
+                s_time = sch['start_time']
+                if isinstance(s_time, timedelta):
+                    total_seconds = int(s_time.total_seconds())
+                    hours = total_seconds // 3600
+                    minutes = (total_seconds % 3600) // 60
+                    threshold_start = start_time.replace(hour=hours, minute=minutes, second=0, microsecond=0)
+                else:
+                    # Try string parse
+                    try:
+                         # s_time might be "09:00:00"
+                         st_parts = str(s_time).split(':')
+                         h = int(st_parts[0])
+                         m = int(st_parts[1])
+                         threshold_start = start_time.replace(hour=h, minute=m, second=0, microsecond=0)
+                    except:
+                        pass # Keep default
+
         if start_time > threshold_start:
             status = "Late"
-            
-        # Check Early Leave (Optional, e.g., 18:00)
-        # threshold_end = start_time.replace(hour=18, minute=0, second=0, microsecond=0)
-        # if end_time < threshold_end and len(times) > 1:
-        #    status = "Early Leave" # Simple logic, can be complex
             
         summary_list.append({
             "date": date_key.strftime("%Y-%m-%d"),
@@ -528,21 +577,12 @@ def hr_clock_record_post():
             "status": status
         })
     
-    # Sort summary by date desc
     summary_list.sort(key=lambda x: x['date'], reverse=True)
-
     att_logs['summary'] = summary_list
 
     return jsonify({
         "result": {
-            "items": att_logs, # Now contains nested result from API 
-            # WAIT. att_logs from client.get_att_logs structure:
-            # { "result": { "totalCount": N, "items": [...] }, ... }
-            # client.get_att_logs return the dict response from API.
-            # My previous view of client code was not full but usage implies structure.
-            # Let's adjust structure to be safe.
-            # att_logs here IS the dict returned by client.get_att_logs.
-            
+            "items": att_logs, 
             "date": {
                 "start": start_date,
                 "end": end_date
@@ -568,16 +608,24 @@ def hr_schedule_list():
     data = request.get_json()
     start_date = data.get('start_date')
     end_date = data.get('end_date')
+    department = data.get('department', '')
+    
+    # Team Mapping
+    team_ids = None
+    if department == 'FD': team_ids = [1, 4]
+    elif department == 'RT': team_ids = [5]
+    elif department == 'HK': team_ids = [2]
+    elif department == 'AC': team_ids = [3]
     
     # Get all Schedules
-    schedules = db.get_schedules(start_date, end_date)
+    schedules = db.get_schedules(start_date, end_date, team_ids)
     
     # Get Shift Types
     shift_types = db.get_shift_types()
     
     # Get Employees (for manager palette)
     employees = []
-    if session.get('role_id') in [0, 1]: 
+    if session.get('role_id') in [99, 0, 1, 2]: 
         employees = db.get_all_users_with_clock_id()
 
     # Convert date/time objects to string for JSON
@@ -596,7 +644,7 @@ def hr_schedule_list():
 
 @app.route('/hr/schedule/save', methods=['POST'])
 def hr_schedule_save():
-    if session.get('role_id') not in [0, 1]:
+    if session.get('role_id') not in [99, 0, 1, 2]:
         return jsonify({"error": "Unauthorized"}), 403
         
     data = request.get_json()
@@ -615,20 +663,9 @@ def hr_schedule_save():
         
     return jsonify({"success": True})
 
-
-import pandas as pd
-import random
-import string
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase.cidfonts import UnicodeCIDFont
-import os
-
 @app.route('/hr/shift/save', methods=['POST'])
 def hr_shift_save():
-    if session.get('role_id') not in [0, 1]:
+    if session.get('role_id') not in [99, 0, 1, 2]:
         return jsonify({"error": "Unauthorized"}), 403
         
     data = request.get_json()
@@ -640,6 +677,35 @@ def hr_shift_save():
     
     db.save_shift_type(name, start_time, end_time, color, shift_id)
     return jsonify({"success": True})
+
+@app.route('/hr/api/comment/get', methods=['POST'])
+def hr_comment_get():
+    data = request.get_json()
+    dept = data.get('department')
+    month = data.get('month')
+    content = db.get_schedule_comment(dept, month)
+    return jsonify({"content": content})
+
+@app.route('/hr/api/comment/save', methods=['POST'])
+def hr_comment_save():
+    if session.get('role_id') not in [99, 0, 1, 2]:
+        return jsonify({"error": "Unauthorized"}), 403
+    data = request.get_json()
+    dept = data.get('department')
+    month = data.get('month')
+    content = data.get('content')
+    db.save_schedule_comment(dept, month, content)
+    return jsonify({"success": True})
+
+@app.route('/hr/api/comment/copy', methods=['POST'])
+def hr_comment_copy():
+    if session.get('role_id') not in [99, 0, 1, 2]:
+        return jsonify({"error": "Unauthorized"}), 403
+    data = request.get_json()
+    dept = data.get('department')
+    curr_month = data.get('current_month')
+    content = db.get_previous_month_comment(dept, curr_month)
+    return jsonify({"content": content})
 
 @app.route('/excelimport', methods=['GET', 'POST'])
 def excel_import():
@@ -772,6 +838,51 @@ def download_pdf(filename):
 
 
 
+
+# System Settings
+@app.route('/sys/settings', methods=['GET'])
+def sys_settings():
+    if session.get('role_id') not in [99, 0]:
+        abort(403)
+    return render_template('/utility/sys/system_settings.html')
+
+@app.route('/sys/users', methods=['GET'])
+def sys_users():
+    if session.get('role_id') not in [99, 0]:
+        abort(403)
+    users = db.get_all_users_admin()
+    return render_template('/utility/sys/user_list.html', users=users)
+
+@app.route('/sys/user/edit/<user_id>', methods=['GET'])
+def sys_user_edit(user_id):
+    if session.get('role_id') not in [99, 0]:
+        abort(403)
+    
+    user = db.get_user_by_id(user_id)
+    roles = db.get_roles()
+    teams = db.get_teams()
+    
+    return render_template('/utility/sys/user_edit.html', user=user, roles=roles, teams=teams)
+
+@app.route('/sys/user/save', methods=['POST'])
+def sys_user_save():
+    if session.get('role_id') not in [99, 0]:
+        abort(403)
+        
+    user_id = request.form.get('user_id')
+    first_name = request.form.get('first_name')
+    last_name = request.form.get('last_name')
+    email = request.form.get('email')
+    phone = request.form.get('phone')
+    role_id = request.form.get('role_id')
+    team_id = request.form.get('team_id')
+    password = request.form.get('password') # Optional
+    
+    db.update_user_admin(user_id, first_name, last_name, email, phone, role_id, team_id, password)
+    
+    flash("User updated successfully", "success")
+    return redirect('/sys/users')
+
 def get_agent(req):
     platform = req.user_agent.platform
     browser = req.user_agent.browser
@@ -779,25 +890,53 @@ def get_agent(req):
 
 def update_currency(date):
     currency_list = []
+    error_msg = None
 
     url = 'https://rate.bot.com.tw/xrt/flcsv/0/day'
-    rate = requests.get(url)
-    rate.encoding = 'utf-8'
-    rt = rate.text
-    rts = rt.split('\n')
-    for i in rts:
-        try:
-            a = i.split(',')
-            currency_list.append(Currency(date, a[0], a[2], a[12]))
-        except:
-            break
 
-    return currency_list
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Referer': 'https://rate.bot.com.tw/xrt?Lang=zh-TW'
+    }
+
+    try:
+        rate = requests.get(url, timeout=5, headers=headers, impersonate="chrome120")
+        
+        if rate.status_code != 200:
+            error_msg = f"HTTP {rate.status_code}"
+        else:
+            rate.encoding = 'utf-8'  
+            rt = rate.text
+            
+            if 'html' in rate.headers.get('Content-Type', '').lower() or rt.strip().startswith('<!DOCTYPE'):
+                error_msg = "Blocked by BOT WAF/Challenge"
+            else:
+                rts = rt.split('\n')
+                for i in rts:
+                    try:
+                        a = i.split(',')
+                        if len(a) > 13:
+                            # a[0] = Currency Code (e.g. USD)
+                            # a[2] = Cash Buying (現金買入)
+                            # a[3] = Spot Buying (即期買入)
+                            currency_list.append(Currency(date, a[0].strip(), a[2].strip(), a[3].strip()))
+                    except Exception:
+                        pass
+                
+                if not currency_list:
+                    error_msg = "CSV parse failure or empty rows"
+                    
+    except Exception as e:
+        error_msg = f"Error: {str(e)}"
+
+    return currency_list, error_msg
 
 def schedule_task():
     def job():
         formatted_time = datetime.now().strftime("%Y-%m-%d")
-        update_currency(formatted_time)
+        _, _ = update_currency(formatted_time)
 
     schedule.every().day.at("23:30").do(job)
 
@@ -809,4 +948,7 @@ if __name__ == "__main__":
     scheduler_thread = threading.Thread(target=schedule_task, daemon=True)
     scheduler_thread.start()
 
-    app.run(host="0.0.0.0", port=80)
+    if os.getenv('APP_ENV') == 'production':
+        app.run(host="0.0.0.0", port=80)
+    else:
+        app.run(host="0.0.0.0", port=80, debug=True)

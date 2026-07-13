@@ -16,6 +16,37 @@ def get_roles():
                 roles.append(role)
             return roles
 
+def get_all_users_admin():
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            query = "SELECT u.*, r.name as role_name, t.name as team_name " \
+                    "FROM user u " \
+                    "LEFT JOIN role r ON u.role_id = r.role_id " \
+                    "LEFT JOIN team t ON u.team_id = t.team_id " \
+                    "ORDER BY u.user_id DESC"
+            cursor.execute(query)
+            return cursor.fetchall()
+            
+def get_user_by_id(user_id):
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            query = "SELECT * FROM user WHERE user_id = %s"
+            cursor.execute(query, (user_id,))
+            return cursor.fetchone()
+
+def update_user_admin(user_id, first_name, last_name, email, phone, role_id, team_id, password=None):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            if password:
+                hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+                query = "UPDATE user SET first_name=%s, last_name=%s, email=%s, phone=%s, role_id=%s, team_id=%s, password=%s WHERE user_id=%s"
+                cursor.execute(query, (first_name, last_name, email, phone, role_id, team_id, hashed_password.decode('utf-8'), user_id))
+            else:
+                query = "UPDATE user SET first_name=%s, last_name=%s, email=%s, phone=%s, role_id=%s, team_id=%s WHERE user_id=%s"
+                cursor.execute(query, (first_name, last_name, email, phone, role_id, team_id, user_id))
+            connection.commit()
+    return True
+
 
 def get_teams():
     with get_db_connection() as connection:
@@ -471,7 +502,7 @@ def save_shift_type(name, start_time, end_time, color, shift_id=None, is_active=
             connection.commit()
             return True
 
-def get_schedules(start_date, end_date):
+def get_schedules(start_date, end_date, team_ids=None):
     with get_db_connection() as connection:
         with connection.cursor(dictionary=True) as cursor:
             query = """
@@ -481,7 +512,14 @@ def get_schedules(start_date, end_date):
                 JOIN shift_type st ON s.shift_type_id = st.id
                 WHERE s.date >= %s AND s.date <= %s
             """
-            cursor.execute(query, (start_date, end_date))
+            params = [start_date, end_date]
+            
+            if team_ids:
+                format_strings = ','.join(['%s'] * len(team_ids))
+                query += f" AND u.team_id IN ({format_strings})"
+                params.extend(team_ids)
+                
+            cursor.execute(query, tuple(params))
             return cursor.fetchall()
 
 def save_schedule(user_id, date, shift_type_id, creator_id):
@@ -511,3 +549,60 @@ def delete_schedule(user_id, date):
             cursor.execute(query, (user_id, date))
             connection.commit()
             return True
+
+def get_user_by_clock_id(clock_id):
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            # Ensure clock_id is treating as string or int depending on DB, but usually string for PIN
+            query = "SELECT user_id, first_name, last_name FROM user WHERE clock_id = %s"
+            cursor.execute(query, (clock_id,))
+            return cursor.fetchone()
+
+def get_user_schedule_by_date(user_id, date):
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            # Join with shift_type to get start_time
+            query = """
+                SELECT st.start_time 
+                FROM schedule s
+                JOIN shift_type st ON s.shift_type_id = st.id
+                WHERE s.user_id = %s AND s.date = %s
+            """
+            cursor.execute(query, (user_id, date))
+            return cursor.fetchone()
+
+# Comments
+from datetime import timedelta 
+
+def get_schedule_comment(department, month_str):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            query = "SELECT content FROM schedule_comments WHERE department=%s AND month_str=%s"
+            cursor.execute(query, (department, month_str))
+            result = cursor.fetchone()
+            return result[0] if result else ""
+
+def save_schedule_comment(department, month_str, content):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            # Upsert
+            query = """
+                INSERT INTO schedule_comments (department, month_str, content) 
+                VALUES (%s, %s, %s)
+                ON DUPLICATE KEY UPDATE content=%s
+            """
+            cursor.execute(query, (department, month_str, content, content))
+            connection.commit()
+            return True
+
+def get_previous_month_comment(department, current_month_str):
+    # current_month_str is 'YYYY-MM'
+    # Calculate previous month
+    try:
+        curr = datetime.strptime(current_month_str, "%Y-%m")
+        # subtract one month: replace day=1, minus 1 day, then format
+        prev_date = curr.replace(day=1) - timedelta(days=1)
+        prev_month_str = prev_date.strftime("%Y-%m")
+        return get_schedule_comment(department, prev_month_str)
+    except:
+        return ""

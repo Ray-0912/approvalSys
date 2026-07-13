@@ -8,12 +8,13 @@
         height: calc(100vh - 150px);
     }
 
-    .sidebar {
+    .schedule-sidebar {
         width: 250px;
         background: #f8f9fa;
         border-right: 1px solid #ddd;
         padding: 15px;
         overflow-y: auto;
+        display: none;
     }
 
     .main-calendar {
@@ -103,19 +104,91 @@
     }
 
     @media print {
+        @page {
+            size: landscape;
+            margin: 1cm;
+        }
 
+        /* Hide UI Elements */
+        .schedule-sidebar,
+        .no-print,
+        .d-print-none,
+        .navbar,
         .sidebar,
-        .no-print {
+        #accordionSidebar,
+        footer,
+        .btn {
             display: none !important;
         }
 
+        /* Reset Main Containers */
+        body,
+        html,
+        #wrapper,
+        #content-wrapper,
+        .container-fluid,
+        .content {
+            background-color: white !important;
+            width: 100% !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            display: block !important;
+            position: relative !important;
+        }
+
+        /* Layout Content */
         .schedule-container {
-            height: auto;
-            display: block;
+            display: block !important;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        .main-calendar {
+            display: block !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+        }
+
+        .calendar-grid {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            width: 100% !important;
+            gap: 2px !important;
         }
 
         .calendar-cell {
             page-break-inside: avoid;
+            border: 1px solid #ccc !important;
+            min-height: 80px !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .calendar-header {
+            background-color: #eee !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .shift-item {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            border: 1px solid #999 !important;
+        }
+
+        /* Force Text Colors */
+        * {
+            text-shadow: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Hide scrollbars */
+        ::-webkit-scrollbar {
+            display: none;
         }
     }
 </style>
@@ -126,17 +199,33 @@
         <span id="currentMonthLabel" class="h4 mx-3"></span>
         <button class="btn btn-secondary" id="nextMonthBtn">&gt;</button>
     </div>
+
     <div>
-        <button class="btn btn-info" onclick="window.print()">Print</button>
-        {% if session.get('role_id') in [0, 1] %}
+        <!-- Department Switch -->
+        <div class="btn-group mr-2" role="group">
+            <button type="button" class="btn btn-outline-info active" id="btnDeptFD"
+                onclick="switchDepartment('FD')">Front Desk</button>
+            <button type="button" class="btn btn-outline-info" id="btnDeptRT"
+                onclick="switchDepartment('RT')">Restaurant</button>
+            <button type="button" class="btn btn-outline-info" id="btnDeptHK"
+                onclick="switchDepartment('HK')">Housekeeping</button>
+            <button type="button" class="btn btn-outline-info" id="btnDeptAC"
+                onclick="switchDepartment('AC')">Accountant</button>
+        </div>
+
+        <!-- Edit Toggle -->
+        {% if session.get('role_id') in [99, 0, 1, 2] %}
+        <button class="btn btn-secondary" id="toggleEditBtn" onclick="toggleEditMode()">Edit</button>
         <button class="btn btn-primary" data-toggle="modal" data-target="#shiftTypeModal">Manage Shift Types</button>
         {% endif %}
+
+        <button class="btn btn-info" onclick="window.print()">Print</button>
     </div>
 </div>
 
 <div class="schedule-container">
-    {% if session.get('role_id') in [0, 1] %}
-    <div class="sidebar no-print">
+    {% if session.get('role_id') in [99, 0, 1, 2] %}
+    <div class="schedule-sidebar no-print">
         <h5>Employees</h5>
         <div class="input-group mb-2">
             <input type="text" class="form-control" id="empSearch" placeholder="Search...">
@@ -158,7 +247,7 @@
             <!-- Calendar loaded via JS -->
         </div>
 
-        {% if session.get('role_id') in [0, 1] %}
+        {% if session.get('role_id') in [99, 0, 1, 2] %}
         <div class="mt-4 no-print">
             <h5>Statistics (This View)</h5>
             <table class="table table-sm table-bordered">
@@ -176,8 +265,36 @@
                 </tbody>
             </table>
         </div>
-        {% endif %}
+
+        <!-- Comments Section -->
+        <div class="mt-4 no-print row">
+            <div class="col-md-12">
+                <h5>Schedule Comments</h5>
+
+                <!-- Read Only View -->
+                <div class="card" id="commentReadContainer">
+                    <div class="card-body" id="commentDisplayContent" style="min-height: 100px;">
+                        <!-- Content here -->
+                    </div>
+                </div>
+
+                <!-- Edit View -->
+                <div class="card" id="commentEditContainer" style="display: none;">
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="copyLastMonthComment()">Copy from
+                                Last Month</button>
+                            <button class="btn btn-sm btn-success float-right" onclick="saveComment()">Save
+                                Comment</button>
+                        </div>
+                        <textarea id="scheduleComment"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+    {% endif %}
+</div>
 </div>
 
 <!-- Shift Type Modal -->
@@ -228,11 +345,21 @@
     let schedules = [];
 
     // Config
-    const isManager = {{ 'true' if session.get('role_id') in [0, 1] else 'false' }};
+    const isManager = {{ 'true' if session.get('role_id') in [99, 0, 1, 2] else 'false' }};
+    const currentUserId = {{ session.get('user_id') }};
+    let showOnlyMySchedule = false;
 
     $(document).ready(function () {
         renderCalendarHeader();
         fetchScheduleData();
+
+        // Add Filter Button if not exists
+        if ($("#myScheduleBtn").length === 0) {
+            // Check where to append. usually near other controls
+            $(".d-flex.justify-content-between.align-items-center.mb-3").append(
+                `<button id="myScheduleBtn" class="btn btn-info ml-2">My Schedule</button>`
+            );
+        }
 
         $("#prevMonthBtn").click(() => {
             currentDate.setMonth(currentDate.getMonth() - 1);
@@ -246,12 +373,33 @@
             fetchScheduleData();
         });
 
+        $(document).on("click", "#myScheduleBtn", function () {
+            showOnlyMySchedule = !showOnlyMySchedule;
+            $(this).toggleClass("btn-info btn-primary");
+            $(this).text(showOnlyMySchedule ? "Show All" : "My Schedule");
+            renderCalendar(currentDate); // Re-render with filter
+        });
+
         $("#empSearch").on("keyup", function () {
             renderEmployeePalette($(this).val());
         });
 
         $("#saveShiftTypeBtn").click(saveShiftType);
     });
+
+    // Helper to robustly parse "HH:MM:SS" or "HH:MM"
+    function parseTime(timeStr) {
+        if (!timeStr) return null;
+        const parts = timeStr.split(':');
+        if (parts.length < 2) return null;
+
+        const now = new Date();
+        now.setHours(parseInt(parts[0], 10));
+        now.setMinutes(parseInt(parts[1], 10));
+        now.setSeconds(parts[2] ? parseInt(parts[2], 10) : 0);
+        now.setMilliseconds(0);
+        return now;
+    }
 
     function renderCalendarHeader() {
         const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -261,14 +409,12 @@
     }
 
     function fetchScheduleData() {
+        // Recalculate range based on currentDate which might have changed
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
-        // Get first day of month
         const firstDay = new Date(year, month, 1);
-        // Get last day of month
         const lastDay = new Date(year, month + 1, 0);
 
-        // Adjust for calendar grid (start from Sunday)
         const startOffset = firstDay.getDay();
         const startDate = new Date(firstDay);
         startDate.setDate(startDate.getDate() - startOffset);
@@ -283,7 +429,8 @@
             contentType: "application/json",
             data: JSON.stringify({
                 start_date: startDate.toISOString().split('T')[0],
-                end_date: endDate.toISOString().split('T')[0]
+                end_date: endDate.toISOString().split('T')[0],
+                department: currentDept
             }),
             success: function (data) {
                 employees = data.employees || [];
@@ -292,7 +439,7 @@
 
                 renderEmployeePalette();
                 renderShiftPalette();
-                renderCalendar(startDate, endDate);
+                renderCalendar(startDate, endDate); // Pass the range needed for grid
                 if (isManager) calculateStats();
             }
         });
@@ -303,7 +450,15 @@
         const container = $("#employeePalette");
         container.empty();
 
+        let targetTeams = [];
+        if (currentDept === 'FD') targetTeams = [1, 4];
+        else if (currentDept === 'RT') targetTeams = [5];
+        else if (currentDept === 'HK') targetTeams = [2];
+        else if (currentDept === 'AC') targetTeams = [3];
+        else targetTeams = [0, 1, 2, 3, 4, 5, 6];
+
         employees.filter(e => {
+            if (!targetTeams.includes(e.team_id)) return false;
             const fullName = `${e.first_name} ${e.last_name} ${e.username}`.toLowerCase();
             return fullName.includes(filter.toLowerCase());
         }).forEach(emp => {
@@ -323,7 +478,6 @@
     }
 
     function renderShiftPalette() {
-        // Just for info/Edit
         if (!isManager) return;
         const container = $("#shiftPalette");
         container.empty();
@@ -337,15 +491,27 @@
             container.append(item);
         });
 
-        // Add New Button
         container.append(`<button class="btn btn-sm btn-outline-primary w-100 mt-2" onclick="openShiftModal()">+ Add Type</button>`);
     }
 
     function renderCalendar(startDate, endDate) {
+        // Re-derive range if not passed (e.g. from filter click)
+        if (!startDate || !endDate) {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startOffset = firstDay.getDay();
+            startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - startOffset);
+            const endOffset = 6 - lastDay.getDay();
+            endDate = new Date(lastDay);
+            endDate.setDate(endDate.getDate() + endOffset);
+        }
+
         const grid = $("#calendarGrid");
         grid.empty();
 
-        // Headers
         const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         days.forEach(d => grid.append(`<div class="calendar-header">${d}</div>`));
 
@@ -357,14 +523,17 @@
                 <div class="day-number">${loopDate.getDate()}</div>
             </div>`);
 
-            // Allow Drop on Day
             if (isManager) {
-                cell.on("dragover", e => e.preventDefault()); // Allow drop
+                cell.on("dragover", e => e.preventDefault());
                 cell.on("drop", handleDrop);
             }
 
-            // Render Assignments
-            const daySchedules = schedules.filter(s => s.date === dateStr);
+            // Filter Logic Here
+            let daySchedules = schedules.filter(s => s.date === dateStr);
+            if (showOnlyMySchedule) {
+                daySchedules = daySchedules.filter(s => s.user_id == currentUserId);
+            }
+
             daySchedules.forEach(sch => {
                 const shiftColor = sch.shift_color || '#ccc';
                 const item = $(`<div class="shift-item" style="background-color: ${shiftColor}" draggable="${isManager}" data-user-id="${sch.user_id}" data-date="${sch.date}" data-shift-id="${sch.shift_type_id}">
@@ -389,12 +558,24 @@
                     });
                 }
 
+                // Click to Edit (if Manager and Edit Mode) - Re-attaching logic
+                item.click(function (e) {
+                    if (!editMode || !isManager) return;
+                    const userId = $(this).data("user-id");
+                    const date = $(this).data("date");
+                    const currentShiftId = $(this).data("shift-id");
+
+                    let idx = shiftTypes.findIndex(s => s.id == currentShiftId);
+                    if (idx === -1) idx = 0;
+                    let nextIdx = (idx + 1) % shiftTypes.length;
+                    let nextShift = shiftTypes[nextIdx];
+                    updateSchedule(userId, date, nextShift.id);
+                });
+
                 cell.append(item);
             });
 
             grid.append(cell);
-
-            // Next day
             loopDate.setDate(loopDate.getDate() + 1);
         }
     }
@@ -406,32 +587,18 @@
 
         const data = JSON.parse(dataStr);
         const targetDate = $(this).attr("data-date");
-        const targetCell = $(this);
 
-        // We need to know WHICH shift type to assign.
-        // For simplicity, let's auto-assign "Morning" (or first available) OR prompt user?
-        // Better UX: Show a small context menu or just Default to first active shift, then user can click to change?
-        // Let's implement: Drop -> Defaults to "Morning" (ID 1 usually) or find first one. User can then move it?
-        // Or simpler: Dragging employee creates a generic slot, then prompt?
-
-        // Let's assume Shift ID 1 is default for now, or find first one.
         let defaultShift = shiftTypes[0] ? shiftTypes[0].id : null;
         if (!defaultShift) { alert("Please create a shift type first."); return; }
 
         if (data.type === "new_assignment") {
             updateSchedule(data.userId, targetDate, defaultShift);
         } else if (data.type === "move_assignment") {
-            // Move: Delete old, create new
-            // Ideally atomic, but here 2 steps or backend handles 'move' logic if we send distinct endpoint.
-            // Actually, `hr_schedule_save` updates if exists.
-            // But user_id + date is unique key. So moving to same date = no op. Moving to new date = delete old, insert new.
             if (data.oldDate !== targetDate) {
-                // Remove old
                 $.ajax({
                     url: "/hr/schedule/save", type: "POST", contentType: "application/json",
                     data: JSON.stringify({ user_id: data.userId, date: data.oldDate, shift_type_id: null }),
                     success: () => {
-                        // Add new
                         updateSchedule(data.userId, targetDate, defaultShift);
                     }
                 });
@@ -441,14 +608,8 @@
 
     function updateSchedule(userId, date, shiftTypeId) {
         $.ajax({
-            url: "/hr/schedule/save",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({
-                user_id: userId,
-                date: date,
-                shift_type_id: shiftTypeId
-            }),
+            url: "/hr/schedule/save", type: "POST", contentType: "application/json",
+            data: JSON.stringify({ user_id: userId, date: date, shift_type_id: shiftTypeId }),
             success: function (res) {
                 if (res.success) fetchScheduleData();
                 else alert("Error saving schedule");
@@ -456,7 +617,6 @@
         });
     }
 
-    // Modal & Shift Management
     function openShiftModal(shift = null) {
         if (shift) {
             $("#shiftId").val(shift.id);
@@ -481,9 +641,7 @@
         };
 
         $.ajax({
-            url: "/hr/shift/save",
-            type: "POST",
-            contentType: "application/json",
+            url: "/hr/shift/save", type: "POST", contentType: "application/json",
             data: JSON.stringify(payload),
             success: function () {
                 $("#shiftTypeModal").modal("hide");
@@ -495,30 +653,24 @@
     function calculateStats() {
         const stats = {};
 
-        // Only count schedules in current view
         schedules.forEach(s => {
             const uid = s.user_id;
             if (!stats[uid]) {
-                stats[uid] = {
-                    name: `${s.first_name} ${s.last_name}`,
-                    days: 0,
-                    hours: 0,
-                    morning: 0,
-                    night: 0,
-                    bigNight: 0
-                };
+                stats[uid] = { name: `${s.first_name} ${s.last_name}`, days: 0, hours: 0, morning: 0, night: 0, bigNight: 0 };
             }
 
             stats[uid].days++;
 
-            // Calculate hours
-            const start = new Date(`1970-01-01T${s.start_time}`);
-            const end = new Date(`1970-01-01T${s.end_time}`);
-            let diff = (end - start) / 1000 / 3600; // hours
-            if (diff < 0) diff += 24; // Cross midnight
-            stats[uid].hours += diff;
+            // FIX: Robust Date Parsing
+            const start = parseTime(s.start_time);
+            const end = parseTime(s.end_time);
 
-            // Shift counts (simple name match or ID check)
+            if (start && end) {
+                let diff = (end - start) / 1000 / 3600;
+                if (diff < 0) diff += 24;
+                stats[uid].hours += diff;
+            }
+
             const sName = s.shift_name.toLowerCase();
             if (sName.includes("morning")) stats[uid].morning++;
             else if (sName.includes("big")) stats[uid].bigNight++;
@@ -531,7 +683,7 @@
             tbody.append(`<tr>
                 <td>${st.name}</td>
                 <td>${st.days}</td>
-                <td>${st.hours.toFixed(1)}</td>
+                <td>${isNaN(st.hours) ? '0.0' : st.hours.toFixed(1)}</td>
                 <td>${st.morning}</td>
                 <td>${st.night}</td>
                 <td>${st.bigNight}</td>
@@ -539,5 +691,105 @@
         });
     }
 
+    // --- New Features Logic ---
+    let currentDept = '{{ department if department else "FD" }}';
+    let editMode = false;
+
+    $(document).ready(function () {
+        $(`#btnDept${currentDept}`).addClass('active').siblings().removeClass('active');
+
+        if (isManager) {
+            toggleEditMode(false);
+            // Init TinyMCE
+            if (typeof tinymce !== 'undefined') {
+                tinymce.init({
+                    selector: '#scheduleComment',
+                    height: 200,
+                    menubar: false,
+                    plugins: [
+                        'advlist autolink lists link image charmap print preview anchor',
+                        'searchreplace visualblocks code fullscreen',
+                        'insertdatetime media table paste code help wordcount'
+                    ],
+                    toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat',
+                    setup: function (editor) {
+                        editor.on('init', function (e) { fetchComment(); });
+                    }
+                });
+            }
+        }
+    });
+
+    function switchDepartment(dept) {
+        window.location.href = `/hr/schedule/${dept}`;
+    }
+
+    function toggleEditMode(forceState = null) {
+        if (forceState !== null) editMode = forceState;
+        else editMode = !editMode;
+
+        if (editMode) {
+            $(".schedule-sidebar").show();
+            $("#toggleEditBtn").text("End Edit").addClass("btn-danger").removeClass("btn-secondary");
+            $(".remove-shift").show();
+            $("#commentEditContainer").show();
+            $("#commentReadContainer").hide();
+        } else {
+            $(".schedule-sidebar").hide();
+            $("#toggleEditBtn").text("Enable Edit").addClass("btn-secondary").removeClass("btn-danger");
+            $(".remove-shift").hide();
+            $("#commentEditContainer").hide();
+            $("#commentReadContainer").show();
+            if (typeof tinymce !== 'undefined' && tinymce.get('scheduleComment')) {
+                const content = tinymce.get('scheduleComment').getContent();
+                $("#commentDisplayContent").html(content);
+            }
+        }
+    }
+
+    // Comments
+    function fetchComment() {
+        $.ajax({
+            url: "/hr/api/comment/get", type: "POST", contentType: "application/json",
+            data: JSON.stringify({ department: currentDept, month: getMonthStr() }),
+            success: function (res) {
+                const content = res.content || "";
+                if (typeof tinymce !== 'undefined' && tinymce.get('scheduleComment')) {
+                    tinymce.get('scheduleComment').setContent(content);
+                }
+                $("#commentDisplayContent").html(content);
+            }
+        });
+    }
+
+    function saveComment() {
+        if (typeof tinymce === 'undefined') return;
+        const content = tinymce.get('scheduleComment').getContent();
+        $.ajax({
+            url: "/hr/api/comment/save", type: "POST", contentType: "application/json",
+            data: JSON.stringify({ department: currentDept, month: getMonthStr(), content: content }),
+            success: function () {
+                $("#commentDisplayContent").html(content);
+                alert("Comment Saved");
+            }
+        });
+    }
+
+    function copyLastMonthComment() {
+        $.ajax({
+            url: "/hr/api/comment/copy", type: "POST", contentType: "application/json",
+            data: JSON.stringify({ department: currentDept, current_month: getMonthStr() }),
+            success: function (res) {
+                if (res.content && typeof tinymce !== 'undefined') tinymce.get('scheduleComment').setContent(res.content);
+                else alert("No comment found last month");
+            }
+        });
+    }
+
+    function getMonthStr() {
+        const y = currentDate.getFullYear();
+        const m = currentDate.getMonth() + 1;
+        return `${y}-${m.toString().padStart(2, '0')}`;
+    }
 </script>
 {% endblock %}

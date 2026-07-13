@@ -1,5 +1,5 @@
 <nav>
-    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion d-print-none" id="accordionSidebar">
         <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
             <div class="sidebar-brand-text mx-3">{{ _('Schedule System') }}</div>
         </a>
@@ -15,6 +15,22 @@
         <div class="sidebar-heading">
             Utilities
         </div>
+
+        {% if session.get('role_id') in [99, 0] %}
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSys"
+                aria-expanded="true" aria-controls="collapseSys">
+                <i class="fas fa-fw fa-cogs"></i>
+                <span>System Setting</span>
+            </a>
+            <div id="collapseSys" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <h6 class="collapse-header">System</h6>
+                    <a class="collapse-item" href="/sys/settings">Settings</a>
+                </div>
+            </div>
+        </li>
+        {% endif %}
 
         {% if session['logged_in'] and session['role_id'] in [99, 1, 2] %}
         <li class="nav-item">

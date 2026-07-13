@@ -20,7 +20,7 @@ class APIClient:
         self.password = os.getenv("API_PASSWORD", "123qwe")
         self.token = None
         self.max_retries = 3
-        self.authenticate()
+        # self.authenticate()  # Lazy authentication: called on first request
 
     def authenticate(self):
         url = f"{self.base_url}/api/services/app/TokenAuth/Authenticate"

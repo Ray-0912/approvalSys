@@ -1,21 +1,30 @@
-import pytest
+import unittest
 import os
 from main import app
 
-@pytest.fixture
-def client():
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
+class TestApp(unittest.TestCase):
+    def setUp(self):
+        app.config['TESTING'] = True
+        self.client = app.test_client()
 
-def test_secret_key_loaded():
-    assert app.secret_key is not None
-    assert app.secret_key != 'default-dev-key' # Should be loaded from env or default specific value if env missing but here we test availability
+    def test_secret_key_loaded(self):
+        self.assertIsNotNone(app.secret_key)
+        self.assertNotEqual(app.secret_key, 'default-dev-key')
 
-def test_homepage(client):
-    rv = client.get('/')
-    assert rv.status_code == 200
+    def test_homepage(self):
+        rv = self.client.get('/')
+        self.assertEqual(rv.status_code, 200)
 
-def test_login_page_renders(client):
-    rv = client.get('/login')
-    assert rv.status_code == 200
+    def test_login_page_renders(self):
+        rv = self.client.get('/login')
+        self.assertEqual(rv.status_code, 200)
+
+    def test_w_menu_renders(self):
+        rv = self.client.get('/w_menu')
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn(b'USD', rv.data)
+        self.assertIn(b'JPY', rv.data)
+
+if __name__ == '__main__':
+    unittest.main()
+
