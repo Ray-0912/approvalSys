@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet"
         type="text/css">
     <link
@@ -43,6 +44,7 @@
                                         <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                                     </div>
                                     <form class="user" method="post" action="/login">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                         <div class="form-group">
                                             <input type="text" class="form-control form-control-user" id="username"
                                                 name="username" placeholder="UserName" required>
@@ -65,5 +67,19 @@
 
     </div>
 </body>
+
+<script>
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    document.querySelectorAll('form').forEach(function(form) {
+        const method = (form.getAttribute('method') || 'GET').toUpperCase();
+        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !form.querySelector('input[name="csrf_token"]')) {
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = 'csrf_token';
+            tokenInput.value = csrfToken;
+            form.appendChild(tokenInput);
+        }
+    });
+</script>
 
 </html>

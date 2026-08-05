@@ -1,14 +1,17 @@
 from database.CI_API_Client import APIClient
+import logging
 
 # API client for bioLife
+logger = logging.getLogger('approval_system.hr')
 
 def hr_new_person_result(pin, name, og_id, ssn):
     client = APIClient()
     try:
         client.create_person(pin=pin, name=name, organization_unit_id=og_id, ssn=ssn)
+        logger.info('HR create person success: pin=%s og_id=%s', pin, og_id)
         return 1
     except Exception as e:
-        print("新增人員資訊時發生錯誤:", e)
+        logger.exception('新增人員資訊時發生錯誤: pin=%s og_id=%s error=%s', pin, og_id, e)
         return 0
 
 def check_organization_id(og, dep):

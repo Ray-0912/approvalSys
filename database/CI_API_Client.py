@@ -11,7 +11,10 @@
 import os
 import requests
 import time
+import logging
 from datetime import datetime
+
+logger = logging.getLogger('approval_system.bioloife')
 
 class APIClient:
     def __init__(self):
@@ -67,6 +70,21 @@ class APIClient:
     # 取得員工資料，pin = 員工編號，EX: pin=10001
     def get_person_for_edit(self, pin):
         return self._get(f"/api/services/app/Person/GetPersonForEdit?pin={pin}")
+
+    def get_all_biolife_persons(self):
+        """Fetch all persons across all known org units; returns list of {pin, name, org_unit_id} dicts."""
+        ALL_ORG_IDS = "7,8,9,10,12,13,14,15,16,17,18,19"
+        result = self._get("/api/services/app/Person/GetPersons",
+                           {"organizationUnitId": ALL_ORG_IDS, "MaxResultCount": 1000, "page": 1})
+        items = ((result or {}).get('result') or {}).get('items') or []
+        return [
+            {
+                'pin': str(p.get('pin', '')),
+                'name': p.get('name', ''),
+                'org_unit_id': p.get('organizationUnitId') or p.get('organizationunitid') or p.get('orgUnitId'),
+            }
+            for p in items if p.get('pin')
+        ]
 
     # 取得員工資料(Multiple),EX: organization unit id : 8,13(櫃台)
     def get_persons(self, organization_unit_id, Name=None, page = 1):
@@ -347,28 +365,31 @@ class APIClient:
 
     def _post(self, endpoint, data):
         url = f"{self.base_url}{endpoint}"
-        response = requests.post(url, json=data, headers=self._get_headers())
+        response = requests.post(url, json=data, headers=self._get_headers(), timeout=5)
         return self._handle_response(response)
 
     def _put(self, endpoint, data):
         url = f"{self.base_url}{endpoint}"
-        response = requests.put(url, json=data, headers=self._get_headers())
+        response = requests.put(url, json=data, headers=self._get_headers(), timeout=5)
         return self._handle_response(response)
 
     def _delete(self, endpoint):
         url = f"{self.base_url}{endpoint}"
-        response = requests.delete(url, headers=self._get_headers())
+        response = requests.delete(url, headers=self._get_headers(), timeout=5)
         return self._handle_response(response)
 
     def _handle_response(self, response):
         if response.status_code == 200:
             return response.json()
         elif response.status_code == 401:
-            print("Unauthorized: Refreshing token...")
+            logger.warning('BioLife API unauthorized, refreshing token')
             self.authenticate()
         elif response.status_code == 403:
+            logger.warning('BioLife API forbidden: status=403')
             raise PermissionError("Forbidden: You don't have permission to access this resource.")
         elif response.status_code == 500:
+            logger.error('BioLife API internal server error: status=500')
             raise RuntimeError("Internal Server Error")
         else:
+            logger.error('BioLife API unexpected status: %s', response.status_code)
             response.raise_for_status()

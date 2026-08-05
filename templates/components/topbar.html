@@ -7,14 +7,29 @@
         </button>
 
         <ul class="navbar-nav ml-auto">
-            <!--            <form method="post" action="{{ url_for('set_locale') }}">-->
-            <!--                <select name="locale">-->
-            <!--                    <option value="en_US">English</option>-->
-            <!--                    <option value="zh_TW">中文</option>-->
-            <!--                    <option value="ja_JP">日本語</option>-->
-            <!--                </select>-->
-            <!--                <button type="submit">切換語言</button>-->
-            <!--            </form>-->
+
+            <!-- Language switcher -->
+            <li class="nav-item dropdown no-arrow mr-2">
+                <a class="nav-link dropdown-toggle btn btn-outline-primary btn-sm px-3" href="#" id="langDropdown" role="button"
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-globe fa-fw mr-1"></i>
+                    <span class="font-weight-bold">{{ _('Language') }}</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="langDropdown">
+                    <form method="post" action="{{ url_for('set_locale') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button class="dropdown-item py-2" type="submit" name="locale" value="zh_TW">
+                            🇹🇼 繁體中文
+                        </button>
+                        <button class="dropdown-item py-2" type="submit" name="locale" value="en_US">
+                            🇺🇸 English
+                        </button>
+                        <button class="dropdown-item py-2" type="submit" name="locale" value="ja_JP">
+                            🇯🇵 日本語
+                        </button>
+                    </form>
+                </div>
+            </li>
 
             <div class="topbar-divider d-none d-sm-block"></div>
 
@@ -27,12 +42,12 @@
                 <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
                     <a class="dropdown-item" href="/u/update">
                         <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Personal Profile
+                        {{ _('Personal Profile') }}
                     </a>
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href="/logout" data-toggle="modal" data-target="#logoutModal">
                         <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Logout
+                        {{ _('Logout') }}
                     </a>
                 </div>
             </li>

@@ -1,0 +1,209 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en_US\n"
+
+msgid "Schedule System"
+msgstr "Schedule System"
+
+msgid "Homepage"
+msgstr "Homepage"
+
+msgid "Utilities"
+msgstr "Utilities"
+
+msgid "System Setting"
+msgstr "System Settings"
+
+msgid "System"
+msgstr "System"
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "Users"
+msgstr "Users"
+
+msgid "Permissions"
+msgstr "Permissions"
+
+msgid "Audit Logs"
+msgstr "Audit Logs"
+
+msgid "Approval"
+msgstr "Approval"
+
+msgid "Approval List"
+msgstr "Approval List"
+
+msgid "New Approval"
+msgstr "New Approval"
+
+msgid "User"
+msgstr "User"
+
+msgid "Personal Profile"
+msgstr "Personal Profile"
+
+msgid "Human Resource"
+msgstr "Human Resource"
+
+msgid "Working Shift"
+msgstr "Working Shift"
+
+msgid "Schedule"
+msgstr "Schedule"
+
+msgid "Clock Record"
+msgstr "Clock Record"
+
+msgid "Off Request"
+msgstr "Day Off Request"
+
+msgid "Off Request Mgmt"
+msgstr "Day Off Mgmt"
+
+msgid "Accountant"
+msgstr "Accountant"
+
+msgid "Salary Calculate"
+msgstr "Salary Calculate"
+
+msgid "Salary Rules"
+msgstr "Salary Rules"
+
+msgid "Staff Management"
+msgstr "Staff Management"
+
+msgid "New Staff"
+msgstr "New Staff"
+
+msgid "Sync Staff"
+msgstr "Sync Staff"
+
+msgid "Logout"
+msgstr "Logout"
+
+msgid "Language"
+msgstr "Language"
+
+msgid "Electronic Signature System"
+msgstr "Electronic Signature System"
+
+msgid "System Settings"
+msgstr "System Settings"
+
+msgid "User Management"
+msgstr "User Management"
+
+msgid "User List"
+msgstr "User List"
+
+msgid "Audit Trail"
+msgstr "Audit Trail"
+
+msgid "Access Control"
+msgstr "Access Control"
+
+msgid "Manage system users."
+msgstr "Manage system users."
+
+msgid "username, name, email, role, team"
+msgstr "username, name, email, role, team"
+
+msgid "Page Size"
+msgstr "Page Size"
+
+msgid "Filter"
+msgstr "Filter"
+
+msgid "All Users"
+msgstr "All Users"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "Username"
+msgstr "Username"
+
+msgid "Full Name"
+msgstr "Full Name"
+
+msgid "Role"
+msgstr "Role"
+
+msgid "Team"
+msgstr "Team"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Action"
+msgstr "Action"
+
+msgid "Edit"
+msgstr "Edit"
+
+msgid "No users found."
+msgstr "No users found."
+
+msgid "Previous"
+msgstr "Previous"
+
+msgid "Next"
+msgstr "Next"
+
+msgid "View recent system changes with entity filtering and paging."
+msgstr "View recent system changes with entity filtering and paging."
+
+msgid "Entity Type"
+msgstr "Entity Type"
+
+msgid "e.g. salary_rule"
+msgstr "e.g. salary_rule"
+
+msgid "Records"
+msgstr "Records"
+
+msgid "Time"
+msgstr "Time"
+
+msgid "Entity"
+msgstr "Entity"
+
+msgid "Entity ID"
+msgstr "Entity ID"
+
+msgid "Changed By"
+msgstr "Changed By"
+
+msgid "Before"
+msgstr "Before"
+
+msgid "After"
+msgstr "After"
+
+msgid "IP"
+msgstr "IP"
+
+msgid "No audit log entries found."
+msgstr "No audit log entries found."
+
+msgid "Users & Access"
+msgstr "Users & Access"
+
+msgid "Role Permissions"
+msgstr "Role Permissions"
+
+msgid "Override the default permissions for each role. These settings take effect immediately and are written to the audit log."
+msgstr "Override the default permissions for each role. These settings take effect immediately and are written to the audit log."
+
+msgid "Permission Matrix"
+msgstr "Permission Matrix"
+
+msgid "Allow"
+msgstr "Allow"
+
+msgid "Deny"
+msgstr "Deny"

@@ -1,0 +1,206 @@
+{% extends 'components/base.html' %}
+{% block title %}薪資規則與設定{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-3 text-gray-800">薪資規則與員工薪資設定</h1>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 bg-primary text-white">
+                    <h6 class="m-0 font-weight-bold">建立薪資規則版本</h6>
+                </div>
+                <div class="card-body">
+                    <form action="/hr/salary/ma" method="POST">
+                        <input type="hidden" name="action" value="create_rule">
+                        <div class="form-group">
+                            <label>版本名稱</label>
+                            <input type="text" class="form-control" name="version_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>生效日</label>
+                            <input type="date" class="form-control" name="effective_from" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label>月薪加班倍率</label>
+                                <input type="number" step="0.01" class="form-control" name="overtime_monthly_multiplier" value="1.33">
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>時薪加班倍率</label>
+                                <input type="number" step="0.01" class="form-control" name="overtime_hourly_multiplier" value="1.50">
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>國定假日倍率</label>
+                                <input type="number" step="0.01" class="form-control" name="holiday_multiplier" value="2.00">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-3">
+                                <label>遲到寬限(分)</label>
+                                <input type="number" class="form-control" name="grace_late_minutes" value="5">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>早退寬限(分)</label>
+                                <input type="number" class="form-control" name="grace_early_minutes" value="5">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>基準工時(一般)</label>
+                                <input type="number" step="0.5" class="form-control" name="regular_hours_staff" value="8.5">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>基準工時(主管)</label>
+                                <input type="number" step="0.5" class="form-control" name="regular_hours_manager" value="9.0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>每次遲到扣款（選填，留空不扣款）</label>
+                            <input type="number" step="0.01" class="form-control" name="late_deduction_per_instance" placeholder="例如 200">
+                            <small class="form-text text-muted">實際扣款 = 此金額 × 當月遲到次數</small>
+                        </div>
+                        <div class="form-group">
+                            <label>預設時薪（無薪資設定時套用）</label>
+                            <input type="number" step="0.01" class="form-control" name="default_hourly_rate" value="200">
+                        </div>
+                        <button type="submit" class="btn btn-primary">建立規則版本</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 bg-info text-white">
+                    <h6 class="m-0 font-weight-bold">目前生效規則</h6>
+                </div>
+                <div class="card-body">
+                    {% if rule %}
+                    <p><strong>版本：</strong>{{ rule.version_name }}</p>
+                    <p><strong>生效日：</strong>{{ rule.effective_from }}</p>
+                    <p><strong>月薪加班倍率：</strong>{{ rule.overtime_monthly_multiplier }}</p>
+                    <p><strong>時薪加班倍率：</strong>{{ rule.overtime_hourly_multiplier }}</p>
+                    <p><strong>假日倍率：</strong>{{ rule.holiday_multiplier }}</p>
+                    <p><strong>寬限：</strong>遲到 {{ rule.grace_late_minutes }} 分 / 早退 {{ rule.grace_early_minutes }} 分</p>
+                    <p><strong>基準工時：</strong>一般 {{ rule.regular_hours_staff }} 小時 / 主管 {{ rule.regular_hours_manager }} 小時</p>
+                    <p><strong>遲到扣款：</strong>{% if rule.late_deduction_per_instance %}每次 {{ rule.late_deduction_per_instance }}{% else %}不扣款{% endif %}</p>
+                    <p><strong>預設時薪：</strong>{{ rule.default_hourly_rate or 200 }}</p>
+                    {% else %}
+                    <p class="text-muted mb-0">尚無規則，請先建立第一版。</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-success text-white">
+            <h6 class="m-0 font-weight-bold">員工薪資型態與金額</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>員工</th>
+                            <th>角色</th>
+                            <th>打卡PIN</th>
+                            <th>薪資型態</th>
+                            <th>薪資金額</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in profiles %}
+                        <tr>
+                            <form action="/hr/salary/ma" method="POST">
+                                <input type="hidden" name="action" value="upsert_profile">
+                                <input type="hidden" name="user_id" value="{{ p.user_id }}">
+                                <td>{{ p.user_id }} - {{ p.first_name }}{{ p.last_name }}</td>
+                                <td>{{ p.role_id }}</td>
+                                <td>{{ p.clock_id or '-' }}</td>
+                                <td>
+                                    <select class="form-control form-control-sm salary-type-select" name="salary_type">
+                                        <option value="monthly" {% if (p.salary_type or 'hourly') == 'monthly' %}selected{% endif %}>月薪</option>
+                                        <option value="hourly" {% if (p.salary_type or 'hourly') == 'hourly' %}selected{% endif %}>時薪</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" class="form-control form-control-sm monthly-field"
+                                           name="monthly_salary" value="{{ p.monthly_salary or '' }}"
+                                           placeholder="月薪"
+                                           {% if (p.salary_type or 'hourly') == 'hourly' %}style="display:none"{% endif %}>
+                                    <input type="number" step="0.01" class="form-control form-control-sm hourly-field"
+                                           name="hourly_salary" value="{{ p.hourly_salary or '' }}"
+                                           placeholder="時薪"
+                                           {% if (p.salary_type or 'hourly') == 'monthly' %}style="display:none"{% endif %}>
+                                </td>
+                                <td><button type="submit" class="btn btn-sm btn-success">儲存</button></td>
+                            </form>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">目前沒有可維護的員工薪資資料。</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-warning text-dark">
+            <h6 class="m-0 font-weight-bold">國定假日維護（{{ holiday_month }}）</h6>
+        </div>
+        <div class="card-body">
+            <form class="form-inline mb-3" action="/hr/salary/ma" method="POST">
+                <input type="hidden" name="action" value="upsert_holiday">
+                <label class="mr-2">日期</label>
+                <input type="date" class="form-control mr-3" name="holiday_date" required>
+                <label class="mr-2">名稱</label>
+                <input type="text" class="form-control mr-3" name="holiday_name" required>
+                <button type="submit" class="btn btn-warning">新增/更新</button>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>名稱</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in holidays %}
+                        <tr>
+                            <td>{{ h.holiday_date }}</td>
+                            <td>{{ h.name }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="2" class="text-center text-muted">此月份尚未設定假日。</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block head %}
+{{ super() }}
+<script>
+$(document).on('change', '.salary-type-select', function () {
+    const row = $(this).closest('tr');
+    if ($(this).val() === 'monthly') {
+        row.find('.monthly-field').show();
+        row.find('.hourly-field').hide().val('');
+    } else {
+        row.find('.hourly-field').show();
+        row.find('.monthly-field').hide().val('');
+    }
+});
+</script>
+{% endblock %}

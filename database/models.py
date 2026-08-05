@@ -6,7 +6,9 @@ file_path = os.path.join(os.getcwd(), 'static', 'js', 'p_type_data.json')
 
 
 class User:
-    def __init__(self, user_id, username, first_name, last_name, email, role_id, team_id, role_name, team_name, clock_id, activation=1):
+    def __init__(self, user_id: int, username: str, first_name: str, last_name: str, email: str,
+                 role_id: int, team_id: int, role_name: str, team_name: str, clock_id: str,
+                 activation: int = 1) -> None:
         self.user_id = user_id
         self.username = username
         self.first_name = first_name
@@ -14,7 +16,6 @@ class User:
         self.email = email
         self.role_id = role_id
         self.team_id = team_id
-        self.role_id = role_id
         self.role_name = role_name
         self.team_name = team_name
         self.clock_id = clock_id
@@ -22,20 +23,21 @@ class User:
 
 
 class Role:
-    def __init__(self, role_id, name):
+    def __init__(self, role_id: int, name: str) -> None:
         self.role_id = role_id
         self.name = name
 
 
 class Team:
-    def __init__(self, team_id, name):
+    def __init__(self, team_id: int, name: str) -> None:
         self.team_id = team_id
         self.name = name
 
 
 class Document:
-    def __init__(self, doc_id, creator, title, doc_type, signature_required, content, status, status_remark,
-                 create_time, last_update, creator_name=''):
+    def __init__(self, doc_id: int, creator: int, title: str, doc_type: str, signature_required: int,
+                 content: str, status: int, status_remark: str, create_time, last_update,
+                 creator_name: str = '') -> None:
         self.doc_id = doc_id
         self.creator = creator
         self.title = title
@@ -51,23 +53,24 @@ class Document:
 
 
 class AppRecord:
-    def __init__(self, doc_ap_id, status, approval_time, username, create_time):
+    def __init__(self, doc_ap_id: int, status: int, approval_time, username: str, create_time, reason: str = None) -> None:
         self.doc_ap_id = doc_ap_id
         self.status = status
         self.approval_time = approval_time
         self.username = username
         self.create_time = create_time
+        self.reason = reason
 
 
 class Currency:
-    def __init__(self, date, country, bank_buying_rate, bank_selling_rate):
+    def __init__(self, date, country: str, bank_buying_rate, bank_selling_rate) -> None:
         self.date = date
         self.country = country
         self.bank_buying_rate = bank_buying_rate
         self.bank_selling_rate = bank_selling_rate
 
 
-def get_type_cht(type_code):
+def get_type_cht(type_code: str) -> str:
     with open(file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
         if type_code in data['type']:

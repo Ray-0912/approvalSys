@@ -1,26 +1,49 @@
 {% extends 'components/base.html' %}
 
+{% block title %}{{ _('User List') }}{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
-    <h1 class="h3 mb-2 text-gray-800">User List</h1>
-    <p class="mb-4">Manage system users.</p>
+    <h1 class="h3 mb-2 text-gray-800">{{ _('User List') }}</h1>
+    <p class="mb-4">{{ _('Manage system users.') }}</p>
 
     <div class="card shadow mb-4">
+        <div class="card-body">
+            <form class="form-row align-items-end" method="GET" action="/sys/users">
+                <div class="col-md-4 mb-2">
+                    <label>{{ _('Search') }}</label>
+                    <input type="text" class="form-control" name="q" value="{{ q }}" placeholder="{{ _('username, name, email, role, team') }}">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label>{{ _('Page Size') }}</label>
+                    <select class="form-control" name="page_size">
+                        <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                        <option value="20" {% if page_size == 20 %}selected{% endif %}>20</option>
+                        <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                        <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button type="submit" class="btn btn-primary">{{ _('Filter') }}</button>
+                </div>
+            </form>
+        </div>
+
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">All Users</h6>
+            <h6 class="m-0 font-weight-bold text-primary">All Users ({{ total_count }})</h6>
         </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Username</th>
-                            <th>Full Name</th>
-                            <th>Role</th>
-                            <th>Team</th>
-                            <th>Email</th>
-                            <th>Action</th>
+                            <th>{{ _('ID') }}</th>
+                            <th>{{ _('Username') }}</th>
+                            <th>{{ _('Full Name') }}</th>
+                            <th>{{ _('Role') }}</th>
+                            <th>{{ _('Team') }}</th>
+                            <th>{{ _('Email') }}</th>
+                            <th>{{ _('Action') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -33,12 +56,28 @@
                             <td>{{ user.team_name }}</td>
                             <td>{{ user.email }}</td>
                             <td>
-                                <a href="/sys/user/edit/{{ user.user_id }}" class="btn btn-primary btn-sm">Edit</a>
+                                <a href="/sys/user/edit/{{ user.user_id }}" class="btn btn-primary btn-sm">{{ _('Edit') }}</a>
                             </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">{{ _('No users found.') }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small">Page {{ page }} / {{ total_pages }}</div>
+                <div>
+                    {% if page > 1 %}
+                    <a class="btn btn-outline-primary btn-sm" href="/sys/users?q={{ q }}&page_size={{ page_size }}&page={{ page - 1 }}">{{ _('Previous') }}</a>
+                    {% endif %}
+                    {% if page < total_pages %}
+                    <a class="btn btn-outline-primary btn-sm" href="/sys/users?q={{ q }}&page_size={{ page_size }}&page={{ page + 1 }}">{{ _('Next') }}</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -48,7 +87,11 @@
 {% block scripts %}
 <script>
     $(document).ready(function () {
-        $('#dataTable').DataTable();
+        $('#dataTable').DataTable({
+            paging: false,
+            searching: false,
+            info: false
+        });
     });
 </script>
 {% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'components/base.html' %}
+{% block title %}排休申請{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 text-gray-800">排休申請 — {{ next_month_str }}</h1>
+        {% if not can_submit %}
+        <div class="alert alert-warning mb-0 py-2 px-3">
+            <i class="fas fa-lock mr-1"></i>每月 28 日後不接受下個月排休申請
+        </div>
+        {% endif %}
+    </div>
+
+    {% if can_submit %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-primary text-white">
+            <h6 class="m-0 font-weight-bold">點擊日期申請 / 取消排休</h6>
+        </div>
+        <div class="card-body">
+            <div id="calendar" class="row flex-wrap"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">我的申請（{{ next_month_str }}）</h6>
+        </div>
+        <div class="card-body">
+            <div id="myRequestList">
+                {% if my_dates %}
+                <ul class="list-group">
+                    {% for d in my_dates %}
+                    <li class="list-group-item">{{ d }} <span class="badge badge-info ml-2">排休申請</span></li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">尚無申請</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Conflict notification -->
+    <div id="conflictAlert" class="alert alert-warning d-none"></div>
+</div>
+{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script>
+$(document).ready(function () {
+    const nextMonthStr = '{{ next_month_str }}';
+    let myDates = {{ my_dates | tojson }};
+    const canSubmit = {{ 'true' if can_submit else 'false' }};
+
+    if (!canSubmit) return;
+
+    // Build calendar grid for next month
+    const [year, month] = nextMonthStr.split('-').map(Number);
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const firstDay = new Date(year, month - 1, 1).getDay(); // 0=Sun
+    const WEEKDAYS = ['日','一','二','三','四','五','六'];
+
+    let html = '<div class="col-12"><div class="d-flex flex-wrap">';
+    // Header
+    WEEKDAYS.forEach(function (d) {
+        html += '<div class="text-center font-weight-bold" style="width:14.28%;padding:4px;">' + d + '</div>';
+    });
+    // Empty cells before month start
+    for (let i = 0; i < firstDay; i++) {
+        html += '<div style="width:14.28%;padding:4px;"></div>';
+    }
+    // Day cells
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = nextMonthStr + '-' + String(d).padStart(2, '0');
+        const isOff = myDates.indexOf(dateStr) >= 0;
+        const dow = new Date(year, month - 1, d).getDay();
+        const isWeekend = dow === 0 || dow === 6;
+        html += '<div class="calendar-day text-center border rounded m-1 p-2 ' +
+                (isOff ? 'bg-danger text-white' : (isWeekend ? 'bg-light' : '')) +
+                '" data-date="' + dateStr + '" style="width:12%;cursor:pointer;min-width:40px">' +
+                '<div class="font-weight-bold">' + d + '</div>' +
+                '<div class="small">' + (isOff ? '排休' : '') + '</div>' +
+                '</div>';
+    }
+    html += '</div></div>';
+    $('#calendar').html(html);
+
+    $(document).on('click', '.calendar-day', function () {
+        const dateStr = $(this).data('date');
+        const isOff = myDates.indexOf(dateStr) >= 0;
+        const action = isOff ? 'remove' : 'add';
+
+        $.ajax({
+            url: '/hr/schedule/off-request/save',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ action: action, date: dateStr }),
+            success: function (res) {
+                if (!res.success) { alert(res.error); return; }
+
+                if (action === 'add') {
+                    myDates.push(dateStr);
+                    $('.calendar-day[data-date="' + dateStr + '"]')
+                        .addClass('bg-danger text-white').find('.small').text('排休');
+
+                    if (res.data.conflicts && res.data.conflicts.length) {
+                        const names = res.data.conflicts.join('、');
+                        const day = dateStr.slice(5).replace('-', '/');
+                        $('#conflictAlert')
+                            .removeClass('d-none')
+                            .html('<i class="fas fa-exclamation-triangle mr-2"></i>' +
+                                  day + ' 同時也有 <strong>' + names + '</strong> 申請排休喔！');
+                    } else {
+                        $('#conflictAlert').addClass('d-none');
+                    }
+                } else {
+                    myDates = myDates.filter(function (d) { return d !== dateStr; });
+                    $('.calendar-day[data-date="' + dateStr + '"]')
+                        .removeClass('bg-danger text-white').find('.small').text('');
+                    $('#conflictAlert').addClass('d-none');
+                }
+
+                // Refresh list
+                let listHtml = myDates.length
+                    ? '<ul class="list-group">' + myDates.sort().map(function (d) {
+                        return '<li class="list-group-item">' + d + ' <span class="badge badge-info ml-2">排休申請</span></li>';
+                      }).join('') + '</ul>'
+                    : '<p class="text-muted mb-0">尚無申請</p>';
+                $('#myRequestList').html(listHtml);
+            },
+            error: function (xhr) {
+                alert((xhr.responseJSON && xhr.responseJSON.error) || '操作失敗');
+            }
+        });
+    });
+});
+</script>
+<style>
+.calendar-day:hover { opacity: 0.8; }
+</style>
+{% endblock %}

@@ -1,28 +1,212 @@
-# Japanese (Japan) translations for PROJECT.
-# Copyright (C) 2023 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
-#
-msgid ""
+﻿msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-06-20 14:29+0800\n"
-"PO-Revision-Date: 2023-06-20 14:16+0800\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: ja_JP\n"
-"Language-Team: ja_JP <LL@li.org>\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.12.1\n"
+"Content-Type: text/plain; charset=utf-8
+"
+"Content-Transfer-Encoding: 8bit
+"
+"Language: ja_JP
+"
 
-#: templates/homepage.html:2
-msgid "HomePage"
-msgstr "ホームページ"
-
-#: templates/components/navbar.html:4
 msgid "Schedule System"
+msgstr "スケジュールシステム"
+
+msgid "Homepage"
+msgstr "ホーム"
+
+msgid "Utilities"
+msgstr "機能"
+
+msgid "System Setting"
+msgstr "システム設定"
+
+msgid "System"
 msgstr "システム"
 
+msgid "Settings"
+msgstr "設定"
+
+msgid "Users"
+msgstr "ユーザー管理"
+
+msgid "Permissions"
+msgstr "権限設定"
+
+msgid "Audit Logs"
+msgstr "操作ログ"
+
+msgid "Approval"
+msgstr "申請"
+
+msgid "Approval List"
+msgstr "申請一覧"
+
+msgid "New Approval"
+msgstr "新規申請"
+
+msgid "User"
+msgstr "ユーザー"
+
+msgid "Personal Profile"
+msgstr "プロフィール"
+
+msgid "Human Resource"
+msgstr "人事管理"
+
+msgid "Working Shift"
+msgstr "シフト管理"
+
+msgid "Schedule"
+msgstr "スケジュール"
+
+msgid "Clock Record"
+msgstr "打刻記録"
+
+msgid "Off Request"
+msgstr "休暇申請"
+
+msgid "Off Request Mgmt"
+msgstr "休暇管理"
+
+msgid "Accountant"
+msgstr "経理"
+
+msgid "Salary Calculate"
+msgstr "給与計算"
+
+msgid "Salary Rules"
+msgstr "給与ルール"
+
+msgid "Staff Management"
+msgstr "スタッフ管理"
+
+msgid "New Staff"
+msgstr "新規スタッフ"
+
+msgid "Sync Staff"
+msgstr "スタッフ同期"
+
+msgid "Logout"
+msgstr "ログアウト"
+
+msgid "Language"
+msgstr "言語"
+
+msgid "Electronic Signature System"
+msgstr "電子署名システム"
+
+msgid "System Settings"
+msgstr "システム設定"
+
+msgid "User Management"
+msgstr "ユーザー管理"
+
+msgid "User List"
+msgstr "ユーザー一覧"
+
+msgid "Audit Trail"
+msgstr "監査トレイル"
+
+msgid "Access Control"
+msgstr "アクセス制御"
+
+msgid "Manage system users."
+msgstr "システムユーザーを管理します。"
+
+msgid "username, name, email, role, team"
+msgstr "ユーザー名、氏名、メール、役割、部署"
+
+msgid "Page Size"
+msgstr "ページサイズ"
+
+msgid "Filter"
+msgstr "フィルター"
+
+msgid "All Users"
+msgstr "全ユーザー"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "Username"
+msgstr "ユーザー名"
+
+msgid "Full Name"
+msgstr "氏名"
+
+msgid "Role"
+msgstr "役割"
+
+msgid "Team"
+msgstr "部署"
+
+msgid "Email"
+msgstr "メール"
+
+msgid "Action"
+msgstr "操作"
+
+msgid "Edit"
+msgstr "編集"
+
+msgid "No users found."
+msgstr "ユーザーが見つかりません。"
+
+msgid "Previous"
+msgstr "前へ"
+
+msgid "Next"
+msgstr "次へ"
+
+msgid "View recent system changes with entity filtering and paging."
+msgstr "最近のシステム変更を、エンティティとページングで確認できます。"
+
+msgid "Entity Type"
+msgstr "エンティティ種別"
+
+msgid "e.g. salary_rule"
+msgstr "例: salary_rule"
+
+msgid "Records"
+msgstr "件数"
+
+msgid "Time"
+msgstr "時間"
+
+msgid "Entity"
+msgstr "エンティティ"
+
+msgid "Entity ID"
+msgstr "エンティティ ID"
+
+msgid "Changed By"
+msgstr "変更者"
+
+msgid "Before"
+msgstr "変更前"
+
+msgid "After"
+msgstr "変更後"
+
+msgid "IP"
+msgstr "IP"
+
+msgid "No audit log entries found."
+msgstr "監査ログはありません。"
+
+msgid "Users & Access"
+msgstr "ユーザーとアクセス"
+
+msgid "Role Permissions"
+msgstr "役割権限"
+
+msgid "Override the default permissions for each role. These settings take effect immediately and are written to the audit log."
+msgstr "各役割の既定権限を上書きできます。設定はすぐに有効になり、監査ログに記録されます。"
+
+msgid "Permission Matrix"
+msgstr "権限マトリクス"
+
+msgid "Allow"
+msgstr "許可"
+
+msgid "Deny"
+msgstr "拒否"

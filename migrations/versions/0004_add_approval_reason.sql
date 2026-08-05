@@ -1,0 +1,1 @@
+ALTER TABLE doc_approval_record ADD COLUMN reason VARCHAR(500) NULL DEFAULT NULL;

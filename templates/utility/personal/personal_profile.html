@@ -2,58 +2,98 @@
 {% block title %}更新用戶資訊{% endblock %}
 {% block content %}
 
-<h2>更新用戶資訊</h2>
+<h2>個人資料</h2>
 <div class="row">
-    <div class="col mb-4">
+    <div class="col-lg-6 mb-4">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">簽呈內容</h6>
+                <h6 class="m-0 font-weight-bold text-primary">基本資料</h6>
             </div>
             <div class="card-body">
                 <form id="user_update" action="/u/update" method="POST">
 
-                    <div class="col mt-4 mb-2">
-                        <code>如需調整 User Name ，請洽資訊人員</code><br>
-                        <label for="user_name">UserName：  {{ user_name }}</label>
+                    <div class="form-group">
+                        <label>UserName</label>
+                        <input type="text" class="form-control" value="{{ user_name }}" readonly>
+                        <small class="form-text text-muted">如需調整帳號，請洽資訊人員</small>
                     </div>
 
-                    <div class="col mt-4 mb-2">
-                        <label for="password">Password：  </label>
-                        <input type="password" id="password" name="password">
+                    <div class="form-group">
+                        <label for="password">新密碼（留空不修改）</label>
+                        <input type="password" id="password" name="password" class="form-control">
                     </div>
 
-                    <div class="col mt-4 mb-2">
-                        <label for="first_name">First Name：  </label>
-                        <input type="text" id="first_name" name="first_name" value="{{ first_name }}">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="last_name">姓</label>
+                            <input type="text" id="last_name" name="last_name" class="form-control" value="{{ last_name }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="first_name">名</label>
+                            <input type="text" id="first_name" name="first_name" class="form-control" value="{{ first_name }}">
+                        </div>
                     </div>
 
-                    <div class="col mt-4 mb-2">
-                        <label for="last_name">Last Name：  </label>
-                        <input type="text" id="last_name" name="last_name" value="{{ last_name }}">
+                    <div class="form-group">
+                        <label for="Phone">電話</label>
+                        <input type="text" id="Phone" name="Phone" class="form-control" value="{{ phone }}">
                     </div>
 
-                    <div class="col mt-4 mb-2">
-                        <label for="Phone">Phone：  </label>
-                        <input type="text" id="Phone" name="Phone" value="{{ phone }}">
+                    <div class="form-group">
+                        <label for="email">E-mail</label>
+                        <input type="text" id="email" name="email" class="form-control" value="{{ email }}">
                     </div>
 
-                    <div class="col mt-4 mb-2">
-                        <label for="email">E-mail：  </label>
-                        <input type="text" id="email" name="email" value="{{ email }}">
-                    </div>
-
-                    <div class="col mt-4 mb-2">
-                        <a
-                            href="#"
-                            class="btn btn-sm btn-primary shadow-sm"
-                            onclick="document.getElementById('user_update').submit()"
-                            type="submit">
-                            <i class="fas fa-download fa-sm text-white-50"></i>
-                            Submit
-                        </a>
-                    </div>
-
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-1"></i>儲存
+                    </button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-info text-white">
+                <h6 class="m-0 font-weight-bold">HR 資訊（唯讀）</h6>
+            </div>
+            <div class="card-body">
+                {% if user_info %}
+                <table class="table table-sm table-borderless">
+                    <tr><th style="width:40%">員工編號</th><td>{{ user_info.clock_id or '-' }}</td></tr>
+                    <tr><th>角色</th><td>
+                        {% set role_map = {99:'Super Admin', 0:'Admin', 1:'Manager', 2:'Supervisor', 3:'Staff', 4:'Accountant'} %}
+                        {{ role_map.get(user_info.role_id, user_info.role_id) }}
+                    </td></tr>
+                    <tr><th>部門</th><td>
+                        {% set team_map = {0:'管理部', 1:'櫃台部', 2:'房務部', 3:'會計部', 4:'業務部', 5:'餐飲部', 6:'其他'} %}
+                        {{ team_map.get(user_info.team_id, '-') }}
+                    </td></tr>
+                    <tr><th>帳號狀態</th><td>
+                        {% if user_info.activation %}
+                        <span class="badge badge-success">Active</span>
+                        {% else %}
+                        <span class="badge badge-secondary">Inactive</span>
+                        {% endif %}
+                    </td></tr>
+                </table>
+                {% endif %}
+
+                {% if salary_profile %}
+                <hr>
+                <p class="font-weight-bold mb-2">薪資資訊</p>
+                <table class="table table-sm table-borderless">
+                    <tr><th style="width:40%">薪資型態</th><td>{{ '月薪' if salary_profile.salary_type == 'monthly' else '時薪' }}</td></tr>
+                    {% if salary_profile.salary_type == 'monthly' and salary_profile.monthly_salary %}
+                    <tr><th>月薪</th><td>{{ salary_profile.monthly_salary }}</td></tr>
+                    {% elif salary_profile.hourly_salary %}
+                    <tr><th>時薪</th><td>{{ salary_profile.hourly_salary }}</td></tr>
+                    {% endif %}
+                </table>
+                {% else %}
+                <hr>
+                <p class="text-muted small">尚未設定薪資資料</p>
+                {% endif %}
             </div>
         </div>
     </div>

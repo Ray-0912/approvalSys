@@ -50,14 +50,17 @@
                         </a>
                         <div class="collapse" id="collapseCardAppRecord">
                             <div class="card-body">
+                                {% if next_approver %}
+                                <p class="mb-3 text-muted">目前待簽者：<strong>{{ next_approver.first_name }} {{ next_approver.last_name }}</strong> ({{ next_approver.username }})</p>
+                                {% endif %}
                                 {% for record in app_record %}
                                 <p>{{ record.username }} ：
                                     {% if record.status == 0 %}
-                                    Wating for approval
+                                    待簽核
                                     {% elif record.status == 1 %}
-                                    Approved at <code>{{ record.approval_time.strftime('%Y-%m-%d')[:10] }}</code>
+                                    已簽核於 <code>{{ record.approval_time.strftime('%Y-%m-%d')[:10] }}</code>
                                     {% else %}
-                                    <code>Unapproved</code>
+                                    <code>已駁回</code>{% if record.reason %} — <span class="text-danger">{{ record.reason }}</span>{% endif %}
                                     {% endif %}
                                 </p>
                                 {% endfor %}
@@ -87,7 +90,7 @@
                                             <span class="icon text-white-50">
                                                 <i class="fas fa-file-code"></i>
                                             </span>
-                                            <span class="text">Alter</span>
+                                            <span class="text">編輯</span>
                                         </a>
                                     </div>
                                     <div class="col">
@@ -96,7 +99,7 @@
                                             <span class="icon text-white-50">
                                                 <i class="fas fa-trash"></i>
                                             </span>
-                                            <span class="text">Delete</span>
+                                            <span class="text">刪除</span>
                                         </a>
                                     </div>
                                 {% endif %}
@@ -108,17 +111,17 @@
                                             <span class="icon text-white-50">
                                                 <i class="fas fa-check"></i>
                                             </span>
-                                            <span class="text">Approve</span>
+                                            <span class="text">核准</span>
                                         </a>
                                     </div>
 
                                     <div class="col">
-                                        <a onclick="confirmAction_unapprove({{ document.doc_id }})"
+                                        <a onclick="openRejectModal({{ document.doc_id }})"
                                            class="btn btn-danger btn-icon-split">
                                             <span class="icon text-white-50">
                                                 <i class="fas fa-comment-slash"></i>
                                             </span>
-                                            <span class="text">unApprove</span>
+                                            <span class="text">駁回</span>
                                         </a>
                                     </div>
                                 {% endif %}
@@ -130,4 +133,38 @@
         </div>
     </div>
 </div>
+
+<!-- Rejection reason modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">駁回簽呈</h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <form id="rejectForm" action="/p/reject" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="doc_id" id="rejectDocId" value="">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="rejectReason">駁回原因（選填）</label>
+                        <textarea class="form-control" id="rejectReason" name="reason" rows="3" maxlength="500" placeholder="請輸入駁回原因..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-danger">確認駁回</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openRejectModal(docId) {
+    document.getElementById('rejectDocId').value = docId;
+    document.getElementById('rejectReason').value = '';
+    $('#rejectModal').modal('show');
+}
+</script>
 {% endblock %}

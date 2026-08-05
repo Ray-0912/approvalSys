@@ -1,0 +1,87 @@
+{% extends 'components/base.html' %}
+
+{% block title %}{{ _('Audit Logs') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">{{ _('Audit Logs') }}</h1>
+    <p class="mb-4">{{ _('View recent system changes with entity filtering and paging.') }}</p>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form class="form-row align-items-end" method="GET" action="/sys/audit-logs">
+                <div class="col-md-3 mb-2">
+                    <label>{{ _('Entity Type') }}</label>
+                    <input type="text" class="form-control" name="entity_type" value="{{ entity_type }}" placeholder="{{ _('e.g. salary_rule') }}">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label>{{ _('Page Size') }}</label>
+                    <select class="form-control" name="page_size">
+                        <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                        <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                        <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                        <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button type="submit" class="btn btn-primary">{{ _('Filter') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">{{ _('Records') }} ({{ total_count }})</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>{{ _('Time') }}</th>
+                            <th>{{ _('Entity') }}</th>
+                            <th>{{ _('Entity ID') }}</th>
+                            <th>{{ _('Action') }}</th>
+                            <th>{{ _('Changed By') }}</th>
+                            <th>{{ _('Before') }}</th>
+                            <th>{{ _('After') }}</th>
+                            <th>{{ _('IP') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.changed_at }}</td>
+                            <td>{{ log.entity_type }}</td>
+                            <td>{{ log.entity_id }}</td>
+                            <td>{{ log.action }}</td>
+                            <td>{{ log.username or log.changed_by or '-' }}</td>
+                            <td class="text-monospace small">{{ log.before_json or '-' }}</td>
+                            <td class="text-monospace small">{{ log.after_json or '-' }}</td>
+                            <td>{{ log.ip_address or '-' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">{{ _('No audit log entries found.') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small">Page {{ page }} / {{ total_pages }}</div>
+                <div>
+                    {% if page > 1 %}
+                    <a class="btn btn-outline-primary btn-sm" href="/sys/audit-logs?entity_type={{ entity_type }}&page_size={{ page_size }}&page={{ page - 1 }}">{{ _('Previous') }}</a>
+                    {% endif %}
+                    {% if page < total_pages %}
+                    <a class="btn btn-outline-primary btn-sm" href="/sys/audit-logs?entity_type={{ entity_type }}&page_size={{ page_size }}&page={{ page + 1 }}">{{ _('Next') }}</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

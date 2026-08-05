@@ -7,26 +7,28 @@
         <li class="nav-item active">
             <a class="nav-link" href="/">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
-                <span>Homepage</span></a>
+                <span>{{ _('Homepage') }}</span></a>
         </li>
 
         <hr class="sidebar-divider">
-
-        <div class="sidebar-heading">
-            Utilities
-        </div>
+        <div class="sidebar-heading">{{ _('Utilities') }}</div>
 
         {% if session.get('role_id') in [99, 0] %}
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSys"
                 aria-expanded="true" aria-controls="collapseSys">
                 <i class="fas fa-fw fa-cogs"></i>
-                <span>System Setting</span>
+                <span>{{ _('System Setting') }}</span>
             </a>
             <div id="collapseSys" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <h6 class="collapse-header">System</h6>
-                    <a class="collapse-item" href="/sys/settings">Settings</a>
+                    <h6 class="collapse-header">{{ _('System') }}</h6>
+                    <div class="px-3 py-1 text-uppercase small text-gray-500">{{ _('Settings') }}</div>
+                    <a class="collapse-item pl-4" href="/sys/settings">{{ _('Settings') }}</a>
+                    <div class="px-3 py-1 text-uppercase small text-gray-500">{{ _('Users & Access') }}</div>
+                    <a class="collapse-item pl-4" href="/sys/users">{{ _('Users') }}</a>
+                    <a class="collapse-item pl-4" href="/sys/permissions">{{ _('Permissions') }}</a>
+                    <a class="collapse-item pl-4" href="/sys/audit-logs">{{ _('Audit Logs') }}</a>
                 </div>
             </div>
         </li>
@@ -37,13 +39,15 @@
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
                 aria-expanded="true" aria-controls="collapseTwo">
                 <i class="fas fa-fw fa-file-import"></i>
-                <span>Approval</span>
+                <span>{{ _('Approval') }}</span>
+                {% if pending_approval_count > 0 %}
+                <span class="badge badge-danger badge-counter ml-1">{{ pending_approval_count }}</span>
+                {% endif %}
             </a>
             <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <h6 class="collapse-header">ApprovalSys</h6>
-                    <a class="collapse-item" href="/p/list">Approval List</a>
-                    <a class="collapse-item" href="/p/new">New Approval</a>
+                    <a class="collapse-item" href="/p/list">{{ _('Approval List') }}</a>
+                    <a class="collapse-item" href="/p/new">{{ _('New Approval') }}</a>
                 </div>
             </div>
         </li>
@@ -52,34 +56,35 @@
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUser"
                 aria-expanded="true" aria-controls="collapseUser">
-                <i class="fas fa-fw fa-people-arrows"></i>
-                <span>User</span>
+                <i class="fas fa-fw fa-user"></i>
+                <span>{{ _('User') }}</span>
             </a>
             <div id="collapseUser" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <h6 class="collapse-header">User Profile</h6>
-                    <a class="collapse-item" href="/u/update">User Profile</a>
+                    <a class="collapse-item" href="/u/update">{{ _('Personal Profile') }}</a>
                 </div>
             </div>
         </li>
 
         <hr class="sidebar-divider">
-
-        <div class="sidebar-heading">
-            Human Resource
-        </div>
+        <div class="sidebar-heading">{{ _('Human Resource') }}</div>
 
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseHR" aria-expanded="true"
                 aria-controls="collapseHR">
-                <i class="fas fa-fw fa-people-arrows"></i>
-                <span>Working Shift</span>
+                <i class="fas fa-fw fa-calendar-alt"></i>
+                <span>{{ _('Working Shift') }}</span>
             </a>
-
             <div id="collapseHR" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item" href="/hr/schedule/FD">Schedule</a>
-                    <a class="collapse-item" href="/hr/clockRecord">Clock Record</a>
+                    <a class="collapse-item" href="/hr/schedule/FD">{{ _('Schedule') }}</a>
+                    <a class="collapse-item" href="/hr/clockRecord">{{ _('Clock Record') }}</a>
+                    {% if session.get('team_id') in [1, 2, 4] or session.get('role_id') in [99, 0, 1, 2] %}
+                    <a class="collapse-item" href="/hr/schedule/off-request">{{ _('Off Request') }}</a>
+                    {% endif %}
+                    {% if session.get('role_id') in [99, 0, 1, 2] %}
+                    <a class="collapse-item" href="/hr/schedule/off-request/manager">{{ _('Off Request Mgmt') }}</a>
+                    {% endif %}
                 </div>
             </div>
         </li>
@@ -88,26 +93,37 @@
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseACC"
                 aria-expanded="true" aria-controls="collapseACC">
-                <i class="fas fa-fw fa-people-arrows"></i>
-                <span>Accountant</span>
+                <i class="fas fa-fw fa-calculator"></i>
+                <span>{{ _('Accountant') }}</span>
             </a>
-
-
             <div id="collapseACC" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item" href="/hr/salary/cal">Salary Calculate</a>
-                    <a class="collapse-item" href="/hr/new">New Member</a>
+                    <a class="collapse-item" href="/hr/salary/cal">{{ _('Salary Calculate') }}</a>
+                    <a class="collapse-item" href="/hr/salary/ma">{{ _('Salary Rules') }}</a>
                 </div>
             </div>
         </li>
         {% endif %}
 
+        {% if session['logged_in'] and session['role_id'] in [99, 0, 1] %}
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseStaff"
+                aria-expanded="true" aria-controls="collapseStaff">
+                <i class="fas fa-fw fa-users-cog"></i>
+                <span>{{ _('Staff Management') }}</span>
+            </a>
+            <div id="collapseStaff" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <a class="collapse-item" href="/hr/new">{{ _('New Staff') }}</a>
+                    <a class="collapse-item" href="/hr/staff/sync">{{ _('Sync Staff') }}</a>
+                </div>
+            </div>
+        </li>
+        {% endif %}
 
         <hr class="sidebar-divider d-none d-md-block">
-
         <div class="text-center d-none d-md-inline">
             <button class="rounded-circle border-0" id="sidebarToggle"></button>
         </div>
-
     </ul>
 </nav>

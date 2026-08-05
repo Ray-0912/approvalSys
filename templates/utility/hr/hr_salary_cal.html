@@ -1,0 +1,243 @@
+{% extends 'components/base.html' %}
+{% block title %}薪資試算{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-3 text-gray-800">薪資試算與簽核</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form class="form-row align-items-end" method="GET" action="/hr/salary/cal">
+                <div class="col-md-2">
+                    <label>月份</label>
+                    <input type="month" class="form-control" name="year_month" value="{{ year_month }}">
+                </div>
+                <div class="col-md-2">
+                    <label>每頁筆數</label>
+                    <select class="form-control" name="page_size">
+                        <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                        <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary" type="submit">查詢</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-primary text-white">
+            <h6 class="m-0 font-weight-bold">批次操作</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-5">
+                    <form method="POST" action="/hr/salary/cal">
+                        <input type="hidden" name="action" value="calculate">
+                        <input type="hidden" name="year_month" value="{{ year_month }}">
+                        <button type="submit" class="btn btn-primary">執行試算</button>
+                    </form>
+                </div>
+                <div class="col-md-7">
+                    <form method="POST" action="/hr/salary/cal" class="d-inline-block mr-2">
+                        <input type="hidden" name="action" value="submit">
+                        <input type="hidden" name="year_month" value="{{ year_month }}">
+                        <button type="submit" class="btn btn-warning">提交審核</button>
+                    </form>
+                    {% if role_id in [99, 0, 1] %}
+                    <form method="POST" action="/hr/salary/cal" class="d-inline-block">
+                        <input type="hidden" name="action" value="approve">
+                        <input type="hidden" name="year_month" value="{{ year_month }}">
+                        <button type="submit" class="btn btn-success">核可通過</button>
+                    </form>
+                    {% endif %}
+                    {% if rule %}
+                    <div class="mt-3 text-muted small">
+                        使用規則：{{ rule.version_name }}（生效日 {{ rule.effective_from }}）
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">試算結果（{{ total_count }} 筆）</h6>
+            {% if results %}
+            <a href="/hr/salary/export?year_month={{ year_month }}" class="btn btn-success btn-sm">
+                <i class="fas fa-file-excel mr-1"></i>匯出全部薪資單 (Excel)
+            </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th style="width:30px"></th>
+                            <th>員工</th>
+                            <th>規則版本</th>
+                            <th>總工時(h)</th>
+                            <th>一般工時(h)</th>
+                            <th>加班(h)</th>
+                            <th>假日工時(h)</th>
+                            <th>遲到/早退</th>
+                            <th>應發</th>
+                            <th>實發</th>
+                            <th>狀態</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in results %}
+                        <tr class="salary-summary-row">
+                            <td class="text-center">
+                                <button class="btn btn-link btn-sm p-0 expand-btn"
+                                        data-uid="{{ r.user_id }}" data-ym="{{ year_month }}"
+                                        title="展開明細">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </td>
+                            <td>{{ r.user_id }} - {{ r.first_name }}{{ r.last_name }}</td>
+                            <td>{{ r.version_name or '-' }}</td>
+                            <td>{{ "%.2f"|format(r.total_work_minutes / 60) }}</td>
+                            <td>{{ "%.2f"|format(r.regular_minutes / 60) }}</td>
+                            <td>{{ "%.2f"|format(r.overtime_minutes / 60) }}</td>
+                            <td>{{ "%.2f"|format(r.holiday_minutes / 60) }}</td>
+                            <td>{{ r.late_count }}/{{ r.early_count }}</td>
+                            <td>{{ r.gross_salary }}</td>
+                            <td>
+                                {{ r.net_salary }}
+                                {% if r.late_deduction is not none %}
+                                <div class="small text-muted">扣款 {{ r.late_deduction }}</div>
+                                {% endif %}
+                            </td>
+                            <td>{{ r.payroll_status }}</td>
+                        </tr>
+                        <tr class="detail-row d-none" id="detail-{{ r.user_id }}">
+                            <td colspan="11" class="p-0">
+                                <div class="p-3 bg-light detail-content" id="detail-content-{{ r.user_id }}">
+                                    <div class="text-center text-muted py-3">
+                                        <i class="fas fa-spinner fa-spin"></i> 載入中...
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="11" class="text-center text-muted">尚無資料，請先執行試算。</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small">第 {{ page }} / {{ total_pages }} 頁</div>
+                <div>
+                    {% if page > 1 %}
+                    <a class="btn btn-outline-primary btn-sm" href="/hr/salary/cal?year_month={{ year_month }}&page_size={{ page_size }}&page={{ page - 1 }}">上一頁</a>
+                    {% endif %}
+                    {% if page < total_pages %}
+                    <a class="btn btn-outline-primary btn-sm" href="/hr/salary/cal?year_month={{ year_month }}&page_size={{ page_size }}&page={{ page + 1 }}">下一頁</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block head %}
+{{ super() }}
+<script>
+const STATUS_COLOR = {
+    '遲到': 'table-warning',
+    '早退': 'table-warning',
+    '遲到+早退': 'table-danger',
+    '缺簽退': 'table-danger',
+    '缺簽到': 'table-danger',
+    '假日出勤': 'table-info',
+    '加班': 'table-primary',
+    '正常': ''
+};
+
+$(document).on('click', '.expand-btn', function () {
+    const btn = $(this);
+    const uid = btn.data('uid');
+    const ym = btn.data('ym');
+    const detailRow = $('#detail-' + uid);
+    const icon = btn.find('i');
+    const isOpen = !detailRow.hasClass('d-none');
+
+    if (isOpen) {
+        detailRow.addClass('d-none');
+        icon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
+        return;
+    }
+
+    detailRow.removeClass('d-none');
+    icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
+
+    const contentDiv = $('#detail-content-' + uid);
+    if (contentDiv.data('loaded')) return;
+
+    $.ajax({
+        url: '/hr/salary/detail',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ user_id: uid, year_month: ym }),
+        success: function (res) {
+            if (!res.success) {
+                contentDiv.html('<p class="text-danger p-2">載入失敗：' + (res.error || '未知錯誤') + '</p>');
+                return;
+            }
+            const data = res.data;
+            const s = data.summary || {};
+            const daily = data.daily || [];
+
+            let html = '<div class="mb-2">';
+
+            // Daily table
+            html += '<table class="table table-sm table-bordered mb-3" style="font-size:0.85em">';
+            html += '<thead class="thead-dark"><tr>' +
+                    '<th>日期</th><th>星期</th><th>上班</th><th>下班</th>' +
+                    '<th>工時(h)</th><th>一般(h)</th><th>加班(h)</th><th>狀態</th></tr></thead><tbody>';
+
+            daily.forEach(d => {
+                const rowClass = STATUS_COLOR[d.status] || '';
+                html += `<tr class="${rowClass}">
+                    <td>${d.date}</td><td>${d.weekday}</td>
+                    <td>${d.actual_start}</td><td>${d.actual_end}</td>
+                    <td>${d.work_hours.toFixed(2)}</td>
+                    <td>${d.regular_hours.toFixed(2)}</td>
+                    <td>${d.overtime_hours.toFixed(2)}</td>
+                    <td><span class="badge ${d.status==='正常'?'badge-success':d.status==='加班'?'badge-primary':'badge-warning'}">${d.status}</span></td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+
+            // Summary bar
+            const ld = s.late_deduction != null ? s.late_deduction.toFixed(2) : '0.00';
+            html += `<div class="row text-center">
+                <div class="col-md-2 border-right"><div class="small text-muted">總工時</div><strong>${((s.total_work_minutes||0)/60).toFixed(2)} h</strong></div>
+                <div class="col-md-2 border-right"><div class="small text-muted">加班</div><strong>${((s.overtime_minutes||0)/60).toFixed(2)} h</strong></div>
+                <div class="col-md-2 border-right"><div class="small text-muted">假日</div><strong>${((s.holiday_minutes||0)/60).toFixed(2)} h</strong></div>
+                <div class="col-md-1 border-right"><div class="small text-muted">遲到</div><strong>${s.late_count||0} 次</strong></div>
+                <div class="col-md-1 border-right"><div class="small text-muted">早退</div><strong>${s.early_count||0} 次</strong></div>
+                <div class="col-md-2 border-right"><div class="small text-muted">應發 / 實發</div><strong>${(s.gross_salary||0).toFixed(2)} / ${(s.net_salary||0).toFixed(2)}</strong></div>
+                <div class="col-md-2"><div class="small text-muted">遲到扣款</div><strong class="text-danger">-${ld}</strong></div>
+            </div>`;
+
+            html += '</div>';
+            contentDiv.html(html);
+            contentDiv.data('loaded', true);
+        },
+        error: function () {
+            contentDiv.html('<p class="text-danger p-2">API 請求失敗，請稍後再試。</p>');
+        }
+    });
+});
+</script>
+{% endblock %}

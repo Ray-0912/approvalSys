@@ -1,0 +1,180 @@
+{% extends 'components/base.html' %}
+{% block title %}Sync Staff{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-3 text-gray-800">Staff Management — Sync with BioLife</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-body text-center py-4">
+            <button id="checkBtn" class="btn btn-primary btn-lg">
+                <i class="fas fa-sync-alt mr-2"></i>開始同步檢查
+            </button>
+            <div id="checking" class="mt-3 d-none">
+                <div class="progress mb-2" style="height:6px">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div>
+                </div>
+                <small class="text-muted">正在從 BioLife 取得資料，請稍候…</small>
+            </div>
+        </div>
+    </div>
+
+    <div id="deactivateSection" class="card shadow mb-4 d-none">
+        <div class="card-header py-3 bg-danger text-white d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold" id="deactivateTitle">需要停用的帳號</h6>
+            <button class="btn btn-light btn-sm" id="confirmDeactivateBtn">確認停用</button>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-2">以下帳號在本系統為 active，但 BioLife 已不存在。確認後全部設為 inactive。</p>
+            <table class="table table-sm table-bordered">
+                <thead class="thead-dark"><tr><th>員工編號</th><th>姓名</th></tr></thead>
+                <tbody id="deactivateList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="addSection" class="card shadow mb-4 d-none">
+        <div class="card-header py-3 bg-success text-white">
+            <h6 class="m-0 font-weight-bold" id="addTitle">BioLife 有但本系統沒有的帳號</h6>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-2">逐筆填入資料後按「新增」，初始密碼一律為 <code>zxcvbnma</code>。</p>
+            <div id="addList"></div>
+        </div>
+    </div>
+
+    <div id="allGoodMsg" class="alert alert-success d-none">
+        <i class="fas fa-check-circle mr-2"></i>BioLife 與本系統帳號完全一致，無需同步。
+    </div>
+</div>
+{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script>
+$(document).ready(function () {
+
+    $(document).on('change', '.dept-select', function () {
+        const parts = ($(this).val() || '').split('|');
+        $(this).siblings('input[name="organization"]').val(parts[0] || '');
+        $(this).siblings('input[name="department"]').val(parts[1] || '');
+    });
+
+    $('#checkBtn').on('click', function () {
+        $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>檢查中…');
+        $('#checking').removeClass('d-none');
+        $('#deactivateSection,#addSection,#allGoodMsg').addClass('d-none');
+
+        $.ajax({
+            url: '/hr/staff/sync/check',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({}),
+            success: function (res) {
+                $('#checking').addClass('d-none');
+                $('#checkBtn').prop('disabled', false).html('<i class="fas fa-sync-alt mr-2"></i>重新檢查');
+
+                if (!res.success) { alert(res.error || '檢查失敗'); return; }
+
+                const { to_deactivate, to_add } = res.data;
+
+                if (!to_deactivate.length && !to_add.length) {
+                    $('#allGoodMsg').removeClass('d-none');
+                    return;
+                }
+
+                if (to_deactivate.length) {
+                    $('#deactivateTitle').text('需要停用的帳號（' + to_deactivate.length + ' 筆）');
+                    let rows = '';
+                    to_deactivate.forEach(function (u) {
+                        rows += '<tr><td>' + u.username + '</td><td>' + u.name + '</td></tr>';
+                    });
+                    $('#deactivateList').html(rows);
+                    $('#confirmDeactivateBtn').data('ids', to_deactivate.map(function (u) { return u.user_id; }));
+                    $('#deactivateSection').removeClass('d-none');
+                }
+
+                if (to_add.length) {
+                    $('#addTitle').text('BioLife 有但本系統沒有的帳號（' + to_add.length + ' 筆）');
+                    const DEPT_MAP = {
+                        'new_garden|manage': '庭園 管理部', 'new_garden|front': '庭園 櫃台部',
+                        'new_garden|housekeeping': '庭園 房務部', 'new_garden|finance': '庭園 會計部',
+                        'new_garden|marketing': '庭園 業務部', 'new_garden|restaurant': '庭園 餐飲部',
+                        'new_dev|manage': '開發 管理部', 'new_dev|front': '開發 櫃台部',
+                        'new_dev|housekeeping': '開發 房務部', 'new_dev|finance': '開發 會計部',
+                        'new_dev|marketing': '開發 業務部', 'new_dev|restaurant': '開發 餐飲部',
+                    };
+                    const DEPT_OPTIONS = Object.entries(DEPT_MAP).map(function ([v, l]) {
+                        return '<option value="' + v + '">' + l + '</option>';
+                    }).join('');
+
+                    let forms = '';
+                    to_add.forEach(function (p) {
+                        const orgVal = p.organization && p.department ? (p.organization + '|' + p.department) : '';
+                        const deptOpts = '<option value="">（選擇部門）</option>' +
+                            Object.entries(DEPT_MAP).map(function ([v, l]) {
+                                return '<option value="' + v + '"' + (v === orgVal ? ' selected' : '') + '>' + l + '</option>';
+                            }).join('');
+
+                        forms += '<div class="card mb-2"><div class="card-body py-2">' +
+                            '<form action="/hr/staff/sync/add" method="POST">' +
+                            '<input type="hidden" name="csrf_token" value="{{ csrf_token }}">' +
+                            '<input type="hidden" name="pin" value="' + p.pin + '">' +
+                            '<div class="form-row align-items-end">' +
+                            '<div class="col-md-1"><label class="small">員工編號</label>' +
+                            '<input type="text" class="form-control form-control-sm" value="' + p.pin + '" readonly></div>' +
+                            '<div class="col-md-2"><label class="small">姓</label>' +
+                            '<input type="text" class="form-control form-control-sm" name="last_name" value="' + (p.last_name || '') + '" placeholder="例：王" required></div>' +
+                            '<div class="col-md-2"><label class="small">名</label>' +
+                            '<input type="text" class="form-control form-control-sm" name="first_name" value="' + (p.first_name || '') + '" placeholder="例：小明" required></div>' +
+                            '<div class="col-md-3"><label class="small">部門</label>' +
+                            '<select class="form-control form-control-sm dept-select"><' + 'option value="">（選擇部門）</option>' + deptOpts + '</select>' +
+                            '<input type="hidden" name="organization" value="' + (p.organization || '') + '">' +
+                            '<input type="hidden" name="department" value="' + (p.department || '') + '"></div>' +
+                            '<div class="col-md-2"><label class="small">Email</label>' +
+                            '<input type="email" class="form-control form-control-sm" name="e_mail"></div>' +
+                            '<div class="col-md-1"><label class="small">電話</label>' +
+                            '<input type="text" class="form-control form-control-sm" name="phone"></div>' +
+                            '<div class="col-md-1 text-right pt-3">' +
+                            '<button type="submit" class="btn btn-success btn-sm">新增</button></div>' +
+                            '</div></form></div></div>';
+                    });
+                    $('#addList').html(forms);
+                    $('#addSection').removeClass('d-none');
+                }
+            },
+            error: function (xhr) {
+                $('#checking').addClass('d-none');
+                $('#checkBtn').prop('disabled', false).html('<i class="fas fa-sync-alt mr-2"></i>開始同步檢查');
+                const msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'API 請求失敗，請確認 BioLife 連線';
+                alert(msg);
+            }
+        });
+    });
+
+    $('#confirmDeactivateBtn').on('click', function () {
+        const ids = $(this).data('ids');
+        if (!ids || !ids.length) return;
+        if (!confirm('確認要停用這 ' + ids.length + ' 個帳號嗎？此操作不可逆。')) return;
+
+        $(this).prop('disabled', true).text('處理中…');
+        $.ajax({
+            url: '/hr/staff/sync/deactivate',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ user_ids: ids }),
+            success: function (res) {
+                if (res.success) {
+                    alert('已停用 ' + res.data.deactivated + ' 個帳號');
+                    $('#deactivateSection').addClass('d-none');
+                } else {
+                    alert(res.error || '停用失敗');
+                    $('#confirmDeactivateBtn').prop('disabled', false).text('確認停用');
+                }
+            }
+        });
+    });
+
+}); // document.ready
+</script>
+{% endblock %}

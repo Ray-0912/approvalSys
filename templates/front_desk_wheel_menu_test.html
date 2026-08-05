@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exchange Rate Display</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #14213d 0%, #080c18 45%, #04060d 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Background slideshow ── */
+        .bg-slides {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+        .bg-slides img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+        .bg-slides img.active { opacity: 0.26; }
+        .bg-slides::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(8,12,24,0.55) 0%,
+                rgba(8,12,24,0.35) 38%,
+                rgba(8,12,24,0.85) 100%
+            );
+        }
+
+        /* ── Main layout: portrait single column ── */
+        .content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 34px 28px 24px;
+            gap: 0;
+        }
+
+        /* ── Brand strip ── */
+        .brand-strip {
+            text-align: center;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            font-size: clamp(0.65rem, 2.2vw, 0.85rem);
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 18px;
+            text-shadow: 0 0 12px rgba(255,255,255,0.08);
+        }
+
+        /* ── Clock block ── */
+        .clock-block {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .clock {
+            font-family: 'Roboto Mono', monospace;
+            font-size: clamp(4rem, 18vw, 7.8rem);
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            line-height: 1;
+            text-shadow: 0 4px 32px rgba(0,0,0,0.6);
+        }
+        .date-row {
+            margin-top: 8px;
+            font-size: clamp(0.9rem, 3.5vw, 1.3rem);
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 0.1em;
+        }
+
+        /* ── Divider ── */
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+            margin: 16px 0 18px;
+        }
+
+        /* ── Section label ── */
+        .section-label {
+            text-align: center;
+            font-size: clamp(0.65rem, 2.5vw, 0.85rem);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.42);
+            margin-bottom: 16px;
+        }
+
+        /* ── Cards: 2-column grid ── */
+        .rates-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            flex: 1;
+            align-content: start;
+        }
+        /* Last card (5th) spans full width */
+        .rate-card:last-child {
+            grid-column: 1 / -1;
+        }
+
+        .rate-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 24px;
+            padding: 20px 18px 16px;
+            backdrop-filter: blur(18px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.24);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .rate-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.32);
+            border-color: rgba(255,255,255,0.22);
+        }
+        .rate-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+            transform: translateX(-120%);
+            transition: transform 0.6s ease;
+            pointer-events: none;
+        }
+        .rate-card:hover::before {
+            transform: translateX(120%);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .flag {
+            width: clamp(46px, 12vw, 76px);
+            height: auto;
+            border-radius: 6px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .currency-info {}
+        .currency-code {
+            font-size: clamp(1rem, 4vw, 1.35rem);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+        }
+        .currency-name {
+            font-size: clamp(0.6rem, 2vw, 0.75rem);
+            color: rgba(255,255,255,0.45);
+            margin-top: 2px;
+        }
+
+        .rate-value {
+            font-family: 'Roboto Mono', monospace;
+            font-size: clamp(2.1rem, 9vw, 3.7rem);
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: 0.01em;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+            animation: floatIn 0.55s ease both;
+        }
+        .rate-unit {
+            font-size: clamp(0.6rem, 2vw, 0.75rem);
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 0.06em;
+        }
+
+        /* Accent colours */
+        .card-usd { border-color: rgba(52,199,89,0.3); }
+        .card-usd .rate-value { color: #7effa0; }
+        .card-sgd { border-color: rgba(255,149,0,0.3); }
+        .card-sgd .rate-value { color: #ffcc70; }
+        .card-jpy { border-color: rgba(255,55,95,0.3); }
+        .card-jpy .rate-value { color: #ff9db5; }
+        .card-eur { border-color: rgba(10,132,255,0.3); }
+        .card-eur .rate-value { color: #82c5ff; }
+        .card-cny { border-color: rgba(255,214,10,0.3); }
+        .card-cny .rate-value { color: #ffe66d; }
+
+        /* ── Footer ── */
+        .footer {
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: clamp(0.62rem, 2vw, 0.78rem);
+            color: rgba(255,255,255,0.34);
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .live-badge { display: flex; align-items: center; gap: 6px; }
+        .live-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #34c759;
+            box-shadow: 0 0 10px #34c759, 0 0 20px rgba(52,199,89,0.4);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%,100% { opacity:1; transform:scale(1); }
+            50% { opacity:0.4; transform:scale(1.5); }
+        }
+        @keyframes floatIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-slides" id="bgSlides">
+    <img src="/static/images/01.jpeg" class="active">
+    <img src="/static/images/02.jpeg">
+    <img src="/static/images/03.jpeg">
+    <img src="/static/images/04.jpeg">
+    <img src="/static/images/05.jpeg">
+    <img src="/static/images/06.jpeg">
+    <img src="/static/images/07.jpeg">
+</div>
+
+<div class="content">
+    <div class="brand-strip">新苑飯店 · Exchange Rates</div>
+
+    <div class="clock-block">
+        <div class="clock" id="clock">--:--:--</div>
+        <div class="date-row" id="dateLabel">{{ date }}</div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label">今日匯率 &nbsp;·&nbsp; 櫃台收匯價</div>
+
+    <div class="rates-grid">
+        {% set cards = [
+            ('JPY','jp','Japanese Yen','card-jpy', rates.JPY.display),
+            ('USD','us','US Dollar','card-usd', rates.USD.display),
+            ('CNY','cn','Chinese Yuan','card-cny', rates.CNY.display),
+            ('SGD','sg','SG Dollar','card-sgd', rates.SGD.display),
+            ('EUR','eu','Euro','card-eur', rates.EUR.display),
+        ] %}
+        {% for code, cc, name, cls, val in cards %}
+        <div class="rate-card {{ cls }}">
+            <div class="card-top">
+                <img class="flag" src="https://flagcdn.com/w80/{{ cc }}.png"
+                     srcset="https://flagcdn.com/w160/{{ cc }}.png 2x"
+                     alt="{{ code }}">
+                <div class="currency-info">
+                    <div class="currency-code">{{ code }}</div>
+                    <div class="currency-name">{{ name }}</div>
+                </div>
+            </div>
+            <div class="rate-value">{{ val }}</div>
+            <div class="rate-unit">NTD / 1 {{ code }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="footer">
+        <span>資料來源：台灣銀行 &nbsp;·&nbsp; 每 12 小時更新</span>
+        <div class="live-badge">
+            <div class="live-dot"></div>
+            <span>LIVE</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DAYS = ['日','一','二','三','四','五','六'];
+    function tick() {
+        const n = new Date();
+        document.getElementById('clock').textContent =
+            String(n.getHours()).padStart(2,'0') + ':' +
+            String(n.getMinutes()).padStart(2,'0') + ':' +
+            String(n.getSeconds()).padStart(2,'0');
+        document.getElementById('dateLabel').textContent =
+            n.getFullYear() + ' / ' +
+            String(n.getMonth()+1).padStart(2,'0') + ' / ' +
+            String(n.getDate()).padStart(2,'0') +
+            '  （週' + DAYS[n.getDay()] + '）';
+    }
+    tick();
+    setInterval(tick, 1000);
+
+    // Slideshow
+    const imgs = document.querySelectorAll('#bgSlides img');
+    let idx = 0;
+    setInterval(function () {
+        imgs[idx].classList.remove('active');
+        idx = (idx + 1) % imgs.length;
+        imgs[idx].classList.add('active');
+    }, 5000);
+
+    setTimeout(function () { location.reload(); }, 12 * 60 * 60 * 1000);
+</script>
+</body>
+</html>

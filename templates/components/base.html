@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     {% block head %}
-    <title>Electronic Signature System - {% block title %}{% endblock %}</title>
+    <title>{{ _('Electronic Signature System') }} - {% block title %}{% endblock %}</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="Limwris">
+    <meta name="csrf-token" content="{{ csrf_token }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/choices.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -70,6 +71,34 @@
     {% include 'components/logoutModal.html' %}
 
     <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // Auto-inject CSRF token into all unsafe form submissions.
+        document.querySelectorAll('form').forEach(function(form) {
+            const method = (form.getAttribute('method') || 'GET').toUpperCase();
+            if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+                if (!form.querySelector('input[name="csrf_token"]')) {
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = 'csrf_token';
+                    tokenInput.value = csrfToken;
+                    form.appendChild(tokenInput);
+                }
+            }
+        });
+
+        // Add CSRF token header to jQuery AJAX unsafe methods.
+        if (window.jQuery) {
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    const unsafe = !/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type || 'GET');
+                    if (unsafe) {
+                        xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+                    }
+                }
+            });
+        }
+
         document.getElementById('sidebarToggle').addEventListener('click', function () {
             document.getElementById('accordionSidebar').classList.toggle('toggled');
         });
