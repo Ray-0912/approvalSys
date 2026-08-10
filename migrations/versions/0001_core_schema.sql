@@ -30,10 +30,30 @@ CREATE TABLE IF NOT EXISTS `employee_salary_profile` (
     `salary_type` VARCHAR(20) NOT NULL DEFAULT 'monthly',
     `monthly_salary` DECIMAL(12,2) NULL,
     `hourly_salary` DECIMAL(12,2) NULL,
+    `weekday_hourly_rate` DECIMAL(12,2) NULL,
+    `holiday_hourly_rate` DECIMAL(12,2) NULL,
+    `professional_allowance` DECIMAL(12,2) NULL,
+    `position_allowance` DECIMAL(12,2) NULL,
+    `base_salary_amount` DECIMAL(12,2) NULL,
+    `sales_allowance` DECIMAL(12,2) NULL,
+    `overtime_allowance` DECIMAL(12,2) NULL,
+    `night_shift_allowance` DECIMAL(12,2) NULL,
+    `special_leave_allowance` DECIMAL(12,2) NULL,
     `updated_by` INT NULL,
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `unique_user_salary_profile` (`user_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `salary_day_rate_override` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `user_id` INT NOT NULL,
+    `work_date` DATE NOT NULL,
+    `rate` DECIMAL(12,2) NOT NULL,
+    `updated_by` INT NULL,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `unique_salary_day_rate_override` (`user_id`, `work_date`)
 );
 
 CREATE TABLE IF NOT EXISTS `salary_monthly_result` (

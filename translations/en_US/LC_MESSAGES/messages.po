@@ -207,3 +207,600 @@ msgstr "Allow"
 
 msgid "Deny"
 msgstr "Deny"
+
+msgid "Please enter your username and password."
+msgstr "Please enter your username and password."
+
+msgid "Incorrect password."
+msgstr "Incorrect password."
+
+msgid "Username does not exist."
+msgstr "Username does not exist."
+
+msgid "Username cannot be empty and password must be at least 8 characters."
+msgstr "Username cannot be empty and password must be at least 8 characters."
+
+msgid "First and last name cannot be empty."
+msgstr "First and last name cannot be empty."
+
+msgid "Password reset failed. Please check the username and password format."
+msgstr "Password reset failed. Please check the username and password format."
+
+msgid "Approval type, title, and content cannot be empty."
+msgstr "Approval type, title, and content cannot be empty."
+
+msgid "You did not add any approval recipients."
+msgstr "You did not add any approval recipients."
+
+msgid "Approval submitted successfully."
+msgstr "Approval submitted successfully."
+
+msgid "Submission failed."
+msgstr "Submission failed."
+
+msgid "Document ID format is invalid."
+msgstr "Document ID format is invalid."
+
+msgid "Title, type, and content cannot be empty."
+msgstr "Title, type, and content cannot be empty."
+
+msgid "Approval updated successfully."
+msgstr "Approval updated successfully."
+
+msgid "Date range format is invalid. Please use MM/DD/YYYY - MM/DD/YYYY."
+msgstr "Date range format is invalid. Please use MM/DD/YYYY - MM/DD/YYYY."
+
+msgid "It is not your approval turn yet. Please wait for the previous approver."
+msgstr "It is not your approval turn yet. Please wait for the previous approver."
+
+msgid "Reset Password"
+msgstr "Reset Password"
+
+msgid "Confirm Password"
+msgstr "Confirm Password"
+
+msgid "System Development Progress"
+msgstr "System Development Progress"
+
+msgid "Approval Content"
+msgstr "Approval Content"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Title"
+msgstr "Title"
+
+msgid "Content"
+msgstr "Content"
+
+msgid "Approval Recipients"
+msgstr "Approval Recipients"
+
+msgid "Approval Notify Recipients"
+msgstr "Approval Notify Recipients"
+
+msgid "Submit"
+msgstr "Submit"
+
+msgid "Edit Approval"
+msgstr "Edit Approval"
+
+msgid "Review Approval"
+msgstr "Review Approval"
+
+msgid "Created Date"
+msgstr "Created Date"
+
+msgid "Last Updated"
+msgstr "Last Updated"
+
+msgid "Approval History"
+msgstr "Approval History"
+
+msgid "Current pending approver"
+msgstr "Current pending approver"
+
+msgid "Pending approval"
+msgstr "Pending approval"
+
+msgid "Approved on"
+msgstr "Approved on"
+
+msgid "Rejected"
+msgstr "Rejected"
+
+msgid "Approval Edit History"
+msgstr "Approval Edit History"
+
+msgid "Delete"
+msgstr "Delete"
+
+msgid "Approve"
+msgstr "Approve"
+
+msgid "Reject"
+msgstr "Reject"
+
+msgid "Reject Approval"
+msgstr "Reject Approval"
+
+msgid "Rejection reason (optional)"
+msgstr "Rejection reason (optional)"
+
+msgid "Please enter the rejection reason..."
+msgstr "Please enter the rejection reason..."
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Confirm Reject"
+msgstr "Confirm Reject"
+
+msgid "Staff Information"
+msgstr "Staff Information"
+
+msgid "Select Organization"
+msgstr "Select Organization"
+
+msgid "Select Department"
+msgstr "Select Department"
+
+msgid "First Name"
+msgstr "First Name"
+
+msgid "Last Name"
+msgstr "Last Name"
+
+msgid "National ID"
+msgstr "National ID"
+
+msgid "Phone Number"
+msgstr "Phone Number"
+
+msgid "Preview"
+msgstr "Preview"
+
+msgid "Preview Content"
+msgstr "Preview Content"
+
+msgid "Please enter the verification code"
+msgstr "Please enter the verification code"
+
+msgid "Confirm Submit"
+msgstr "Confirm Submit"
+
+msgid "Close"
+msgstr "Close"
+
+msgid "Login"
+msgstr "Login"
+
+msgid "Welcome Back!"
+msgstr "Welcome Back!"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Title, Type, Creator"
+msgstr "Title, Type, Creator"
+
+msgid "Items per page"
+msgstr "Items per page"
+
+msgid "Approvals I created"
+msgstr "Approvals I created"
+
+msgid "Pending approval requests"
+msgstr "Pending approval requests"
+
+msgid "Recent approvals"
+msgstr "Recent approvals"
+
+msgid "Page"
+msgstr "Page"
+
+msgid "Previous page"
+msgstr "Previous page"
+
+msgid "Next page"
+msgstr "Next page"
+
+msgid "Created time"
+msgstr "Created time"
+
+msgid "Full-text search"
+msgstr "Full-text search"
+
+msgid "Search results"
+msgstr "Search results"
+
+msgid "No permission"
+msgstr "No permission"
+
+msgid "You do not have permission to access this page."
+msgstr "You do not have permission to access this page."
+
+msgid "If you need access, please contact the administrator or manager."
+msgstr "If you need access, please contact the administrator or manager."
+
+msgid "Back to Homepage"
+msgstr "Back to Homepage"
+
+msgid "Update User Information"
+msgstr "Update User Information"
+
+msgid "Personal Information"
+msgstr "Personal Information"
+
+msgid "Basic Information"
+msgstr "Basic Information"
+
+msgid "To change the account, please contact the IT or HR staff."
+msgstr "To change the account, please contact the IT or HR staff."
+
+msgid "New password (leave blank to keep current)"
+msgstr "New password (leave blank to keep current)"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Save"
+msgstr "Save"
+
+msgid "HR Information (Read-only)"
+msgstr "HR Information (Read-only)"
+
+msgid "Employee ID"
+msgstr "Employee ID"
+
+msgid "Account Status"
+msgstr "Account Status"
+
+msgid "Salary Information"
+msgstr "Salary Information"
+
+msgid "Salary Type"
+msgstr "Salary Type"
+
+msgid "Monthly Salary"
+msgstr "Monthly Salary"
+
+msgid "Hourly Salary"
+msgstr "Hourly Salary"
+
+msgid "No salary information has been set yet."
+msgstr "No salary information has been set yet."
+
+msgid "Salary Simulation"
+msgstr "Salary Simulation"
+
+msgid "Salary Simulation and Approval"
+msgstr "Salary Simulation and Approval"
+
+msgid "Month"
+msgstr "Month"
+
+msgid "Batch actions"
+msgstr "Batch actions"
+
+msgid "Run simulation"
+msgstr "Run simulation"
+
+msgid "Submit for review"
+msgstr "Submit for review"
+
+msgid "Using rule"
+msgstr "Using rule"
+
+msgid "Effective date"
+msgstr "Effective date"
+
+msgid "Salary rules and settings"
+msgstr "Salary rules and settings"
+
+msgid "Salary rules and employee salary settings"
+msgstr "Salary rules and employee salary settings"
+
+msgid "Create salary rule version"
+msgstr "Create salary rule version"
+
+msgid "Rule name"
+msgstr "Rule name"
+
+msgid "Monthly overtime multiplier"
+msgstr "Monthly overtime multiplier"
+
+msgid "Hourly overtime multiplier"
+msgstr "Hourly overtime multiplier"
+
+msgid "Holiday multiplier"
+msgstr "Holiday multiplier"
+
+msgid "Late grace (minutes)"
+msgstr "Late grace (minutes)"
+
+msgid "Early leave grace (minutes)"
+msgstr "Early leave grace (minutes)"
+
+msgid "Reference working hours (general)"
+msgstr "Reference working hours (general)"
+
+msgid "Reference working hours (manager)"
+msgstr "Reference working hours (manager)"
+
+msgid "Late deduction per instance (optional, leave blank to skip)"
+msgstr "Late deduction per instance (optional, leave blank to skip)"
+
+msgid "Example: 200"
+msgstr "Example: 200"
+
+msgid "Actual deduction = this amount × number of late arrivals this month"
+msgstr "Actual deduction = this amount × number of late arrivals this month"
+
+msgid "Default hourly rate (applies when no salary setting exists)"
+msgstr "Default hourly rate (applies when no salary setting exists)"
+
+msgid "Create rule version"
+msgstr "Create rule version"
+
+msgid "Current effective rule"
+msgstr "Current effective rule"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "Grace period"
+msgstr "Grace period"
+
+msgid "minutes"
+msgstr "minutes"
+
+msgid "Reference working hours"
+msgstr "Reference working hours"
+
+msgid "General"
+msgstr "General"
+
+msgid "hours"
+msgstr "hours"
+
+msgid "Manager"
+msgstr "Manager"
+
+msgid "Per instance"
+msgstr "Per instance"
+
+msgid "No deduction"
+msgstr "No deduction"
+
+msgid "Default hourly rate"
+msgstr "Default hourly rate"
+
+msgid "No rule exists yet. Please create the first version."
+msgstr "No rule exists yet. Please create the first version."
+
+msgid "Employee salary type and amount"
+msgstr "Employee salary type and amount"
+
+msgid "Role"
+msgstr "Role"
+
+msgid "Clock-in PIN"
+msgstr "Clock-in PIN"
+
+msgid "Salary type"
+msgstr "Salary type"
+
+msgid "Salary amount"
+msgstr "Salary amount"
+
+msgid "Action"
+msgstr "Action"
+
+msgid "Monthly"
+msgstr "Monthly"
+
+msgid "Hourly"
+msgstr "Hourly"
+
+msgid "Monthly salary"
+msgstr "Monthly salary"
+
+msgid "Fixed allowances"
+msgstr "Fixed allowances"
+
+msgid "There is currently no employee salary data to maintain."
+msgstr "There is currently no employee salary data to maintain."
+
+msgid "Holiday maintenance"
+msgstr "Holiday maintenance"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Add/Update"
+msgstr "Add/Update"
+
+msgid "No holidays have been set for this month yet."
+msgstr "No holidays have been set for this month yet."
+
+msgid "Sync staff"
+msgstr "Sync staff"
+
+msgid "Staff management — sync with BioLife"
+msgstr "Staff management — sync with BioLife"
+
+msgid "Start sync check"
+msgstr "Start sync check"
+
+msgid "Retrieving data from BioLife, please wait…"
+msgstr "Retrieving data from BioLife, please wait…"
+
+msgid "Accounts to deactivate"
+msgstr "Accounts to deactivate"
+
+msgid "Confirm deactivation"
+msgstr "Confirm deactivation"
+
+msgid "The following accounts are active in this system but no longer exist in BioLife. After confirmation, they will all be set to inactive."
+msgstr "The following accounts are active in this system but no longer exist in BioLife. After confirmation, they will all be set to inactive."
+
+msgid "Employee number"
+msgstr "Employee number"
+
+msgid "BioLife accounts missing in this system"
+msgstr "BioLife accounts missing in this system"
+
+msgid "Fill in the details one by one and click Add; the initial password is always"
+msgstr "Fill in the details one by one and click Add; the initial password is always"
+
+msgid "BioLife and this system accounts are fully consistent, no sync required."
+msgstr "BioLife and this system accounts are fully consistent, no sync required."
+
+msgid "Simulation results"
+msgstr "Simulation results"
+
+msgid "items"
+msgstr "items"
+
+msgid "Export all payslips (Excel)"
+msgstr "Export all payslips (Excel)"
+
+msgid "Employee"
+msgstr "Employee"
+
+msgid "Rule version"
+msgstr "Rule version"
+
+msgid "Total working hours (h)"
+msgstr "Total working hours (h)"
+
+msgid "Regular working hours (h)"
+msgstr "Regular working hours (h)"
+
+msgid "Overtime (h)"
+msgstr "Overtime (h)"
+
+msgid "Holiday working hours (h)"
+msgstr "Holiday working hours (h)"
+
+msgid "Late/Early leave"
+msgstr "Late/Early leave"
+
+msgid "Gross pay"
+msgstr "Gross pay"
+
+msgid "Net pay"
+msgstr "Net pay"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Expand details"
+msgstr "Expand details"
+
+msgid "Loading..."
+msgstr "Loading..."
+
+msgid "Load failed"
+msgstr "Load failed"
+
+msgid "Unknown error"
+msgstr "Unknown error"
+
+msgid "Simulation amount"
+msgstr "Simulation amount"
+
+msgid "Simulation results"
+msgstr "Simulation results"
+
+msgid "items"
+msgstr "items"
+
+msgid "Deduction"
+msgstr "Deduction"
+
+msgid "No data yet. Please run the simulation first."
+msgstr "No data yet. Please run the simulation first."
+
+msgid "Previous page"
+msgstr "Previous page"
+
+msgid "Next page"
+msgstr "Next page"
+
+msgid "API request failed. Please try again later."
+msgstr "API request failed. Please try again later."
+
+msgid "Weekday hourly rate"
+msgstr "Weekday hourly rate"
+
+msgid "Holiday hourly rate"
+msgstr "Holiday hourly rate"
+
+msgid "Professional allowance"
+msgstr "Professional allowance"
+
+msgid "Position allowance"
+msgstr "Position allowance"
+
+msgid "Base salary"
+msgstr "Base salary"
+
+msgid "Sales allowance"
+msgstr "Sales allowance"
+
+msgid "Overtime allowance"
+msgstr "Overtime allowance"
+
+msgid "Night shift allowance"
+msgstr "Night shift allowance"
+
+msgid "Special leave allowance"
+msgstr "Special leave allowance"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Weekday"
+msgstr "Weekday"
+
+msgid "Clock in"
+msgstr "Clock in"
+
+msgid "Clock out"
+msgstr "Clock out"
+
+msgid "Working hours (h)"
+msgstr "Working hours (h)"
+
+msgid "Regular hours (h)"
+msgstr "Regular hours (h)"
+
+msgid "Overtime hours (h)"
+msgstr "Overtime hours (h)"
+
+msgid "Custom hourly rate"
+msgstr "Custom hourly rate"
+
+msgid "Total working hours"
+msgstr "Total working hours"
+
+msgid "Holiday"
+msgstr "Holiday"
+
+msgid "Late"
+msgstr "Late"
+
+msgid "Early leave"
+msgstr "Early leave"
+
+msgid "times"
+msgstr "times"
+
+msgid "Gross / Net pay"
+msgstr "Gross / Net pay"
+
+msgid "Late deduction"
+msgstr "Late deduction"

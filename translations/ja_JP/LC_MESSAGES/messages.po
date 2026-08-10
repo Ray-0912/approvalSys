@@ -1,11 +1,8 @@
 ﻿msgid ""
 msgstr ""
-"Content-Type: text/plain; charset=utf-8
-"
-"Content-Transfer-Encoding: 8bit
-"
-"Language: ja_JP
-"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ja_JP\n"
 
 msgid "Schedule System"
 msgstr "スケジュールシステム"
@@ -210,3 +207,600 @@ msgstr "許可"
 
 msgid "Deny"
 msgstr "拒否"
+
+msgid "Please enter your username and password."
+msgstr "ユーザー名とパスワードを入力してください。"
+
+msgid "Incorrect password."
+msgstr "パスワードが正しくありません。"
+
+msgid "Username does not exist."
+msgstr "ユーザー名が存在しません。"
+
+msgid "Username cannot be empty and password must be at least 8 characters."
+msgstr "ユーザー名は空にできず、パスワードは8文字以上である必要があります。"
+
+msgid "First and last name cannot be empty."
+msgstr "姓と名は空にできません。"
+
+msgid "Password reset failed. Please check the username and password format."
+msgstr "パスワードの再設定に失敗しました。ユーザー名とパスワードの形式を確認してください。"
+
+msgid "Approval type, title, and content cannot be empty."
+msgstr "承認タイプ、タイトル、内容は空欄にできません。"
+
+msgid "You did not add any approval recipients."
+msgstr "承認先を追加していません。"
+
+msgid "Approval submitted successfully."
+msgstr "承認申請を送信しました。"
+
+msgid "Submission failed."
+msgstr "送信に失敗しました。"
+
+msgid "Document ID format is invalid."
+msgstr "文書IDの形式が無効です。"
+
+msgid "Title, type, and content cannot be empty."
+msgstr "タイトル、タイプ、内容は空欄にできません。"
+
+msgid "Approval updated successfully."
+msgstr "承認申請を更新しました。"
+
+msgid "Date range format is invalid. Please use MM/DD/YYYY - MM/DD/YYYY."
+msgstr "日付範囲の形式が正しくありません。MM/DD/YYYY - MM/DD/YYYY の形式で指定してください。"
+
+msgid "It is not your approval turn yet. Please wait for the previous approver."
+msgstr "まだあなたの承認順ではありません。前の承認者が完了するまでお待ちください。"
+
+msgid "Reset Password"
+msgstr "パスワード再設定"
+
+msgid "Confirm Password"
+msgstr "パスワード確認"
+
+msgid "System Development Progress"
+msgstr "システム開発の進捗"
+
+msgid "Approval Content"
+msgstr "承認内容"
+
+msgid "Type"
+msgstr "種類"
+
+msgid "Title"
+msgstr "タイトル"
+
+msgid "Content"
+msgstr "内容"
+
+msgid "Approval Recipients"
+msgstr "承認宛先"
+
+msgid "Approval Notify Recipients"
+msgstr "通知先"
+
+msgid "Submit"
+msgstr "送信"
+
+msgid "Edit Approval"
+msgstr "承認を編集"
+
+msgid "Review Approval"
+msgstr "承認を確認"
+
+msgid "Created Date"
+msgstr "作成日"
+
+msgid "Last Updated"
+msgstr "最終更新"
+
+msgid "Approval History"
+msgstr "承認履歴"
+
+msgid "Current pending approver"
+msgstr "現在の承認待ち者"
+
+msgid "Pending approval"
+msgstr "承認待ち"
+
+msgid "Approved on"
+msgstr "承認日"
+
+msgid "Rejected"
+msgstr "却下済み"
+
+msgid "Approval Edit History"
+msgstr "承認編集履歴"
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Approve"
+msgstr "承認"
+
+msgid "Reject"
+msgstr "却下"
+
+msgid "Reject Approval"
+msgstr "承認を却下"
+
+msgid "Rejection reason (optional)"
+msgstr "却下理由（任意）"
+
+msgid "Please enter the rejection reason..."
+msgstr "却下理由を入力してください..."
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Confirm Reject"
+msgstr "却下を確定"
+
+msgid "Staff Information"
+msgstr "社員情報"
+
+msgid "Select Organization"
+msgstr "組織を選択"
+
+msgid "Select Department"
+msgstr "部署を選択"
+
+msgid "First Name"
+msgstr "姓"
+
+msgid "Last Name"
+msgstr "名"
+
+msgid "National ID"
+msgstr "個人番号"
+
+msgid "Phone Number"
+msgstr "電話番号"
+
+msgid "Preview"
+msgstr "プレビュー"
+
+msgid "Preview Content"
+msgstr "プレビュー内容"
+
+msgid "Please enter the verification code"
+msgstr "確認コードを入力してください"
+
+msgid "Confirm Submit"
+msgstr "送信を確認"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "Login"
+msgstr "ログイン"
+
+msgid "Welcome Back!"
+msgstr "おかえりなさい！"
+
+msgid "Password"
+msgstr "パスワード"
+
+msgid "Title, Type, Creator"
+msgstr "タイトル、種類、作成者"
+
+msgid "Items per page"
+msgstr "1ページあたりの件数"
+
+msgid "Approvals I created"
+msgstr "自分が作成した承認"
+
+msgid "Pending approval requests"
+msgstr "承認待ちの申請"
+
+msgid "Recent approvals"
+msgstr "最近の承認"
+
+msgid "Page"
+msgstr "ページ"
+
+msgid "Previous page"
+msgstr "前のページ"
+
+msgid "Next page"
+msgstr "次のページ"
+
+msgid "Created time"
+msgstr "作成日時"
+
+msgid "Full-text search"
+msgstr "全文検索"
+
+msgid "Search results"
+msgstr "検索結果"
+
+msgid "No permission"
+msgstr "権限なし"
+
+msgid "You do not have permission to access this page."
+msgstr "このページにアクセスする権限がありません。"
+
+msgid "If you need access, please contact the administrator or manager."
+msgstr "アクセスが必要な場合は、管理者またはマネージャーにお問い合わせください。"
+
+msgid "Back to Homepage"
+msgstr "ホームページへ戻る"
+
+msgid "Update User Information"
+msgstr "ユーザー情報を更新"
+
+msgid "Personal Information"
+msgstr "個人情報"
+
+msgid "Basic Information"
+msgstr "基本情報"
+
+msgid "To change the account, please contact the IT or HR staff."
+msgstr "アカウントを変更するには、情報担当または人事担当にお問い合わせください。"
+
+msgid "New password (leave blank to keep current)"
+msgstr "新しいパスワード（空欄のままにすると変更されません）"
+
+msgid "Email"
+msgstr "メールアドレス"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "HR Information (Read-only)"
+msgstr "HR情報（閲覧のみ）"
+
+msgid "Employee ID"
+msgstr "従業員番号"
+
+msgid "Account Status"
+msgstr "アカウント状態"
+
+msgid "Salary Information"
+msgstr "給与情報"
+
+msgid "Salary Type"
+msgstr "給与形態"
+
+msgid "Monthly Salary"
+msgstr "月給"
+
+msgid "Hourly Salary"
+msgstr "時給"
+
+msgid "No salary information has been set yet."
+msgstr "給与情報はまだ設定されていません。"
+
+msgid "Salary Simulation"
+msgstr "給与シミュレーション"
+
+msgid "Salary Simulation and Approval"
+msgstr "給与試算と承認"
+
+msgid "Month"
+msgstr "月"
+
+msgid "Batch actions"
+msgstr "一括操作"
+
+msgid "Run simulation"
+msgstr "試算を実行"
+
+msgid "Submit for review"
+msgstr "審査に提出"
+
+msgid "Using rule"
+msgstr "使用ルール"
+
+msgid "Effective date"
+msgstr "有効日"
+
+msgid "Salary rules and settings"
+msgstr "給与ルールと設定"
+
+msgid "Salary rules and employee salary settings"
+msgstr "給与ルールと従業員給与設定"
+
+msgid "Create salary rule version"
+msgstr "給与ルールバージョンを作成"
+
+msgid "Rule name"
+msgstr "ルール名"
+
+msgid "Monthly overtime multiplier"
+msgstr "月給残業倍率"
+
+msgid "Hourly overtime multiplier"
+msgstr "時給残業倍率"
+
+msgid "Holiday multiplier"
+msgstr "祝日倍率"
+
+msgid "Late grace (minutes)"
+msgstr "遅刻許容時間(分)"
+
+msgid "Early leave grace (minutes)"
+msgstr "早退許容時間(分)"
+
+msgid "Reference working hours (general)"
+msgstr "基準労働時間(一般)"
+
+msgid "Reference working hours (manager)"
+msgstr "基準労働時間(管理職)"
+
+msgid "Late deduction per instance (optional, leave blank to skip)"
+msgstr "1回ごとの遅刻控除（任意、空欄は控除なし）"
+
+msgid "Example: 200"
+msgstr "例: 200"
+
+msgid "Actual deduction = this amount × number of late arrivals this month"
+msgstr "実際の控除 = この金額 × 今月の遅刻回数"
+
+msgid "Default hourly rate (applies when no salary setting exists)"
+msgstr "デフォルト時給（給与設定がない場合に適用）"
+
+msgid "Create rule version"
+msgstr "ルールバージョンを作成"
+
+msgid "Current effective rule"
+msgstr "現在有効なルール"
+
+msgid "Version"
+msgstr "バージョン"
+
+msgid "Grace period"
+msgstr "猶予期間"
+
+msgid "minutes"
+msgstr "分"
+
+msgid "Reference working hours"
+msgstr "基準労働時間"
+
+msgid "General"
+msgstr "一般"
+
+msgid "hours"
+msgstr "時間"
+
+msgid "Manager"
+msgstr "管理職"
+
+msgid "Per instance"
+msgstr "回ごと"
+
+msgid "No deduction"
+msgstr "控除なし"
+
+msgid "Default hourly rate"
+msgstr "デフォルト時給"
+
+msgid "No rule exists yet. Please create the first version."
+msgstr "まだルールがありません。最初のバージョンを作成してください。"
+
+msgid "Employee salary type and amount"
+msgstr "従業員の給与形態と金額"
+
+msgid "Role"
+msgstr "役割"
+
+msgid "Clock-in PIN"
+msgstr "打刻PIN"
+
+msgid "Salary type"
+msgstr "給与形態"
+
+msgid "Salary amount"
+msgstr "給与額"
+
+msgid "Action"
+msgstr "操作"
+
+msgid "Monthly"
+msgstr "月給"
+
+msgid "Hourly"
+msgstr "時給"
+
+msgid "Monthly salary"
+msgstr "月給"
+
+msgid "Fixed allowances"
+msgstr "固定手当"
+
+msgid "There is currently no employee salary data to maintain."
+msgstr "現在、管理できる従業員の給与データはありません。"
+
+msgid "Holiday maintenance"
+msgstr "祝日メンテナンス"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "Add/Update"
+msgstr "追加/更新"
+
+msgid "No holidays have been set for this month yet."
+msgstr "今月はまだ祝日が設定されていません。"
+
+msgid "Sync staff"
+msgstr "従業員同期"
+
+msgid "Staff management — sync with BioLife"
+msgstr "従業員管理 — BioLife と同期"
+
+msgid "Start sync check"
+msgstr "同期チェックを開始"
+
+msgid "Retrieving data from BioLife, please wait…"
+msgstr "BioLife からデータを取得しています。しばらくお待ちください…"
+
+msgid "Accounts to deactivate"
+msgstr "無効化対象のアカウント"
+
+msgid "Confirm deactivation"
+msgstr "無効化を確認"
+
+msgid "The following accounts are active in this system but no longer exist in BioLife. After confirmation, they will all be set to inactive."
+msgstr "以下のアカウントは本システムでは active ですが、BioLife には存在しません。確認後、すべて inactive に設定されます。"
+
+msgid "Employee number"
+msgstr "従業員番号"
+
+msgid "BioLife accounts missing in this system"
+msgstr "BioLife にはあるが本システムにないアカウント"
+
+msgid "Fill in the details one by one and click Add; the initial password is always"
+msgstr "1件ずつ情報を入力して「追加」を押してください。初期パスワードは常に"
+
+msgid "BioLife and this system accounts are fully consistent, no sync required."
+msgstr "BioLife と本システムのアカウントは完全に一致しており、同期は不要です。"
+
+msgid "Simulation results"
+msgstr "シミュレーション結果"
+
+msgid "items"
+msgstr "件"
+
+msgid "Export all payslips (Excel)"
+msgstr "給与明細をすべてエクスポート（Excel）"
+
+msgid "Employee"
+msgstr "従業員"
+
+msgid "Rule version"
+msgstr "ルールバージョン"
+
+msgid "Total working hours (h)"
+msgstr "総労働時間(h)"
+
+msgid "Regular working hours (h)"
+msgstr "通常労働時間(h)"
+
+msgid "Overtime (h)"
+msgstr "残業(h)"
+
+msgid "Holiday working hours (h)"
+msgstr "休日労働時間(h)"
+
+msgid "Late/Early leave"
+msgstr "遅刻/早退"
+
+msgid "Gross pay"
+msgstr "総支給"
+
+msgid "Net pay"
+msgstr "手取り"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "Expand details"
+msgstr "詳細を展開"
+
+msgid "Loading..."
+msgstr "読み込み中..."
+
+msgid "Load failed"
+msgstr "読み込みに失敗しました"
+
+msgid "Unknown error"
+msgstr "不明なエラー"
+
+msgid "Simulation amount"
+msgstr "試算額"
+
+msgid "Simulation results"
+msgstr "試算結果"
+
+msgid "items"
+msgstr "件"
+
+msgid "Deduction"
+msgstr "控除"
+
+msgid "No data yet. Please run the simulation first."
+msgstr "まだデータがありません。まず試算を実行してください。"
+
+msgid "Previous page"
+msgstr "前のページ"
+
+msgid "Next page"
+msgstr "次のページ"
+
+msgid "API request failed. Please try again later."
+msgstr "APIリクエストに失敗しました。後でもう一度お試しください。"
+
+msgid "Weekday hourly rate"
+msgstr "平日時給"
+
+msgid "Holiday hourly rate"
+msgstr "休日時給"
+
+msgid "Professional allowance"
+msgstr "専門手当"
+
+msgid "Position allowance"
+msgstr "職務手当"
+
+msgid "Base salary"
+msgstr "基本給"
+
+msgid "Sales allowance"
+msgstr "営業手当"
+
+msgid "Overtime allowance"
+msgstr "残業手当"
+
+msgid "Night shift allowance"
+msgstr "夜勤手当"
+
+msgid "Special leave allowance"
+msgstr "特別休暇手当"
+
+msgid "Date"
+msgstr "日付"
+
+msgid "Weekday"
+msgstr "曜日"
+
+msgid "Clock in"
+msgstr "出勤"
+
+msgid "Clock out"
+msgstr "退勤"
+
+msgid "Working hours (h)"
+msgstr "労働時間(h)"
+
+msgid "Regular hours (h)"
+msgstr "通常(h)"
+
+msgid "Overtime hours (h)"
+msgstr "残業(h)"
+
+msgid "Custom hourly rate"
+msgstr "カスタム時給"
+
+msgid "Total working hours"
+msgstr "総労働時間"
+
+msgid "Holiday"
+msgstr "休日"
+
+msgid "Late"
+msgstr "遅刻"
+
+msgid "Early leave"
+msgstr "早退"
+
+msgid "times"
+msgstr "回"
+
+msgid "Gross / Net pay"
+msgstr "総支給 / 手取り"
+
+msgid "Late deduction"
+msgstr "遅刻控除"

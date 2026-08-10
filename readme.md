@@ -15,9 +15,8 @@ Approval System 是一套基於 Flask 的內部流程平台，主要涵蓋：
 - 驗證與 Session：Flask Session + bcrypt 密碼雜湊
 - 多語系：Flask-Babel
 - 外部 API：BioLife 出勤 API Client
-- 檔案／資料處理：pandas + openpyxl
-- 文件產生：reportlab
 - 排程：schedule（在應用程式行程內執行執行緒）
+- 健康檢查：/healthz
 
 ## 2. 核心模組
 
@@ -46,7 +45,7 @@ Approval System 是一套基於 Flask 的內部流程平台，主要涵蓋：
   - Jinja 模板與前端資源
 
 - `tests/`
-  - Flask 路由 smoke test 與 Excel 匯入流程測試
+  - Flask 路由 smoke test
 
 ## 3. 已實作功能範圍
 
@@ -76,12 +75,6 @@ Approval System 是一套基於 Flask 的內部流程平台，主要涵蓋：
 
 - 設定頁面
 - 使用者列表／編輯／儲存（管理員角色）
-
-### 3.5 Excel 匯入（`/excelimport`）
-
-- 上傳 `.xlsx`
-- 批次建立使用者帳號
-- 於 `output/` 產生帳密 PDF
 
 ## 4. 執行行為
 
@@ -156,7 +149,7 @@ pytest
 
 備註：
 
-- 目前測試含路由渲染與 Excel 匯入流程。
+- 目前測試含路由渲染與核心流程驗證。
 - 部分測試可能依賴資料庫狀態或外部服務。
 
 ## 8. 專案結構

@@ -11,11 +11,13 @@ def _str_to_bool(value, default=False):
 
 
 class BaseConfig:
-	SECRET_KEY = os.getenv('SECRET_KEY')
+	app_env = os.getenv('APP_ENV', 'development').strip().lower()
+	SECRET_KEY = os.getenv('SECRET_KEY') or ('approvalsys-dev-secret' if app_env != 'production' else None)
 	SESSION_TIMEOUT_MINUTES = int(os.getenv('SESSION_TIMEOUT_MINUTES', '60'))
 	SESSION_COOKIE_HTTPONLY = True
 	SESSION_COOKIE_SAMESITE = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
 	SESSION_COOKIE_SECURE = _str_to_bool(os.getenv('SESSION_COOKIE_SECURE'), False)
+	SESSION_COOKIE_NAME = os.getenv('SESSION_COOKIE_NAME', 'approvalsys_session')
 	BABEL_DEFAULT_LOCALE = os.getenv('BABEL_DEFAULT_LOCALE', 'zh_TW')
 	BABEL_DEFAULT_TIMEZONE = os.getenv('BABEL_DEFAULT_TIMEZONE', 'UTC')
 	BABEL_TRANSLATION_DIRECTORIES = os.path.join(ROOT_DIR, 'translations')

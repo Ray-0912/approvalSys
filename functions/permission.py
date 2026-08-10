@@ -11,6 +11,87 @@ PERMISSION_KEYS = [
     'salary_submit', 'salary_approve'
 ]
 
+PERMISSION_CATALOG = {
+    'reset_password': {
+        'label': 'Reset password',
+        'route': '/sys/users',
+        'purpose': 'Allows an administrator to reset another user password.',
+        'typical_roles': ['99']
+    },
+    'p_list': {
+        'label': 'Approval list',
+        'route': '/p/list',
+        'purpose': 'Shows the approval list that can be reviewed and processed.',
+        'typical_roles': ['99', '0', '1', '2', '4']
+    },
+    'p_edit': {
+        'label': 'Edit approval',
+        'route': '/p/edit/<id>',
+        'purpose': 'Allows editing an approval before it is submitted or approved.',
+        'typical_roles': ['99', '0', '1', '2']
+    },
+    'p_new': {
+        'label': 'Create approval',
+        'route': '/p/new',
+        'purpose': 'Enables creating a new approval request.',
+        'typical_roles': ['99', '0', '1', '2', '4']
+    },
+    'p_view': {
+        'label': 'View approval',
+        'route': '/p/view/<id>',
+        'purpose': 'Allows opening the detail view for an approval.',
+        'typical_roles': ['99', '0', '1', '2', '3', '4']
+    },
+    'hr_view_cross_department': {
+        'label': 'Cross-department HR view',
+        'route': '/hr/*',
+        'purpose': 'Enables HR pages that look across departments.',
+        'typical_roles': ['99', '0', '1', '2', '4']
+    },
+    'hr_salary_calculate': {
+        'label': 'Salary simulation',
+        'route': '/hr/salary/cal',
+        'purpose': 'Runs salary simulation and explores payroll detail.',
+        'typical_roles': ['99', '0', '1', '2', '4']
+    },
+    'hr_salary_rules_manage': {
+        'label': 'Salary rules management',
+        'route': '/hr/salary/ma',
+        'purpose': 'Maintains salary rule versions and salary-related settings.',
+        'typical_roles': ['99', '0', '4']
+    },
+    'hr_new_member_manage': {
+        'label': 'Onboarding management',
+        'route': '/hr/new',
+        'purpose': 'Handles HR onboarding and member synchronization tasks.',
+        'typical_roles': ['99', '0', '4']
+    },
+    'sys_settings_manage': {
+        'label': 'System settings',
+        'route': '/sys/settings',
+        'purpose': 'Provides access to system configuration and maintenance features.',
+        'typical_roles': ['99', '0']
+    },
+    'role_permission_manage': {
+        'label': 'Role permissions',
+        'route': '/sys/permissions',
+        'purpose': 'Managed permission overrides for each role.',
+        'typical_roles': ['99']
+    },
+    'salary_submit': {
+        'label': 'Salary submission',
+        'route': '/hr/salary/cal',
+        'purpose': 'Lets a user submit salary calculation results for review.',
+        'typical_roles': ['99', '0', '4']
+    },
+    'salary_approve': {
+        'label': 'Salary approval',
+        'route': '/hr/salary/cal',
+        'purpose': 'Approves submitted salary calculations.',
+        'typical_roles': ['99', '0', '1']
+    }
+}
+
 
 DEFAULT_ROLE_PERMISSIONS = {
     99: {

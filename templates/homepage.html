@@ -1,49 +1,103 @@
 {% extends 'components/base.html' %}
-{% block title %}{{ _('HomePage') }}{% endblock %}
+{% block title %}{{ _('Homepage') }}{% endblock %}
 {% block content %}
+<div class="homepage-shell">
+    <div class="card shadow homepage-hero mb-4">
+        <div class="card-body py-4">
+            <div class="hero-content">
+                <div>
+                    <span class="hero-badge">{{ _('Approval System') }}</span>
+                    <h2 class="h3 font-weight-bold mb-2">{{ _('Welcome back, %(name)s', name=user.first_name or user.username or _('employee')) }}</h2>
+                    <p class="mb-3">{{ _('This page gathers your personal information, monthly attendance records, and quick access to approvals.') }}</p>
+                    <div class="hero-actions">
+                        <a class="btn btn-light btn-sm mr-2" href="/p/list">{{ _('Approval List') }}</a>
+                        <a class="btn btn-outline-light btn-sm" href="/hr/clockRecord">{{ _('Attendance records') }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow homepage-card h-100">
+                <div class="card-body">
+                    <h5 class="font-weight-bold text-primary mb-3">{{ _('My profile') }}</h5>
+                    <ul class="homepage-list">
+                        <li><strong>{{ _('Name') }}：</strong> {{ user.first_name or '' }} {{ user.last_name or '' }}</li>
+                        <li><strong>{{ _('Username') }}：</strong> {{ user.username or '-' }}</li>
+                        <li><strong>{{ _('Role') }}：</strong> {{ user.role_id or '-' }}</li>
+                        <li><strong>{{ _('Department') }}：</strong> {{ user.team_id or '-' }}</li>
+                        <li><strong>{{ _('PIN') }}：</strong> {{ user.clock_id or '-' }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-<div class="card shadow mb-4">
-    <a href="#process" class="d-block card-header py-3" data-toggle="collapse" role="button" aria-expanded="true"
-        aria-controls="process">
-        <h5 class="m-0 font-weight-bold text-primary">系統開發進度</h5>
-    </a>
-    <div class="collapse" id="process">
-        <!-- <div class="card-body">
-            <div class="row">
-                <p>簽證已完善，缺一些小功能，但仍可正常使用。需加強：<code>匯出pdf、不核可時退回並評論</code></p>
+        <div class="col-lg-8 mb-4">
+            {% if show_approval_block %}
+            <div class="card shadow homepage-card mb-3">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                        <h5 class="font-weight-bold text-primary mb-0">{{ _('Approval area') }}</h5>
+                        <div class="btn-group btn-group-sm">
+                            <a class="btn btn-outline-primary {% if approval_filter == 'pending' %}active{% endif %}" href="/?approval_filter=pending">{{ _('Pending approvals') }}</a>
+                            <a class="btn btn-outline-primary {% if approval_filter == 'approved' %}active{% endif %}" href="/?approval_filter=approved">{{ _('Recently approved') }}</a>
+                            <a class="btn btn-outline-primary {% if approval_filter == 'all' %}active{% endif %}" href="/?approval_filter=all">{{ _('All') }}</a>
+                        </div>
+                    </div>
+                    {% if approval_documents %}
+                    <ul class="homepage-list">
+                        {% for doc in approval_documents %}
+                        <li>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ doc.title }}</strong>
+                                    <div class="text-muted small">{{ doc.last_update or doc.create_time or '' }}</div>
+                                </div>
+                                <span class="badge badge-info">{{ approval_status_map.get(doc.status, doc.status) }}</span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-muted">{{ _('There are no matching approvals at the moment.') }}</div>
+                    {% endif %}
+                </div>
             </div>
-            <div class="row">
-                <p>預計完成：<code>2023-07/14</code></p>
-            </div>
-            <hr>
-            <div class="row">
-                <p>後續完成：<code>使用者自我編輯系統</code></p>
-            </div>
-            <div class="row">
-                <p>預計完成：<code>2023-07/28</code></p>
-            </div>
-            <hr>
-            <div class="row">
-                <p>後續完成：<code>FD 文件簽署交接</code></p>
-            </div>
-            <div class="row">
-                <p>預計完成：<code>2023-08/28</code></p>
-            </div>
-            <hr>
-            <div class="row">
-                <p>後續完成：<code>FD 值班紀錄</code></p>
-            </div>
-            <div class="row">
-                <p>預計完成：<code>2023-09/28</code></p>
-            </div>
+            {% endif %}
 
-
-
-
-
-        </div> -->
+            <div class="card shadow homepage-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="font-weight-bold text-primary mb-0">{{ _('Monthly attendance records') }}</h5>
+                        <span class="text-muted small">{{ month_label }}</span>
+                    </div>
+                    {% if month_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>{{ _('Attendance time') }}</th>
+                                    <th>{{ _('Verification method') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in month_logs %}
+                                <tr>
+                                    <td>{{ log.time_text }}</td>
+                                    <td>{{ log.verify_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-muted">{{ _('There are no attendance records for this month yet.') }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
 {% endblock %}

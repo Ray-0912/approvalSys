@@ -1,26 +1,26 @@
 {% extends 'components/base.html' %}
-{% block title %}薪資試算{% endblock %}
+{% block title %}{{ _('Salary Simulation') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <h1 class="h3 mb-3 text-gray-800">薪資試算與簽核</h1>
+    <h1 class="h3 mb-3 text-gray-800">{{ _('Salary Simulation and Approval') }}</h1>
 
     <div class="card shadow mb-4">
         <div class="card-body">
             <form class="form-row align-items-end" method="GET" action="/hr/salary/cal">
                 <div class="col-md-2">
-                    <label>月份</label>
+                    <label>{{ _('Month') }}</label>
                     <input type="month" class="form-control" name="year_month" value="{{ year_month }}">
                 </div>
                 <div class="col-md-2">
-                    <label>每頁筆數</label>
+                    <label>{{ _('Items per page') }}</label>
                     <select class="form-control" name="page_size">
                         <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
                         <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <button class="btn btn-primary" type="submit">查詢</button>
+                    <button class="btn btn-primary" type="submit">{{ _('Search') }}</button>
                 </div>
             </form>
         </div>
@@ -28,7 +28,7 @@
 
     <div class="card shadow mb-4">
         <div class="card-header py-3 bg-primary text-white">
-            <h6 class="m-0 font-weight-bold">批次操作</h6>
+            <h6 class="m-0 font-weight-bold">{{ _('Batch actions') }}</h6>
         </div>
         <div class="card-body">
             <div class="row">
@@ -36,25 +36,25 @@
                     <form method="POST" action="/hr/salary/cal">
                         <input type="hidden" name="action" value="calculate">
                         <input type="hidden" name="year_month" value="{{ year_month }}">
-                        <button type="submit" class="btn btn-primary">執行試算</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Run simulation') }}</button>
                     </form>
                 </div>
                 <div class="col-md-7">
                     <form method="POST" action="/hr/salary/cal" class="d-inline-block mr-2">
                         <input type="hidden" name="action" value="submit">
                         <input type="hidden" name="year_month" value="{{ year_month }}">
-                        <button type="submit" class="btn btn-warning">提交審核</button>
+                        <button type="submit" class="btn btn-warning">{{ _('Submit for review') }}</button>
                     </form>
                     {% if role_id in [99, 0, 1] %}
                     <form method="POST" action="/hr/salary/cal" class="d-inline-block">
                         <input type="hidden" name="action" value="approve">
                         <input type="hidden" name="year_month" value="{{ year_month }}">
-                        <button type="submit" class="btn btn-success">核可通過</button>
+                        <button type="submit" class="btn btn-success">{{ _('Approve') }}</button>
                     </form>
                     {% endif %}
                     {% if rule %}
                     <div class="mt-3 text-muted small">
-                        使用規則：{{ rule.version_name }}（生效日 {{ rule.effective_from }}）
+                        {{ _('Using rule') }}：{{ rule.version_name }}（{{ _('Effective date') }} {{ rule.effective_from }}）
                     </div>
                     {% endif %}
                 </div>
@@ -64,10 +64,10 @@
 
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">試算結果（{{ total_count }} 筆）</h6>
+            <h6 class="m-0 font-weight-bold text-primary">{{ _('Simulation results') }}（{{ total_count }} {{ _('items') }}）</h6>
             {% if results %}
             <a href="/hr/salary/export?year_month={{ year_month }}" class="btn btn-success btn-sm">
-                <i class="fas fa-file-excel mr-1"></i>匯出全部薪資單 (Excel)
+                <i class="fas fa-file-excel mr-1"></i>{{ _('Export all payslips (Excel)') }}
             </a>
             {% endif %}
         </div>
@@ -77,16 +77,16 @@
                     <thead>
                         <tr>
                             <th style="width:30px"></th>
-                            <th>員工</th>
-                            <th>規則版本</th>
-                            <th>總工時(h)</th>
-                            <th>一般工時(h)</th>
-                            <th>加班(h)</th>
-                            <th>假日工時(h)</th>
-                            <th>遲到/早退</th>
-                            <th>應發</th>
-                            <th>實發</th>
-                            <th>狀態</th>
+                            <th>{{ _('Employee') }}</th>
+                            <th>{{ _('Rule version') }}</th>
+                            <th>{{ _('Total working hours (h)') }}</th>
+                            <th>{{ _('Regular working hours (h)') }}</th>
+                            <th>{{ _('Overtime (h)') }}</th>
+                            <th>{{ _('Holiday working hours (h)') }}</th>
+                            <th>{{ _('Late/Early leave') }}</th>
+                            <th>{{ _('Gross pay') }}</th>
+                            <th>{{ _('Net pay') }}</th>
+                            <th>{{ _('Status') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -95,7 +95,7 @@
                             <td class="text-center">
                                 <button class="btn btn-link btn-sm p-0 expand-btn"
                                         data-uid="{{ r.user_id }}" data-ym="{{ year_month }}"
-                                        title="展開明細">
+                                        title="{{ _('Expand details') }}">
                                     <i class="fas fa-chevron-right"></i>
                                 </button>
                             </td>
@@ -110,7 +110,7 @@
                             <td>
                                 {{ r.net_salary }}
                                 {% if r.late_deduction is not none %}
-                                <div class="small text-muted">扣款 {{ r.late_deduction }}</div>
+                                <div class="small text-muted">{{ _('Deduction') }} {{ r.late_deduction }}</div>
                                 {% endif %}
                             </td>
                             <td>{{ r.payroll_status }}</td>
@@ -119,14 +119,14 @@
                             <td colspan="11" class="p-0">
                                 <div class="p-3 bg-light detail-content" id="detail-content-{{ r.user_id }}">
                                     <div class="text-center text-muted py-3">
-                                        <i class="fas fa-spinner fa-spin"></i> 載入中...
+                                        <i class="fas fa-spinner fa-spin"></i> {{ _('Loading...') }}
                                     </div>
                                 </div>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="11" class="text-center text-muted">尚無資料，請先執行試算。</td>
+                            <td colspan="11" class="text-center text-muted">{{ _('No data yet. Please run the simulation first.') }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -137,10 +137,10 @@
                 <div class="text-muted small">第 {{ page }} / {{ total_pages }} 頁</div>
                 <div>
                     {% if page > 1 %}
-                    <a class="btn btn-outline-primary btn-sm" href="/hr/salary/cal?year_month={{ year_month }}&page_size={{ page_size }}&page={{ page - 1 }}">上一頁</a>
+                    <a class="btn btn-outline-primary btn-sm" href="/hr/salary/cal?year_month={{ year_month }}&page_size={{ page_size }}&page={{ page - 1 }}">{{ _('Previous page') }}</a>
                     {% endif %}
                     {% if page < total_pages %}
-                    <a class="btn btn-outline-primary btn-sm" href="/hr/salary/cal?year_month={{ year_month }}&page_size={{ page_size }}&page={{ page + 1 }}">下一頁</a>
+                    <a class="btn btn-outline-primary btn-sm" href="/hr/salary/cal?year_month={{ year_month }}&page_size={{ page_size }}&page={{ page + 1 }}">{{ _('Next page') }}</a>
                     {% endif %}
                 </div>
             </div>
@@ -162,6 +162,26 @@ const STATUS_COLOR = {
     '加班': 'table-primary',
     '正常': ''
 };
+
+$(document).on('change', '.daily-rate-input', function () {
+    const input = $(this);
+    const uid = input.data('user-id');
+    const workDate = input.data('date');
+    const rate = input.val();
+    if (!uid || !workDate || rate === '') return;
+    $.ajax({
+        url: '/hr/salary/day-rate',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ user_id: uid, work_date: workDate, rate: rate }),
+        success: function () {
+            input.addClass('is-valid');
+        },
+        error: function () {
+            input.addClass('is-invalid');
+        }
+    });
+});
 
 $(document).on('click', '.expand-btn', function () {
     const btn = $(this);
@@ -190,7 +210,7 @@ $(document).on('click', '.expand-btn', function () {
         data: JSON.stringify({ user_id: uid, year_month: ym }),
         success: function (res) {
             if (!res.success) {
-                contentDiv.html('<p class="text-danger p-2">載入失敗：' + (res.error || '未知錯誤') + '</p>');
+                contentDiv.html('<p class="text-danger p-2">{{ _('Load failed') }}：' + (res.error || '{{ _('Unknown error') }}') + '</p>');
                 return;
             }
             const data = res.data;
@@ -198,12 +218,26 @@ $(document).on('click', '.expand-btn', function () {
             const daily = data.daily || [];
 
             let html = '<div class="mb-2">';
+            html += '<div class="card border-info mb-3"><div class="card-body py-2"><div class="row">' +
+                '<div class="col-md-6"><strong>{{ _('Weekday hourly rate') }}：</strong> ' + (s.weekday_hourly_rate ?? '-') + '<br/>' +
+                '<strong>{{ _('Holiday hourly rate') }}：</strong> ' + (s.holiday_hourly_rate ?? '-') + '</div>' +
+                '<div class="col-md-6"><strong>{{ _('Professional allowance') }}：</strong> ' + (s.professional_allowance ?? 0) + '<br/>' +
+                '<strong>{{ _('Position allowance') }}：</strong> ' + (s.position_allowance ?? 0) + '<br/>' +
+                '<strong>{{ _('Base salary') }}：</strong> ' + (s.base_salary_amount ?? 0) + '<br/>' +
+                '<strong>{{ _('Sales allowance') }}：</strong> ' + (s.sales_allowance ?? 0) + '</div>' +
+                '</div></div></div>';
+            html += '<div class="card border-secondary mb-3"><div class="card-body py-2"><div class="row">' +
+                '<div class="col-md-6"><strong>{{ _('Overtime allowance') }}：</strong> ' + (s.overtime_allowance ?? 0) + '<br/>' +
+                '<strong>{{ _('Night shift allowance') }}：</strong> ' + (s.night_shift_allowance ?? 0) + '</div>' +
+                '<div class="col-md-6"><strong>{{ _('Special leave allowance') }}：</strong> ' + (s.special_leave_allowance ?? 0) + '</div>' +
+                '</div></div></div>';
+            html += '<div class="small text-muted mb-2">{{ _('Simulation amount') }}：{{ _('Gross pay') }} ' + (s.gross_salary ?? 0) + '，{{ _('Net pay') }} ' + (s.net_salary ?? 0) + '</div>';
 
             // Daily table
             html += '<table class="table table-sm table-bordered mb-3" style="font-size:0.85em">';
             html += '<thead class="thead-dark"><tr>' +
-                    '<th>日期</th><th>星期</th><th>上班</th><th>下班</th>' +
-                    '<th>工時(h)</th><th>一般(h)</th><th>加班(h)</th><th>狀態</th></tr></thead><tbody>';
+                    '<th>{{ _('Date') }}</th><th>{{ _('Weekday') }}</th><th>{{ _('Clock in') }}</th><th>{{ _('Clock out') }}</th>' +
+                    '<th>{{ _('Working hours (h)') }}</th><th>{{ _('Regular hours (h)') }}</th><th>{{ _('Overtime hours (h)') }}</th><th>{{ _('Status') }}</th></tr></thead><tbody>';
 
             daily.forEach(d => {
                 const rowClass = STATUS_COLOR[d.status] || '';
@@ -213,7 +247,12 @@ $(document).on('click', '.expand-btn', function () {
                     <td>${d.work_hours.toFixed(2)}</td>
                     <td>${d.regular_hours.toFixed(2)}</td>
                     <td>${d.overtime_hours.toFixed(2)}</td>
-                    <td><span class="badge ${d.status==='正常'?'badge-success':d.status==='加班'?'badge-primary':'badge-warning'}">${d.status}</span></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge ${d.status==='正常'?'badge-success':d.status==='加班'?'badge-primary':'badge-warning'}">${d.status}</span>
+                            <input type="number" step="0.01" class="form-control form-control-sm daily-rate-input" data-user-id="${uid}" data-date="${d.date}" value="${d.override_rate ?? ''}" placeholder="{{ _('Custom hourly rate') }}" style="width:90px;">
+                        </div>
+                    </td>
                 </tr>`;
             });
             html += '</tbody></table>';
@@ -221,13 +260,13 @@ $(document).on('click', '.expand-btn', function () {
             // Summary bar
             const ld = s.late_deduction != null ? s.late_deduction.toFixed(2) : '0.00';
             html += `<div class="row text-center">
-                <div class="col-md-2 border-right"><div class="small text-muted">總工時</div><strong>${((s.total_work_minutes||0)/60).toFixed(2)} h</strong></div>
-                <div class="col-md-2 border-right"><div class="small text-muted">加班</div><strong>${((s.overtime_minutes||0)/60).toFixed(2)} h</strong></div>
-                <div class="col-md-2 border-right"><div class="small text-muted">假日</div><strong>${((s.holiday_minutes||0)/60).toFixed(2)} h</strong></div>
-                <div class="col-md-1 border-right"><div class="small text-muted">遲到</div><strong>${s.late_count||0} 次</strong></div>
-                <div class="col-md-1 border-right"><div class="small text-muted">早退</div><strong>${s.early_count||0} 次</strong></div>
-                <div class="col-md-2 border-right"><div class="small text-muted">應發 / 實發</div><strong>${(s.gross_salary||0).toFixed(2)} / ${(s.net_salary||0).toFixed(2)}</strong></div>
-                <div class="col-md-2"><div class="small text-muted">遲到扣款</div><strong class="text-danger">-${ld}</strong></div>
+                <div class="col-md-2 border-right"><div class="small text-muted">{{ _('Total working hours') }}</div><strong>${((s.total_work_minutes||0)/60).toFixed(2)} h</strong></div>
+                <div class="col-md-2 border-right"><div class="small text-muted">{{ _('Overtime') }}</div><strong>${((s.overtime_minutes||0)/60).toFixed(2)} h</strong></div>
+                <div class="col-md-2 border-right"><div class="small text-muted">{{ _('Holiday') }}</div><strong>${((s.holiday_minutes||0)/60).toFixed(2)} h</strong></div>
+                <div class="col-md-1 border-right"><div class="small text-muted">{{ _('Late') }}</div><strong>${s.late_count||0} {{ _('times') }}</strong></div>
+                <div class="col-md-1 border-right"><div class="small text-muted">{{ _('Early leave') }}</div><strong>${s.early_count||0} {{ _('times') }}</strong></div>
+                <div class="col-md-2 border-right"><div class="small text-muted">{{ _('Gross / Net pay') }}</div><strong>${(s.gross_salary||0).toFixed(2)} / ${(s.net_salary||0).toFixed(2)}</strong></div>
+                <div class="col-md-2"><div class="small text-muted">{{ _('Late deduction') }}</div><strong class="text-danger">-${ld}</strong></div>
             </div>`;
 
             html += '</div>';
@@ -235,7 +274,7 @@ $(document).on('click', '.expand-btn', function () {
             contentDiv.data('loaded', true);
         },
         error: function () {
-            contentDiv.html('<p class="text-danger p-2">API 請求失敗，請稍後再試。</p>');
+            contentDiv.html('<p class="text-danger p-2">{{ _('API request failed. Please try again later.') }}</p>');
         }
     });
 });

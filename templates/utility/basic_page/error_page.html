@@ -1,0 +1,15 @@
+{% extends 'components/base.html' %}
+{% block title %}{{ _('Error') }}{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow border-danger">
+        <div class="card-body">
+            <h2 class="h4 text-danger mb-3">{{ _('An error occurred') }}</h2>
+            <p class="mb-3">{{ _('The system could not complete this request. Please review the error details below.') }}</p>
+            <div class="alert alert-danger mb-0">
+                <strong>{{ error_message }}</strong>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

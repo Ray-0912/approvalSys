@@ -1,12 +1,12 @@
 {% extends 'components/base.html' %}
-{% block title %}新增簽呈{% endblock %}
+{% block title %}{{ _('No permission') }}{% endblock %}
 
 {% block content %}
 <div class="text-center">
     <div class="error mx-auto" data-text="404">No</div>
-    <p class="lead text-gray-800 mb-5">You have no permission.</p>
-    <p class="text-gray-500 mb-0">If you really need to access this page, pls ask the admin or manager.</p>
-    <a href="/">&larr; Back to HomePage</a>
+    <p class="lead text-gray-800 mb-5">{{ _('You do not have permission to access this page.') }}</p>
+    <p class="text-gray-500 mb-0">{{ _('If you need access, please contact the administrator or manager.') }}</p>
+    <a href="/">&larr; {{ _('Back to Homepage') }}</a>
 </div>
 
 <script>

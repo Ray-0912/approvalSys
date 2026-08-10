@@ -1,11 +1,8 @@
 ﻿msgid ""
 msgstr ""
-"Content-Type: text/plain; charset=utf-8
-"
-"Content-Transfer-Encoding: 8bit
-"
-"Language: zh_TW
-"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_TW\n"
 
 msgid "Schedule System"
 msgstr "工作排程系統"
@@ -39,6 +36,60 @@ msgstr "簽呈"
 
 msgid "Approval List"
 msgstr "簽呈列表"
+
+msgid "Approval System"
+msgstr "簽呈系統"
+
+msgid "Welcome back, %(name)s"
+msgstr "歡迎回來，%(name)s"
+
+msgid "employee"
+msgstr "員工"
+
+msgid "This page gathers your personal information, monthly attendance records, and quick access to approvals."
+msgstr "這裡集中顯示你的個人資訊、當月打卡紀錄，並提供簽呈快速檢視。"
+
+msgid "Attendance records"
+msgstr "打卡紀錄"
+
+msgid "My profile"
+msgstr "我的資料"
+
+msgid "Name"
+msgstr "姓名"
+
+msgid "Username"
+msgstr "帳號"
+
+msgid "Department"
+msgstr "部門"
+
+msgid "PIN"
+msgstr "PIN"
+
+msgid "Approval area"
+msgstr "簽呈區"
+
+msgid "Pending approvals"
+msgstr "尚未簽呈"
+
+msgid "Recently approved"
+msgstr "近期核可"
+
+msgid "There are no matching approvals at the moment."
+msgstr "目前沒有符合條件的簽呈。"
+
+msgid "Monthly attendance records"
+msgstr "當月打卡紀錄"
+
+msgid "Attendance time"
+msgstr "打卡時間"
+
+msgid "Verification method"
+msgstr "驗證方式"
+
+msgid "There are no attendance records for this month yet."
+msgstr "目前沒有當月打卡紀錄。"
 
 msgid "New Approval"
 msgstr "新增簽呈"
@@ -210,3 +261,600 @@ msgstr "允許"
 
 msgid "Deny"
 msgstr "拒絕"
+
+msgid "Please enter your username and password."
+msgstr "請輸入帳號與密碼。"
+
+msgid "Incorrect password."
+msgstr "密碼錯誤。"
+
+msgid "Username does not exist."
+msgstr "使用者不存在。"
+
+msgid "Username cannot be empty and password must be at least 8 characters."
+msgstr "帳號不可為空，且密碼至少 8 碼。"
+
+msgid "First and last name cannot be empty."
+msgstr "姓名不可為空。"
+
+msgid "Password reset failed. Please check the username and password format."
+msgstr "重設密碼失敗，請確認帳號與密碼格式。"
+
+msgid "Approval type, title, and content cannot be empty."
+msgstr "簽呈類型、標題與內容不可為空。"
+
+msgid "You did not add any approval recipients."
+msgstr "沒有填入任何簽呈對象。"
+
+msgid "Approval submitted successfully."
+msgstr "簽呈已送出。"
+
+msgid "Submission failed."
+msgstr "送出失敗。"
+
+msgid "Document ID format is invalid."
+msgstr "文件編號格式錯誤。"
+
+msgid "Title, type, and content cannot be empty."
+msgstr "標題、類型與內容不可為空。"
+
+msgid "Approval updated successfully."
+msgstr "簽呈已更新。"
+
+msgid "Date range format is invalid. Please use MM/DD/YYYY - MM/DD/YYYY."
+msgstr "日期區間格式錯誤，請使用 MM/DD/YYYY - MM/DD/YYYY。"
+
+msgid "It is not your approval turn yet. Please wait for the previous approver."
+msgstr "目前不是你的簽核順序，請等待前一位簽核完成。"
+
+msgid "Reset Password"
+msgstr "重設密碼"
+
+msgid "Confirm Password"
+msgstr "確認密碼"
+
+msgid "System Development Progress"
+msgstr "系統開發進度"
+
+msgid "Approval Content"
+msgstr "簽呈內容"
+
+msgid "Type"
+msgstr "類型"
+
+msgid "Title"
+msgstr "標題"
+
+msgid "Content"
+msgstr "內容"
+
+msgid "Approval Recipients"
+msgstr "簽呈遞交對象"
+
+msgid "Approval Notify Recipients"
+msgstr "簽呈知會對象"
+
+msgid "Submit"
+msgstr "送出"
+
+msgid "Edit Approval"
+msgstr "編輯簽呈"
+
+msgid "Review Approval"
+msgstr "檢閱簽呈"
+
+msgid "Created Date"
+msgstr "建立日期"
+
+msgid "Last Updated"
+msgstr "最後更新"
+
+msgid "Approval History"
+msgstr "簽呈紀錄"
+
+msgid "Current pending approver"
+msgstr "目前待簽者"
+
+msgid "Pending approval"
+msgstr "待簽核"
+
+msgid "Approved on"
+msgstr "已簽核於"
+
+msgid "Rejected"
+msgstr "已駁回"
+
+msgid "Approval Edit History"
+msgstr "簽呈編輯紀錄"
+
+msgid "Delete"
+msgstr "刪除"
+
+msgid "Approve"
+msgstr "核准"
+
+msgid "Reject"
+msgstr "駁回"
+
+msgid "Reject Approval"
+msgstr "駁回簽呈"
+
+msgid "Rejection reason (optional)"
+msgstr "駁回原因（選填）"
+
+msgid "Please enter the rejection reason..."
+msgstr "請輸入駁回原因..."
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Confirm Reject"
+msgstr "確認駁回"
+
+msgid "Staff Information"
+msgstr "人員資訊"
+
+msgid "Select Organization"
+msgstr "選擇組織"
+
+msgid "Select Department"
+msgstr "選擇部門"
+
+msgid "First Name"
+msgstr "姓氏"
+
+msgid "Last Name"
+msgstr "名稱"
+
+msgid "National ID"
+msgstr "身分證字號"
+
+msgid "Phone Number"
+msgstr "電話號碼"
+
+msgid "Preview"
+msgstr "預覽"
+
+msgid "Preview Content"
+msgstr "預覽內容"
+
+msgid "Please enter the verification code"
+msgstr "請輸入驗證碼"
+
+msgid "Confirm Submit"
+msgstr "確認送出"
+
+msgid "Close"
+msgstr "關閉"
+
+msgid "Login"
+msgstr "登入"
+
+msgid "Welcome Back!"
+msgstr "歡迎回來！"
+
+msgid "Password"
+msgstr "密碼"
+
+msgid "Title, Type, Creator"
+msgstr "標題、類型、建立者"
+
+msgid "Items per page"
+msgstr "每頁筆數"
+
+msgid "Approvals I created"
+msgstr "你建立的簽呈"
+
+msgid "Pending approval requests"
+msgstr "待核可簽呈"
+
+msgid "Recent approvals"
+msgstr "近期所有簽呈"
+
+msgid "Page"
+msgstr "頁"
+
+msgid "Previous page"
+msgstr "上一頁"
+
+msgid "Next page"
+msgstr "下一頁"
+
+msgid "Created time"
+msgstr "建立時間"
+
+msgid "Full-text search"
+msgstr "全文搜尋"
+
+msgid "Search results"
+msgstr "搜尋結果"
+
+msgid "No permission"
+msgstr "無權限"
+
+msgid "You do not have permission to access this page."
+msgstr "您沒有權限存取此頁面。"
+
+msgid "If you need access, please contact the administrator or manager."
+msgstr "若您需要存取，請聯絡管理員或主管。"
+
+msgid "Back to Homepage"
+msgstr "回到首頁"
+
+msgid "Update User Information"
+msgstr "更新使用者資訊"
+
+msgid "Personal Information"
+msgstr "個人資料"
+
+msgid "Basic Information"
+msgstr "基本資料"
+
+msgid "To change the account, please contact the IT or HR staff."
+msgstr "如需調整帳號，請洽資訊人員。"
+
+msgid "New password (leave blank to keep current)"
+msgstr "新密碼（留空不修改）"
+
+msgid "Email"
+msgstr "電子郵件"
+
+msgid "Save"
+msgstr "儲存"
+
+msgid "HR Information (Read-only)"
+msgstr "HR 資訊（唯讀）"
+
+msgid "Employee ID"
+msgstr "員工編號"
+
+msgid "Account Status"
+msgstr "帳號狀態"
+
+msgid "Salary Information"
+msgstr "薪資資訊"
+
+msgid "Salary Type"
+msgstr "薪資型態"
+
+msgid "Monthly Salary"
+msgstr "月薪"
+
+msgid "Hourly Salary"
+msgstr "時薪"
+
+msgid "No salary information has been set yet."
+msgstr "尚未設定薪資資料。"
+
+msgid "Salary Simulation"
+msgstr "薪資試算"
+
+msgid "Salary Simulation and Approval"
+msgstr "薪資試算與簽核"
+
+msgid "Month"
+msgstr "月份"
+
+msgid "Batch actions"
+msgstr "批次操作"
+
+msgid "Run simulation"
+msgstr "執行試算"
+
+msgid "Submit for review"
+msgstr "提交審核"
+
+msgid "Using rule"
+msgstr "使用規則"
+
+msgid "Effective date"
+msgstr "生效日"
+
+msgid "Salary rules and settings"
+msgstr "薪資規則與設定"
+
+msgid "Salary rules and employee salary settings"
+msgstr "薪資規則與員工薪資設定"
+
+msgid "Create salary rule version"
+msgstr "建立薪資規則版本"
+
+msgid "Rule name"
+msgstr "規則名稱"
+
+msgid "Monthly overtime multiplier"
+msgstr "月薪加班倍率"
+
+msgid "Hourly overtime multiplier"
+msgstr "時薪加班倍率"
+
+msgid "Holiday multiplier"
+msgstr "國定假日倍率"
+
+msgid "Late grace (minutes)"
+msgstr "遲到寬限(分)"
+
+msgid "Early leave grace (minutes)"
+msgstr "早退寬限(分)"
+
+msgid "Reference working hours (general)"
+msgstr "基準工時(一般)"
+
+msgid "Reference working hours (manager)"
+msgstr "基準工時(主管)"
+
+msgid "Late deduction per instance (optional, leave blank to skip)"
+msgstr "每次遲到扣款（選填，留空不扣款）"
+
+msgid "Example: 200"
+msgstr "例如 200"
+
+msgid "Actual deduction = this amount × number of late arrivals this month"
+msgstr "實際扣款 = 此金額 × 當月遲到次數"
+
+msgid "Default hourly rate (applies when no salary setting exists)"
+msgstr "預設時薪（無薪資設定時套用）"
+
+msgid "Create rule version"
+msgstr "建立規則版本"
+
+msgid "Current effective rule"
+msgstr "目前生效規則"
+
+msgid "Version"
+msgstr "版本"
+
+msgid "Grace period"
+msgstr "寬限"
+
+msgid "minutes"
+msgstr "分"
+
+msgid "Reference working hours"
+msgstr "基準工時"
+
+msgid "General"
+msgstr "一般"
+
+msgid "hours"
+msgstr "小時"
+
+msgid "Manager"
+msgstr "主管"
+
+msgid "Per instance"
+msgstr "每次"
+
+msgid "No deduction"
+msgstr "不扣款"
+
+msgid "Default hourly rate"
+msgstr "預設時薪"
+
+msgid "No rule exists yet. Please create the first version."
+msgstr "尚無規則，請先建立第一版。"
+
+msgid "Employee salary type and amount"
+msgstr "員工薪資型態與金額"
+
+msgid "Role"
+msgstr "角色"
+
+msgid "Clock-in PIN"
+msgstr "打卡PIN"
+
+msgid "Salary type"
+msgstr "薪資型態"
+
+msgid "Salary amount"
+msgstr "薪資金額"
+
+msgid "Action"
+msgstr "操作"
+
+msgid "Monthly"
+msgstr "月薪"
+
+msgid "Hourly"
+msgstr "時薪"
+
+msgid "Monthly salary"
+msgstr "月薪"
+
+msgid "Fixed allowances"
+msgstr "固定加給"
+
+msgid "There is currently no employee salary data to maintain."
+msgstr "目前沒有可維護的員工薪資資料。"
+
+msgid "Holiday maintenance"
+msgstr "國定假日維護"
+
+msgid "Name"
+msgstr "名稱"
+
+msgid "Add/Update"
+msgstr "新增/更新"
+
+msgid "No holidays have been set for this month yet."
+msgstr "此月份尚未設定假日。"
+
+msgid "Sync staff"
+msgstr "同步員工"
+
+msgid "Staff management — sync with BioLife"
+msgstr "員工管理 — 與 BioLife 同步"
+
+msgid "Start sync check"
+msgstr "開始同步檢查"
+
+msgid "Retrieving data from BioLife, please wait…"
+msgstr "正在從 BioLife 取得資料，請稍候…"
+
+msgid "Accounts to deactivate"
+msgstr "需要停用的帳號"
+
+msgid "Confirm deactivation"
+msgstr "確認停用"
+
+msgid "The following accounts are active in this system but no longer exist in BioLife. After confirmation, they will all be set to inactive."
+msgstr "以下帳號在本系統為 active，但 BioLife 已不存在。確認後全部設為 inactive。"
+
+msgid "Employee number"
+msgstr "員工編號"
+
+msgid "BioLife accounts missing in this system"
+msgstr "BioLife 有但本系統沒有的帳號"
+
+msgid "Fill in the details one by one and click Add; the initial password is always"
+msgstr "逐筆填入資料後按「新增」，初始密碼一律為"
+
+msgid "BioLife and this system accounts are fully consistent, no sync required."
+msgstr "BioLife 與本系統帳號完全一致，無需同步。"
+
+msgid "Simulation results"
+msgstr "試算結果"
+
+msgid "items"
+msgstr "筆"
+
+msgid "Export all payslips (Excel)"
+msgstr "匯出全部薪資單 (Excel)"
+
+msgid "Employee"
+msgstr "員工"
+
+msgid "Rule version"
+msgstr "規則版本"
+
+msgid "Total working hours (h)"
+msgstr "總工時(h)"
+
+msgid "Regular working hours (h)"
+msgstr "一般工時(h)"
+
+msgid "Overtime (h)"
+msgstr "加班(h)"
+
+msgid "Holiday working hours (h)"
+msgstr "假日工時(h)"
+
+msgid "Late/Early leave"
+msgstr "遲到/早退"
+
+msgid "Gross pay"
+msgstr "應發"
+
+msgid "Net pay"
+msgstr "實發"
+
+msgid "Status"
+msgstr "狀態"
+
+msgid "Expand details"
+msgstr "展開明細"
+
+msgid "Loading..."
+msgstr "載入中..."
+
+msgid "Load failed"
+msgstr "載入失敗"
+
+msgid "Unknown error"
+msgstr "未知錯誤"
+
+msgid "Simulation amount"
+msgstr "試算金額"
+
+msgid "Simulation results"
+msgstr "試算結果"
+
+msgid "items"
+msgstr "筆"
+
+msgid "Deduction"
+msgstr "扣款"
+
+msgid "No data yet. Please run the simulation first."
+msgstr "尚無資料，請先執行試算。"
+
+msgid "Previous page"
+msgstr "上一頁"
+
+msgid "Next page"
+msgstr "下一頁"
+
+msgid "API request failed. Please try again later."
+msgstr "API 請求失敗，請稍後再試。"
+
+msgid "Weekday hourly rate"
+msgstr "平日時薪"
+
+msgid "Holiday hourly rate"
+msgstr "假日時薪"
+
+msgid "Professional allowance"
+msgstr "專業加給"
+
+msgid "Position allowance"
+msgstr "職務加給"
+
+msgid "Base salary"
+msgstr "底薪"
+
+msgid "Sales allowance"
+msgstr "業務加給"
+
+msgid "Overtime allowance"
+msgstr "加班費"
+
+msgid "Night shift allowance"
+msgstr "夜班津貼"
+
+msgid "Special leave allowance"
+msgstr "特休津貼"
+
+msgid "Date"
+msgstr "日期"
+
+msgid "Weekday"
+msgstr "星期"
+
+msgid "Clock in"
+msgstr "上班"
+
+msgid "Clock out"
+msgstr "下班"
+
+msgid "Working hours (h)"
+msgstr "工時(h)"
+
+msgid "Regular hours (h)"
+msgstr "一般(h)"
+
+msgid "Overtime hours (h)"
+msgstr "加班(h)"
+
+msgid "Custom hourly rate"
+msgstr "自訂時薪"
+
+msgid "Total working hours"
+msgstr "總工時"
+
+msgid "Holiday"
+msgstr "假日"
+
+msgid "Late"
+msgstr "遲到"
+
+msgid "Early leave"
+msgstr "早退"
+
+msgid "times"
+msgstr "次"
+
+msgid "Gross / Net pay"
+msgstr "應發 / 實發"
+
+msgid "Late deduction"
+msgstr "遲到扣款"

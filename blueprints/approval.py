@@ -4,9 +4,11 @@ import logging
 import os
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, session
+from flask_babel import gettext as _
 
 import database.queries as db
 import functions.email as email
+import functions.permission as permission_module
 from functions.permission import has_permission
 
 approval_bp = Blueprint('approval', __name__)
@@ -43,6 +45,24 @@ def load_type_list():
     return type_list
 
 
+def get_user_display_name(user_row):
+    full_name = f"{user_row.get('first_name', '')}{user_row.get('last_name', '')}".strip()
+    return full_name or str(user_row.get('username', '')).strip()
+
+
+def get_approval_creator_candidates():
+    users = db.get_active_users_with_roles()
+    candidates = []
+    for user in users:
+        if permission_module.get_effective_role_permission(user.get('role_id'), 'p_new'):
+            candidates.append({
+                'user_id': int(user.get('user_id')),
+                'username': str(user.get('username', '')).strip(),
+                'display_name': get_user_display_name(user),
+            })
+    return sorted(candidates, key=lambda item: (item['username'], item['user_id']))
+
+
 @approval_bp.route('/p/list', methods=['GET', 'POST'])
 def p_list():
     if not has_permission('p_list', session['user_id'], session['team_id'], session['role_id']):
@@ -52,7 +72,16 @@ def p_list():
     unapproved_documents = db.get_unapproved_doc_by_user(session['user_id'])
     all_documents = db.get_30days_doc()
 
-    query_text = normalize_text(request.args.get('q'), 100).lower()
+    title_query = normalize_text(request.args.get('title_q'), 100).lower()
+    # Backward-compatible: keep old q parameter as alias when title_q is empty.
+    if not title_query:
+        title_query = normalize_text(request.args.get('q'), 100).lower()
+
+    type_filters = [normalize_text(v, 100) for v in request.args.getlist('type_filter') if normalize_text(v, 100)]
+    creator_filters = [int(v) for v in request.args.getlist('creator_filter') if str(v).isdigit()]
+
+    available_types = sorted({label for _, label in load_type_list()})
+    available_creators = get_approval_creator_candidates()
 
     try:
         page_size = int(request.args.get('page_size', 10))
@@ -66,17 +95,22 @@ def p_list():
         page = 1
     page = max(1, page)
 
-    if query_text:
-        def match_document(document):
-            return (
-                query_text in str(document.title).lower()
-                or query_text in str(document.doc_type_cht).lower()
-                or query_text in str(document.creator_name).lower()
-            )
+    def match_document(document):
+        title_value = str(document.title or '').lower()
+        type_value = str(document.doc_type_cht or '')
+        creator_value = str(document.creator_name or '')
 
-        creator_pending_documents = [document for document in creator_pending_documents if match_document(document)]
-        unapproved_documents = [document for document in unapproved_documents if match_document(document)]
-        all_documents = [document for document in all_documents if match_document(document)]
+        if title_query and title_query not in title_value:
+            return False
+        if type_filters and type_value not in type_filters:
+            return False
+        if creator_filters and int(document.creator) not in creator_filters:
+            return False
+        return True
+
+    creator_pending_documents = [document for document in creator_pending_documents if match_document(document)]
+    unapproved_documents = [document for document in unapproved_documents if match_document(document)]
+    all_documents = [document for document in all_documents if match_document(document)]
 
     total_count = len(all_documents)
     total_pages = max(1, (total_count + page_size - 1) // page_size)
@@ -91,7 +125,12 @@ def p_list():
                            creator_pending_documents=creator_pending_documents,
                            unapproved_documents=unapproved_documents,
                            all_documents=all_documents,
-                           q=query_text,
+                           q=title_query,
+                           title_q=title_query,
+                           type_filters=type_filters,
+                           creator_filters=creator_filters,
+                           available_types=available_types,
+                           available_creators=available_creators,
                            page=page,
                            page_size=page_size,
                            total_pages=total_pages,
@@ -116,12 +155,12 @@ def p_new():
         signature_required = 0
 
         if not doc_type or not title or not content:
-            flash('簽呈類型、標題與內容不可為空', category='danger')
+            flash(_('Approval type, title, and content cannot be empty.'), category='danger')
             return render_template('/utility/documents/new_approval.html', type_list=type_list,
                                    app_users=approval_user_list)
 
         if not send_approval_users:
-            flash('你沒有填入任何簽呈對象', category='warning')
+            flash(_('You did not add any approval recipients.'), category='warning')
         else:
             try:
                 created_doc_id = db.create_document_with_approvals(
@@ -137,10 +176,10 @@ def p_new():
                 email.send_email(created_doc_id, send_approval_users, notify_users, title, content)
                 logger.info('Document created: doc_id=%s creator=%s approvers=%s',
                             created_doc_id, session.get('user_id'), len(send_approval_users))
-                flash('簽呈已送出', category='success')
+                flash(_('Approval submitted successfully.'), category='success')
                 return render_template('/utility/documents/new_approval.html',
                                        type_list=type_list, app_users=approval_user_list)
-            flash('送出失敗！', category='danger')
+            flash(_('Submission failed.'), category='danger')
 
     return render_template('/utility/documents/new_approval.html', type_list=type_list,
                            app_users=approval_user_list)
@@ -153,7 +192,7 @@ def p_edit(doc_id):
 
     if request.method == 'POST':
         if not str(doc_id).isdigit():
-            flash('文件編號格式錯誤', category='danger')
+            flash(_('Document ID format is invalid.'), category='danger')
             return redirect('/p/list')
 
         title = normalize_text(request.form.get('title'), 120)
@@ -161,11 +200,11 @@ def p_edit(doc_id):
         content = normalize_text(request.form.get('content'), 10000)
 
         if not title or not doc_type or not content:
-            flash('標題、類型與內容不可為空', category='danger')
+            flash(_('Title, type, and content cannot be empty.'), category='danger')
             return redirect(request.referrer or '/p/list')
 
         db.update_doc(doc_id, title, doc_type, 0, content, get_agent(request), session['username'])
-        flash('簽呈已更新', category='success')
+        flash(_('Approval updated successfully.'), category='success')
         return redirect('/p/list')
 
     doc = db.get_single_documents(doc_id)
@@ -197,7 +236,7 @@ def p_search():
                 datetime.strptime(start_str, '%m/%d/%Y')
                 datetime.strptime(end_str, '%m/%d/%Y')
         except ValueError:
-            flash('日期區間格式錯誤，請使用 MM/DD/YYYY - MM/DD/YYYY', category='danger')
+            flash(_('Date range format is invalid. Please use MM/DD/YYYY - MM/DD/YYYY.'), category='danger')
             return render_template('/utility/documents/search.html', type_list=type_list, documents=[])
 
         documents = db.get_in_search_doc(created_time=created_time,
@@ -233,12 +272,12 @@ def p_approve():
 
     doc_id = normalize_text(request.form.get('doc_id'), 20)
     if not doc_id.isdigit():
-        flash('文件編號格式錯誤', category='danger')
+        flash(_('Document ID format is invalid.'), category='danger')
         return redirect('/p/list')
 
     next_approver = db.get_next_pending_approver(doc_id)
     if not next_approver or int(next_approver['user_id']) != int(session['user_id']):
-        flash('目前不是你的簽核順序，請等待前一位簽核完成', category='danger')
+        flash(_('It is not your approval turn yet. Please wait for the previous approver.'), category='danger')
         return redirect(f'/p/view/{doc_id}')
 
     db.update_doc_app(doc_id, session['user_id'], 1)
@@ -263,14 +302,14 @@ def p_reject():
 
     doc_id = normalize_text(request.form.get('doc_id'), 20)
     if not doc_id.isdigit():
-        flash('文件編號格式錯誤', category='danger')
+        flash(_('Document ID format is invalid.'), category='danger')
         return redirect('/p/list')
 
     reason = normalize_text(request.form.get('reason'), 500) or None
 
     next_approver = db.get_next_pending_approver(doc_id)
     if not next_approver or int(next_approver['user_id']) != int(session['user_id']):
-        flash('目前不是你的簽核順序，請等待前一位簽核完成', category='danger')
+        flash(_('It is not your approval turn yet. Please wait for the previous approver.'), category='danger')
         return redirect(f'/p/view/{doc_id}')
 
     db.update_doc_app(doc_id, session['user_id'], 2, reason)
@@ -295,7 +334,7 @@ def p_delete():
 
     doc_id = normalize_text(request.form.get('doc_id'), 20)
     if not doc_id.isdigit():
-        flash('文件編號格式錯誤', category='danger')
+        flash(_('Document ID format is invalid.'), category='danger')
         return redirect('/p/list')
 
     db.update_doc_app(doc_id, session['user_id'], 4)

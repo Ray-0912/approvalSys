@@ -1,19 +1,19 @@
 {% extends 'components/base.html' %}
-{% block title %}簽呈編輯{% endblock %}
+{% block title %}{{ _('Edit Approval') }}{% endblock %}
 {% block content %}
 
-<h2>簽呈編輯</h2>
+<h2>{{ _('Edit Approval') }}</h2>
 <div class="row">
     <div class="col mb-4">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">簽呈內容</h6>
+                <h6 class="m-0 font-weight-bold text-primary">{{ _('Approval Content') }}</h6>
             </div>
             <div class="card-body">
                 <code>若編輯後存擋，所有簽呈對象需要重新核可。如要調整簽呈對象，請刪除後重新新增簽呈</code>
                 <form id="edit_doc" action="/p/edit/{{ doc.doc_id }}" method="POST">
                     <div class="col mt-4 mb-2">
-                        <label for="title">類型：</label>
+                        <label for="title">{{ _('Type') }}：</label>
                         <select id="type" name="type">
                             {% for item in type_list %}
                                 <option value="{{ item[0] }}">{{ item[1] }}</option>
@@ -22,12 +22,12 @@
                     </div>
 
                     <div class="col mt-4 mb-2">
-                        <label for="title">標題：</label>
+                        <label for="title">{{ _('Title') }}：</label>
                         <input type="text" id="title" name="title" value="{{ doc.title }}">
                     </div>
 
                     <div class="col mt-4 mb-2">
-                        <label for="content">內容：</label>
+                        <label for="content">{{ _('Content') }}：</label>
                         <textarea id="content" name="content"></textarea>
                     </div>
 
@@ -38,7 +38,7 @@
                             onclick="document.getElementById('edit_doc').submit()"
                             type="submit">
                             <i class="fas fa-download fa-sm text-white-50"></i>
-                            Submit
+                            {{ _('Submit') }}
                         </a>
                     </div>
 

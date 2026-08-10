@@ -1,0 +1,2 @@
+docker: Error response from daemon: Conflict. The container name "/approvalsys_app" is already in use by container "a92a8043ab4ecaf96c1ded614d6834acac1bd0e026fec04cd67b327e5d2012d5". You have to remove (or rename) that container to be able to reuse that name.
+See 'docker run --help'.

@@ -45,12 +45,15 @@
     {% endblock head %}
 </head>
 <body>
+    <div id="floatingToastContainer" style="position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:1080;min-width:320px;max-width:680px;pointer-events:none;">
     {% for message in get_flashed_messages(with_categories=True) %}
-        <div class="alert alert-{{ message[0] }}">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            {{ message[1]}}
+        {% set category = message[0] or 'info' %}
+        <div class="floating-toast alert alert-{{ category }} shadow-sm mb-2" data-category="{{ category }}" role="alert" style="pointer-events:auto;">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            {{ message[1] }}
         </div>
     {% endfor %}
+    </div>
 
 
     <div id="wrapper" style="width: 100%">
@@ -72,6 +75,16 @@
 
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const scrollRestoreKey = 'approvalsys-scroll:' + window.location.pathname;
+        const scrollRestoreFlagKey = scrollRestoreKey + ':restore';
+
+        if (sessionStorage.getItem(scrollRestoreFlagKey) === '1') {
+            const y = parseInt(sessionStorage.getItem(scrollRestoreKey) || '0', 10);
+            if (Number.isFinite(y) && y > 0) {
+                window.scrollTo(0, y);
+            }
+            sessionStorage.removeItem(scrollRestoreFlagKey);
+        }
 
         // Auto-inject CSRF token into all unsafe form submissions.
         document.querySelectorAll('form').forEach(function(form) {
@@ -84,7 +97,31 @@
                     tokenInput.value = csrfToken;
                     form.appendChild(tokenInput);
                 }
+
+                form.addEventListener('submit', function () {
+                    sessionStorage.setItem(scrollRestoreKey, String(window.scrollY || window.pageYOffset || 0));
+                    sessionStorage.setItem(scrollRestoreFlagKey, '1');
+                });
             }
+        });
+
+        const toasts = document.querySelectorAll('.floating-toast');
+        toasts.forEach(function (toast) {
+            const category = toast.dataset.category || 'info';
+            const durationMap = {
+                success: 2000,
+                danger: 5000,
+                warning: 5000,
+                info: 3000
+            };
+            const duration = durationMap[category] || 3000;
+            setTimeout(function () {
+                toast.classList.add('fade');
+                toast.style.opacity = '0';
+                setTimeout(function () {
+                    toast.remove();
+                }, 350);
+            }, duration);
         });
 
         // Add CSRF token header to jQuery AJAX unsafe methods.
@@ -107,5 +144,6 @@
             document.getElementById('accordionSidebar').classList.toggle('toggled');
         });
     </script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

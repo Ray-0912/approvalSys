@@ -1,18 +1,18 @@
 {% extends 'components/base.html' %}
-{% block title %}新增簽呈{% endblock %}
+{% block title %}{{ _('New Approval') }}{% endblock %}
 {% block content %}
 
-<h2>新增簽呈</h2>
+<h2>{{ _('New Approval') }}</h2>
 <div class="row">
     <div class="col mb-4">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">簽呈內容</h6>
+                <h6 class="m-0 font-weight-bold text-primary">{{ _('Approval Content') }}</h6>
             </div>
             <div class="card-body">
                 <form id="newApproval" action="/p/new" method="POST">
                     <div class="col mt-4 mb-2">
-                        <label for="title">類型：</label>
+                        <label for="title">{{ _('Type') }}：</label>
                         <select id="type" name="type">
                             {% for item in type_list %}
                                 <option value="{{ item[0] }}">{{ item[1] }}</option>
@@ -21,12 +21,12 @@
                     </div>
 
                     <div class="col mt-4 mb-2">
-                        <label for="title">標題：</label>
+                        <label for="title">{{ _('Title') }}：</label>
                         <input type="text" id="title" name="title">
                     </div>
 
                     <div class="col mt-4 mb-2">
-                        <label for="content">內容：</label>
+                        <label for="content">{{ _('Content') }}：</label>
                         <textarea id="content" name="content"></textarea>
                     </div>
 
@@ -34,7 +34,7 @@
                         <div class="card shadow mb-4">
                             <a href="#collapseCardMyself" class="d-block card-header py-3" data-toggle="collapse"
                                role="button" aria-expanded="true" aria-controls="collapseCardMyself">
-                                <h6 class="m-0 font-weight-bold text-primary">簽呈遞交對象</h6>
+                                <h6 class="m-0 font-weight-bold text-primary">{{ _('Approval Recipients') }}</h6>
                             </a>
                             <div class="collapse" id="collapseCardMyself">
                                 <div class="card-body">
@@ -52,7 +52,7 @@
                         <div class="card shadow mb-4">
                             <a href="#collapseCardNotify" class="d-block card-header py-3" data-toggle="collapse"
                                role="button" aria-expanded="true" aria-controls="collapseCardNotify">
-                                <h6 class="m-0 font-weight-bold text-primary">簽呈知會對象</h6>
+                                <h6 class="m-0 font-weight-bold text-primary">{{ _('Approval Notify Recipients') }}</h6>
                             </a>
                             <div class="collapse" id="collapseCardNotify">
                                 <div class="card-body">
@@ -73,7 +73,7 @@
                             onclick="document.getElementById('newApproval').submit()"
                             type="submit">
                             <i class="fas fa-download fa-sm text-white-50"></i>
-                            Submit
+                            {{ _('Submit') }}
                         </a>
                     </div>
 

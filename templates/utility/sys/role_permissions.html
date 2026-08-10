@@ -4,46 +4,61 @@
 {% block content %}
 <div class="container-fluid">
     <h1 class="h3 mb-3 text-gray-800">{{ _('Role Permissions') }}</h1>
-    <p class="mb-4">{{ _('Override the default permissions for each role. These settings take effect immediately and are written to the audit log.') }}</p>
+    <p class="mb-4">{{ _('Choose a role to manage its permission overrides. Each entry explains the page route, purpose, and the roles that usually use it.') }}</p>
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">{{ _('Permission Matrix') }}</h6>
+            <h6 class="m-0 font-weight-bold text-primary">{{ _('Select a role') }}</h6>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-sm">
-                    <thead>
-                        <tr>
-                            <th>{{ _('Role') }}</th>
-                            {% for key in permission_keys %}
-                            <th>{{ key }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for role in roles %}
-                        <tr>
-                            <td>{{ role.name }} ({{ role.role_id }})</td>
-                            {% for key in permission_keys %}
-                            {% set allowed = role_permissions.get(role.role_id, {}).get(key, None) %}
-                            <td>
-                                <form action="/sys/permissions" method="POST" class="mb-0">
-                                    <input type="hidden" name="role_id" value="{{ role.role_id }}">
-                                    <input type="hidden" name="permission_key" value="{{ key }}">
-                                    <select name="allowed" class="form-control form-control-sm" onchange="this.form.submit()">
-                                        <option value="1" {% if allowed is sameas true %}selected{% endif %}>{{ _('Allow') }}</option>
-                                        <option value="0" {% if allowed is sameas false %}selected{% endif %}>{{ _('Deny') }}</option>
-                                    </select>
-                                </form>
-                            </td>
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="d-flex flex-wrap gap-2">
+                {% for role in roles %}
+                <a class="btn btn-outline-primary btn-sm {% if selected_role and selected_role.role_id == role.role_id %}active{% endif %}" href="/sys/permissions/{{ role.role_id }}">
+                    {{ role.name }} ({{ role.role_id }})
+                </a>
+                {% endfor %}
             </div>
         </div>
     </div>
+
+    {% if selected_role %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">{{ _('Role permissions for') }} {{ selected_role.name }} ({{ selected_role.role_id }})</h6>
+            <a class="btn btn-outline-secondary btn-sm" href="/sys/permissions">{{ _('Back to role list') }}</a>
+        </div>
+        <div class="card-body">
+            {% for key in permission_keys %}
+            {% set detail = permission_catalog.get(key, {}) %}
+            {% set allowed = role_permissions.get(key, False) %}
+            <div class="border rounded p-3 mb-3">
+                <div class="row align-items-center">
+                    <div class="col-lg-7">
+                        <h6 class="mb-1">{{ detail.label or key }}</h6>
+                        <p class="text-muted small mb-2">{{ detail.purpose or '' }}</p>
+                        <div class="small text-gray-700">
+                            <strong>{{ _('Route / URL') }}:</strong> {{ detail.route or '-' }}<br>
+                            <strong>{{ _('Typical roles') }}:</strong> {{ detail.typical_roles | join(', ') if detail.typical_roles else '-' }}
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <form action="/sys/permissions/{{ selected_role.role_id }}" method="POST" class="mb-0">
+                            <input type="hidden" name="permission_key" value="{{ key }}">
+                            <select name="allowed" class="form-control form-control-sm mb-2" onchange="this.form.submit()">
+                                <option value="1" {% if allowed is sameas true %}selected{% endif %}>{{ _('Allow') }}</option>
+                                <option value="0" {% if allowed is sameas false %}selected{% endif %}>{{ _('Deny') }}</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        {{ _('Select a role button above to review and adjust that role’s permissions.') }}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

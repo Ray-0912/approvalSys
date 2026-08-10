@@ -1,5 +1,5 @@
 {% extends 'components/base.html' %}
-{% block title %}Approval List{% endblock %}
+{% block title %}{{ _('Approval List') }}{% endblock %}
 {% block content %}
 
 <div class="row">
@@ -7,12 +7,44 @@
         <div class="card shadow mb-4">
             <div class="card-body">
                 <form class="form-row align-items-end" method="GET" action="/p/list">
-                    <div class="col-md-4 mb-2">
-                        <label>搜尋</label>
-                        <input type="text" class="form-control" name="q" value="{{ q }}" placeholder="標題、類型、建立者">
+                    <div class="col-md-3 mb-2">
+                        <label>{{ _('Filter by title') }}</label>
+                        <input type="text" class="form-control" name="title_q" value="{{ title_q or q }}" placeholder="{{ _('Title') }}">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label>{{ _('Filter by type') }}</label>
+                        <div class="dropdown w-100 filter-dropdown" data-default-label="{{ _('Filter by type') }}" data-selected-label="{{ _('Type') }}">
+                            <button class="btn btn-outline-secondary dropdown-toggle text-left w-100" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="filter-dropdown-label">{{ _('Filter by type') }}</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2 filter-dropdown-menu">
+                                {% for type_name in available_types %}
+                                <label class="dropdown-item px-2 py-1 mb-0">
+                                    <input type="checkbox" name="type_filter" value="{{ type_name }}" {% if type_name in type_filters %}checked{% endif %}>
+                                    <span class="ml-2">{{ type_name }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label>{{ _('Filter by creator') }}</label>
+                        <div class="dropdown w-100 filter-dropdown" data-default-label="{{ _('Filter by creator') }}" data-selected-label="{{ _('Creator') }}">
+                            <button class="btn btn-outline-secondary dropdown-toggle text-left w-100" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="filter-dropdown-label">{{ _('Filter by creator') }}</span>
+                            </button>
+                            <div class="dropdown-menu w-100 p-2 filter-dropdown-menu">
+                                {% for creator in available_creators %}
+                                <label class="dropdown-item px-2 py-1 mb-0">
+                                    <input type="checkbox" name="creator_filter" value="{{ creator.user_id }}" {% if creator.user_id in creator_filters %}checked{% endif %}>
+                                    <span class="ml-2">{{ creator.username }}{% if creator.display_name and creator.display_name != creator.username %} ({{ creator.display_name }}){% endif %}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-2 mb-2">
-                        <label>每頁筆數</label>
+                        <label>{{ _('Items per page') }}</label>
                         <select class="form-control" name="page_size">
                             <option value="5" {% if page_size == 5 %}selected{% endif %}>5</option>
                             <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
@@ -21,7 +53,7 @@
                         </select>
                     </div>
                     <div class="col-md-2 mb-2">
-                        <button type="submit" class="btn btn-primary">篩選</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Filter') }}</button>
                     </div>
                 </form>
             </div>
@@ -30,7 +62,7 @@
         <div class="card shadow mb-4">
             <a href="#collapseCardMyself" class="d-block card-header py-3" data-toggle="collapse"
             role="button" aria-expanded="true" aria-controls="collapseCardMyself">
-                <h6 class="m-0 font-weight-bold text-primary">你建立的簽呈</h6>
+                <h6 class="m-0 font-weight-bold text-primary">{{ _('Approvals I created') }}</h6>
             </a>
             <div class="collapse" id="collapseCardMyself">
                 <div class="card-body">
@@ -39,11 +71,11 @@
                         <table class="table table-bordered" id="creator_table" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
-                                    <th>Title</th>
-                                    <th>Type</th>
-                                    <th>Creator</th>
-                                    <th>Created Time</th>
-                                    <th>View Page</th>
+                                    <th>{{ _('Title') }}</th>
+                                    <th>{{ _('Type') }}</th>
+                                    <th>{{ _('Creator') }}</th>
+                                    <th>{{ _('Created Time') }}</th>
+                                    <th>{{ _('View Page') }}</th>
                                 </tr>
                             </thead>
                             <tfoot>
@@ -84,7 +116,7 @@
         <div class="card shadow mb-4">
             <a href="#collapseCardUnapproved" class="d-block card-header py-3" data-toggle="collapse"
             role="button" aria-expanded="true" aria-controls="collapseCardMyself">
-                <h6 class="m-0 font-weight-bold text-primary">待核可簽呈</h6>
+                <h6 class="m-0 font-weight-bold text-primary">{{ _('Pending approval requests') }}</h6>
             </a>
             <div class="collapse" id="collapseCardUnapproved">
                 <div class="card-body">
@@ -93,11 +125,11 @@
                         <table class="table table-bordered" id="approval_table" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
-                                    <th>Title</th>
-                                    <th>Type</th>
-                                    <th>Creator</th>
-                                    <th>Created Time</th>
-                                    <th>View Page</th>
+                                    <th>{{ _('Title') }}</th>
+                                    <th>{{ _('Type') }}</th>
+                                    <th>{{ _('Creator') }}</th>
+                                    <th>{{ _('Created Time') }}</th>
+                                    <th>{{ _('View Page') }}</th>
                                 </tr>
                             </thead>
                             <tfoot>
@@ -138,7 +170,7 @@
         <div class="card shadow mb-4">
             <a href="#collapseCardAll" class="d-block card-header py-3" data-toggle="collapse"
             role="button" aria-expanded="true" aria-controls="collapseCardAll">
-                <h6 class="m-0 font-weight-bold text-primary">近期所有簽呈（{{ total_count }}）</h6>
+                <h6 class="m-0 font-weight-bold text-primary">{{ _('Recent approvals') }} ({{ total_count }})</h6>
             </a>
             <div class="collapse" id="collapseCardAll">
                 <div class="card-body">
@@ -147,11 +179,11 @@
                         <table class="table table-bordered" id="recently_table" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
-                                    <th>Title</th>
-                                    <th>Type</th>
-                                    <th>Creator</th>
-                                    <th>Created Time</th>
-                                    <th>View Page</th>
+                                    <th>{{ _('Title') }}</th>
+                                    <th>{{ _('Type') }}</th>
+                                    <th>{{ _('Creator') }}</th>
+                                    <th>{{ _('Created Time') }}</th>
+                                    <th>{{ _('View Page') }}</th>
                                 </tr>
                             </thead>
                             <tfoot>
@@ -186,13 +218,13 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="text-muted small">第 {{ page }} / {{ total_pages }} 頁</div>
+                        <div class="text-muted small">{{ _('Page') }} {{ page }} / {{ total_pages }}</div>
                         <div>
                             {% if page > 1 %}
-                            <a class="btn btn-outline-primary btn-sm" href="/p/list?q={{ q }}&page_size={{ page_size }}&page={{ page - 1 }}">上一頁</a>
+                            <a class="btn btn-outline-primary btn-sm" href="/p/list?title_q={{ title_q }}&page_size={{ page_size }}&page={{ page - 1 }}{% for t in type_filters %}&type_filter={{ t }}{% endfor %}{% for c in creator_filters %}&creator_filter={{ c }}{% endfor %}">{{ _('Previous page') }}</a>
                             {% endif %}
                             {% if page < total_pages %}
-                            <a class="btn btn-outline-primary btn-sm" href="/p/list?q={{ q }}&page_size={{ page_size }}&page={{ page + 1 }}">下一頁</a>
+                            <a class="btn btn-outline-primary btn-sm" href="/p/list?title_q={{ title_q }}&page_size={{ page_size }}&page={{ page + 1 }}{% for t in type_filters %}&type_filter={{ t }}{% endfor %}{% for c in creator_filters %}&creator_filter={{ c }}{% endfor %}">{{ _('Next page') }}</a>
                             {% endif %}
                         </div>
                     </div>
@@ -202,5 +234,46 @@
 
     </div>
 </div>
+
+<style>
+.filter-dropdown-menu {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.filter-dropdown .dropdown-item {
+    cursor: pointer;
+    white-space: normal;
+}
+</style>
+
+<script>
+(function () {
+    document.querySelectorAll('.filter-dropdown').forEach(function (dropdown) {
+        const label = dropdown.querySelector('.filter-dropdown-label');
+        const defaultLabel = dropdown.dataset.defaultLabel || '';
+        const selectedLabel = dropdown.dataset.selectedLabel || defaultLabel;
+        const checkboxes = Array.from(dropdown.querySelectorAll('input[type="checkbox"]'));
+
+        function updateLabel() {
+            const checked = checkboxes.filter((checkbox) => checkbox.checked);
+            if (!checked.length) {
+                label.textContent = defaultLabel;
+                return;
+            }
+            if (checked.length === 1) {
+                label.textContent = checked[0].value;
+                return;
+            }
+            label.textContent = `${selectedLabel} (${checked.length})`;
+        }
+
+        checkboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', updateLabel);
+        });
+        updateLabel();
+    });
+})();
+</script>
 
 {% endblock %}

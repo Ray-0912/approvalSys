@@ -1,6 +1,7 @@
 import logging
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
+from flask_babel import gettext as _
 
 import database.queries as db
 from functions.permission import has_permission
@@ -23,7 +24,7 @@ def login():
         password = request.form.get('password', '')
 
         if not username or not password:
-            flash('請輸入帳號與密碼', category='danger')
+            flash(_('Please enter your username and password.'), category='danger')
             return render_template('/utility/personal/login.html')
 
         if db.check_existing_username(username):
@@ -39,14 +40,15 @@ def login():
                 session['last_name'] = user[8]
                 session['clock_id'] = user[9]
                 session['logged_in'] = True
+                session.modified = True
                 logger.info('Login success: username=%s user_id=%s role_id=%s', user[1], user[0], user[3])
                 return redirect('/')
 
             logger.warning('Login failed: invalid password username=%s', username)
-            flash('密碼錯誤', category='danger')
+            flash(_('Incorrect password.'), category='danger')
         else:
             logger.warning('Login failed: unknown username=%s', username)
-            flash('用戶名稱不存在', category='danger')
+            flash(_('Username does not exist.'), category='danger')
 
         return render_template('/utility/personal/login.html')
 
@@ -76,7 +78,7 @@ def register():
         phone = normalize_text(request.form.get('phone'), 30)
 
         if not username or len(password) < 8:
-            flash('帳號不可為空，且密碼至少 8 碼', category='danger')
+            flash(_('Username cannot be empty and password must be at least 8 characters.'), category='danger')
             return render_template('/utility/personal/login.html')
 
         if db.check_existing_username(username):
@@ -99,7 +101,7 @@ def user_update():
         phone = normalize_text(request.form.get('Phone'), 30)
 
         if not firstname or not lastname:
-            flash('姓名不可為空', category='danger')
+            flash(_('First and last name cannot be empty.'), category='danger')
             return redirect(request.referrer or url_for('auth.login'))
 
         db.update_user_profile(user_id=session['user_id'], firstname=firstname, lastname=lastname,
@@ -121,7 +123,7 @@ def reset_password():
             password = request.form.get('password', '')
 
             if not username or len(password) < 8:
-                flash('重設密碼失敗：請確認帳號與密碼格式', category='danger')
+                flash(_('Password reset failed. Please check the username and password format.'), category='danger')
                 return render_template('reset_password.html')
 
             db.update_password(username, password)

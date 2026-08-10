@@ -1,5 +1,5 @@
 {% extends 'components/base.html' %}
-{% block title %}Approval Search{% endblock %}
+{% block title %}{{ _('Approval Search') }}{% endblock %}
 {% block content %}
 
 <div class="row">
@@ -8,7 +8,7 @@
             <div class="col mt-4 mb-2">
                 <div class="row">
                     <div class="col">
-                        <label for="created_time">建立時間：</label>
+                        <label for="created_time">{{ _('Created time') }}：</label>
                     </div>
                     <div class="col">
                         <input id="createdtime" name="createdtime" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
@@ -20,7 +20,7 @@
             <div class="col mt-4 mb-2">
                 <div class="row">
                     <div class="col">
-                        <label for="title">類型：</label>
+                        <label for="title">{{ _('Type') }}：</label>
                     </div>
                     <div class="col">
                         <select id="type" name="type">
@@ -35,7 +35,7 @@
             <div class="col mt-4 mb-2">
                 <div class="row">
                     <div class="col">
-                        <label for="title">全文搜尋：</label>
+                        <label for="title">{{ _('Full-text search') }}：</label>
                     </div>
                     <div class="col">
                         <input type="text" id="content" name="content">
@@ -50,7 +50,7 @@
                     onclick="document.getElementById('search_doc').submit()"
                     type="submit">
                     <i class="fas fa-magnet fa-sm text-white-50"></i>
-                    Search
+                    {{ _('Search') }}
                 </a>
             </div>
 
@@ -59,27 +59,27 @@
 
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">搜尋結果</h6>
+                <h6 class="m-0 font-weight-bold text-primary">{{ _('Search results') }}</h6>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-bordered" id="creator_table" width="100%" cellspacing="0">
                         <thead>
                             <tr>
-                                <th>Title</th>
-                                <th>Type</th>
-                                <th>Creator</th>
-                                <th>Created Time</th>
-                                <th>View Page</th>
+                                <th>{{ _('Title') }}</th>
+                                <th>{{ _('Type') }}</th>
+                                <th>{{ _('Creator') }}</th>
+                                <th>{{ _('Created Time') }}</th>
+                                <th>{{ _('View Page') }}</th>
                             </tr>
                         </thead>
                         <tfoot>
                             <tr>
-                                <th>Title</th>
-                                <th>Type</th>
-                                <th>Creator</th>
-                                <th>Created Time</th>
-                                <th>View Page</th>
+                                <th>{{ _('Title') }}</th>
+                                <th>{{ _('Type') }}</th>
+                                <th>{{ _('Creator') }}</th>
+                                <th>{{ _('Created Time') }}</th>
+                                <th>{{ _('View Page') }}</th>
                             </tr>
                         </tfoot>
                         <tbody>
@@ -95,7 +95,7 @@
                                             <span class="icon text-white-50">
                                                 <i class="fas fa-file-code"></i>
                                             </span>
-                                            <span class="text">View</span>
+                                            <span class="text">{{ _('View') }}</span>
                                     </a>
                                 </td>
                             </tr>

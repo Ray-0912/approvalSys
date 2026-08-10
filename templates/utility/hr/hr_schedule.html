@@ -1,5 +1,5 @@
 {% extends 'components/base.html' %}
-{% block title %}HR Schedule{% endblock %}
+{% block title %}{{ _('Working Shift') }}{% endblock %}
 {% block content %}
 
 <style>
@@ -204,38 +204,38 @@
         <!-- Department Switch -->
         <div class="btn-group mr-2" role="group">
             <button type="button" class="btn btn-outline-info active" id="btnDeptFD"
-                onclick="switchDepartment('FD')">Front Desk</button>
+                onclick="switchDepartment('FD')">{{ _('Front Desk') }}</button>
             <button type="button" class="btn btn-outline-info" id="btnDeptRT"
-                onclick="switchDepartment('RT')">Restaurant</button>
+                onclick="switchDepartment('RT')">{{ _('Restaurant') }}</button>
             <button type="button" class="btn btn-outline-info" id="btnDeptHK"
-                onclick="switchDepartment('HK')">Housekeeping</button>
+                onclick="switchDepartment('HK')">{{ _('Housekeeping') }}</button>
             <button type="button" class="btn btn-outline-info" id="btnDeptAC"
-                onclick="switchDepartment('AC')">Accountant</button>
+                onclick="switchDepartment('AC')">{{ _('Accountant') }}</button>
         </div>
 
         <!-- Edit Toggle -->
         {% if session.get('role_id') in [99, 0, 1, 2] %}
-        <button class="btn btn-secondary" id="toggleEditBtn" onclick="toggleEditMode()">Edit</button>
-        <button class="btn btn-primary" data-toggle="modal" data-target="#shiftTypeModal">Manage Shift Types</button>
+        <button class="btn btn-secondary" id="toggleEditBtn" onclick="toggleEditMode()">{{ _('Edit') }}</button>
+        <button class="btn btn-primary" data-toggle="modal" data-target="#shiftTypeModal">{{ _('Manage Shift Types') }}</button>
         {% endif %}
 
-        <button class="btn btn-info" onclick="window.print()">Print</button>
+        <button class="btn btn-info" onclick="window.print()">{{ _('Print') }}</button>
     </div>
 </div>
 
 <div class="schedule-container">
     {% if session.get('role_id') in [99, 0, 1, 2] %}
     <div class="schedule-sidebar no-print">
-        <h5>Employees</h5>
+        <h5>{{ _('Employees') }}</h5>
         <div class="input-group mb-2">
-            <input type="text" class="form-control" id="empSearch" placeholder="Search...">
+            <input type="text" class="form-control" id="empSearch" placeholder="{{ _('Search') }}...">
         </div>
         <div id="employeePalette">
             <!-- Employees loaded via JS -->
         </div>
 
         <hr>
-        <h5>Shift Types (Filter)</h5>
+        <h5>{{ _('Shift Types (Filter)') }}</h5>
         <div id="shiftPalette">
             <!-- Shift Types loaded via JS -->
         </div>
@@ -249,16 +249,16 @@
 
         {% if session.get('role_id') in [99, 0, 1, 2] %}
         <div class="mt-4 no-print">
-            <h5>Statistics (This View)</h5>
+            <h5>{{ _('Statistics (This View)') }}</h5>
             <table class="table table-sm table-bordered">
                 <thead>
                     <tr>
-                        <th>Employee</th>
-                        <th>Days Worked</th>
-                        <th>Total Hours</th>
-                        <th>Morning</th>
-                        <th>Night</th>
-                        <th>Big Night</th>
+                        <th>{{ _('Employee') }}</th>
+                        <th>{{ _('Days Worked') }}</th>
+                        <th>{{ _('Total Hours') }}</th>
+                        <th>{{ _('Morning') }}</th>
+                        <th>{{ _('Night') }}</th>
+                        <th>{{ _('Big Night') }}</th>
                     </tr>
                 </thead>
                 <tbody id="statsTableBody">
@@ -269,7 +269,7 @@
         <!-- Comments Section -->
         <div class="mt-4 no-print row">
             <div class="col-md-12">
-                <h5>Schedule Comments</h5>
+                <h5>{{ _('Schedule Comments') }}</h5>
 
                 <!-- Read Only View -->
                 <div class="card" id="commentReadContainer">
@@ -283,8 +283,8 @@
                     <div class="card-body">
                         <div class="mb-2">
                             <button class="btn btn-sm btn-outline-secondary" onclick="copyLastMonthComment()">Copy from
-                                Last Month</button>
-                            <button class="btn btn-sm btn-success float-right" onclick="saveComment()">Save
+                                {{ _('Last Month') }}</button>
+                            <button class="btn btn-sm btn-success float-right" onclick="saveComment()">{{ _('Save') }}
                                 Comment</button>
                         </div>
                         <textarea id="scheduleComment"></textarea>
@@ -302,34 +302,34 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Manage Shift Types</h5>
+                <h5 class="modal-title">{{ _('Manage Shift Types') }}</h5>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="shiftTypeForm">
                     <input type="hidden" id="shiftId">
                     <div class="form-group">
-                        <label>Name</label>
+                        <label>{{ _('Name') }}</label>
                         <input type="text" class="form-control" id="shiftName" required>
                     </div>
                     <div class="form-group row">
                         <div class="col">
-                            <label>Start Time</label>
+                            <label>{{ _('Start Time') }}</label>
                             <input type="time" class="form-control" id="shiftStart" required>
                         </div>
                         <div class="col">
-                            <label>End Time</label>
+                            <label>{{ _('End Time') }}</label>
                             <input type="time" class="form-control" id="shiftEnd" required>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Color</label>
+                        <label>{{ _('Color') }}</label>
                         <input type="color" class="form-control" id="shiftColor" value="#007bff">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" id="saveShiftTypeBtn">Save</button>
+                <button type="button" class="btn btn-primary" id="saveShiftTypeBtn">{{ _('Save') }}</button>
             </div>
         </div>
     </div>
@@ -357,7 +357,7 @@
         if ($("#myScheduleBtn").length === 0) {
             // Check where to append. usually near other controls
             $(".d-flex.justify-content-between.align-items-center.mb-3").append(
-                `<button id="myScheduleBtn" class="btn btn-info ml-2">My Schedule</button>`
+                `<button id="myScheduleBtn" class="btn btn-info ml-2">{{ _('My Schedule') }}</button>`
             );
         }
 
@@ -376,7 +376,7 @@
         $(document).on("click", "#myScheduleBtn", function () {
             showOnlyMySchedule = !showOnlyMySchedule;
             $(this).toggleClass("btn-info btn-primary");
-            $(this).text(showOnlyMySchedule ? "Show All" : "My Schedule");
+            $(this).text(showOnlyMySchedule ? "{{ _('Show All') }}" : "{{ _('My Schedule') }}");
             renderCalendar(currentDate); // Re-render with filter
         });
 
@@ -552,7 +552,7 @@
 
                     item.find('.remove-shift').click((e) => {
                         e.stopPropagation();
-                        if (confirm("Remove shift?")) {
+                        if (confirm("{{ _('Remove shift?') }}")) {
                             updateSchedule(sch.user_id, sch.date, null);
                         }
                     });
@@ -589,7 +589,7 @@
         const targetDate = $(this).attr("data-date");
 
         let defaultShift = shiftTypes[0] ? shiftTypes[0].id : null;
-        if (!defaultShift) { alert("Please create a shift type first."); return; }
+if (!defaultShift) { alert("{{ _('Please create a shift type first.') }}"); return; }
 
         if (data.type === "new_assignment") {
             updateSchedule(data.userId, targetDate, defaultShift);
@@ -612,7 +612,7 @@
             data: JSON.stringify({ user_id: userId, date: date, shift_type_id: shiftTypeId }),
             success: function (res) {
                 if (res.success) fetchScheduleData();
-                else alert("Error saving schedule");
+                else alert("{{ _('Error saving schedule') }}");
             }
         });
     }
@@ -770,7 +770,7 @@
             data: JSON.stringify({ department: currentDept, month: getMonthStr(), content: content }),
             success: function () {
                 $("#commentDisplayContent").html(content);
-                alert("Comment Saved");
+                alert("{{ _('Comment saved') }}");
             }
         });
     }
@@ -781,7 +781,7 @@
             data: JSON.stringify({ department: currentDept, current_month: getMonthStr() }),
             success: function (res) {
                 if (res.content && typeof tinymce !== 'undefined') tinymce.get('scheduleComment').setContent(res.content);
-                else alert("No comment found last month");
+                else alert("{{ _('No comment found last month') }}");
             }
         });
     }

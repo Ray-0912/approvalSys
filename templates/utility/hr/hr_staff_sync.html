@@ -1,33 +1,33 @@
 {% extends 'components/base.html' %}
-{% block title %}Sync Staff{% endblock %}
+{% block title %}{{ _('Sync staff') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <h1 class="h3 mb-3 text-gray-800">Staff Management — Sync with BioLife</h1>
+    <h1 class="h3 mb-3 text-gray-800">{{ _('Staff management — sync with BioLife') }}</h1>
 
     <div class="card shadow mb-4">
         <div class="card-body text-center py-4">
             <button id="checkBtn" class="btn btn-primary btn-lg">
-                <i class="fas fa-sync-alt mr-2"></i>開始同步檢查
+                <i class="fas fa-sync-alt mr-2"></i>{{ _('Start sync check') }}
             </button>
             <div id="checking" class="mt-3 d-none">
                 <div class="progress mb-2" style="height:6px">
                     <div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div>
                 </div>
-                <small class="text-muted">正在從 BioLife 取得資料，請稍候…</small>
+                <small class="text-muted">{{ _('Retrieving data from BioLife, please wait…') }}</small>
             </div>
         </div>
     </div>
 
     <div id="deactivateSection" class="card shadow mb-4 d-none">
         <div class="card-header py-3 bg-danger text-white d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold" id="deactivateTitle">需要停用的帳號</h6>
-            <button class="btn btn-light btn-sm" id="confirmDeactivateBtn">確認停用</button>
+            <h6 class="m-0 font-weight-bold" id="deactivateTitle">{{ _('Accounts to deactivate') }}</h6>
+            <button class="btn btn-light btn-sm" id="confirmDeactivateBtn">{{ _('Confirm deactivation') }}</button>
         </div>
         <div class="card-body">
-            <p class="text-muted small mb-2">以下帳號在本系統為 active，但 BioLife 已不存在。確認後全部設為 inactive。</p>
+            <p class="text-muted small mb-2">{{ _('The following accounts are active in this system but no longer exist in BioLife. After confirmation, they will all be set to inactive.') }}</p>
             <table class="table table-sm table-bordered">
-                <thead class="thead-dark"><tr><th>員工編號</th><th>姓名</th></tr></thead>
+                <thead class="thead-dark"><tr><th>{{ _('Employee number') }}</th><th>{{ _('Name') }}</th></tr></thead>
                 <tbody id="deactivateList"></tbody>
             </table>
         </div>
@@ -35,16 +35,16 @@
 
     <div id="addSection" class="card shadow mb-4 d-none">
         <div class="card-header py-3 bg-success text-white">
-            <h6 class="m-0 font-weight-bold" id="addTitle">BioLife 有但本系統沒有的帳號</h6>
+            <h6 class="m-0 font-weight-bold" id="addTitle">{{ _('BioLife accounts missing in this system') }}</h6>
         </div>
         <div class="card-body">
-            <p class="text-muted small mb-2">逐筆填入資料後按「新增」，初始密碼一律為 <code>zxcvbnma</code>。</p>
+            <p class="text-muted small mb-2">{{ _('Fill in the details one by one and click Add; the initial password is always') }} <code>zxcvbnma</code>.</p>
             <div id="addList"></div>
         </div>
     </div>
 
     <div id="allGoodMsg" class="alert alert-success d-none">
-        <i class="fas fa-check-circle mr-2"></i>BioLife 與本系統帳號完全一致，無需同步。
+        <i class="fas fa-check-circle mr-2"></i>{{ _('BioLife and this system accounts are fully consistent, no sync required.') }}
     </div>
 </div>
 {% endblock %}
@@ -61,7 +61,7 @@ $(document).ready(function () {
     });
 
     $('#checkBtn').on('click', function () {
-        $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>檢查中…');
+        $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>{{ _('Checking...') }}');
         $('#checking').removeClass('d-none');
         $('#deactivateSection,#addSection,#allGoodMsg').addClass('d-none');
 
@@ -72,9 +72,9 @@ $(document).ready(function () {
             data: JSON.stringify({}),
             success: function (res) {
                 $('#checking').addClass('d-none');
-                $('#checkBtn').prop('disabled', false).html('<i class="fas fa-sync-alt mr-2"></i>重新檢查');
+                $('#checkBtn').prop('disabled', false).html('<i class="fas fa-sync-alt mr-2"></i>{{ _('Recheck') }}');
 
-                if (!res.success) { alert(res.error || '檢查失敗'); return; }
+                if (!res.success) { alert(res.error || '{{ _('Check failed') }}'); return; }
 
                 const { to_deactivate, to_add } = res.data;
 
@@ -84,7 +84,7 @@ $(document).ready(function () {
                 }
 
                 if (to_deactivate.length) {
-                    $('#deactivateTitle').text('需要停用的帳號（' + to_deactivate.length + ' 筆）');
+                    $('#deactivateTitle').text('{{ _('Accounts to deactivate') }}（' + to_deactivate.length + ' {{ _('items') }}）');
                     let rows = '';
                     to_deactivate.forEach(function (u) {
                         rows += '<tr><td>' + u.username + '</td><td>' + u.name + '</td></tr>';
@@ -95,7 +95,7 @@ $(document).ready(function () {
                 }
 
                 if (to_add.length) {
-                    $('#addTitle').text('BioLife 有但本系統沒有的帳號（' + to_add.length + ' 筆）');
+                    $('#addTitle').text('{{ _('BioLife accounts missing in this system') }}（' + to_add.length + ' {{ _('items') }}）');
                     const DEPT_MAP = {
                         'new_garden|manage': '庭園 管理部', 'new_garden|front': '庭園 櫃台部',
                         'new_garden|housekeeping': '庭園 房務部', 'new_garden|finance': '庭園 會計部',
@@ -111,7 +111,7 @@ $(document).ready(function () {
                     let forms = '';
                     to_add.forEach(function (p) {
                         const orgVal = p.organization && p.department ? (p.organization + '|' + p.department) : '';
-                        const deptOpts = '<option value="">（選擇部門）</option>' +
+                        const deptOpts = '<option value="">（{{ _('Select Department') }}）</option>' +
                             Object.entries(DEPT_MAP).map(function ([v, l]) {
                                 return '<option value="' + v + '"' + (v === orgVal ? ' selected' : '') + '>' + l + '</option>';
                             }).join('');
@@ -121,22 +121,22 @@ $(document).ready(function () {
                             '<input type="hidden" name="csrf_token" value="{{ csrf_token }}">' +
                             '<input type="hidden" name="pin" value="' + p.pin + '">' +
                             '<div class="form-row align-items-end">' +
-                            '<div class="col-md-1"><label class="small">員工編號</label>' +
+                            '<div class="col-md-1"><label class="small">{{ _('Employee number') }}</label>' +
                             '<input type="text" class="form-control form-control-sm" value="' + p.pin + '" readonly></div>' +
-                            '<div class="col-md-2"><label class="small">姓</label>' +
+                            '<div class="col-md-2"><label class="small">{{ _('Last Name') }}</label>' +
                             '<input type="text" class="form-control form-control-sm" name="last_name" value="' + (p.last_name || '') + '" placeholder="例：王" required></div>' +
-                            '<div class="col-md-2"><label class="small">名</label>' +
+                            '<div class="col-md-2"><label class="small">{{ _('First Name') }}</label>' +
                             '<input type="text" class="form-control form-control-sm" name="first_name" value="' + (p.first_name || '') + '" placeholder="例：小明" required></div>' +
-                            '<div class="col-md-3"><label class="small">部門</label>' +
+                            '<div class="col-md-3"><label class="small">{{ _('Department') }}</label>' +
                             '<select class="form-control form-control-sm dept-select"><' + 'option value="">（選擇部門）</option>' + deptOpts + '</select>' +
                             '<input type="hidden" name="organization" value="' + (p.organization || '') + '">' +
                             '<input type="hidden" name="department" value="' + (p.department || '') + '"></div>' +
-                            '<div class="col-md-2"><label class="small">Email</label>' +
+                            '<div class="col-md-2"><label class="small">{{ _('Email') }}</label>' +
                             '<input type="email" class="form-control form-control-sm" name="e_mail"></div>' +
-                            '<div class="col-md-1"><label class="small">電話</label>' +
+                            '<div class="col-md-1"><label class="small">{{ _('Phone Number') }}</label>' +
                             '<input type="text" class="form-control form-control-sm" name="phone"></div>' +
                             '<div class="col-md-1 text-right pt-3">' +
-                            '<button type="submit" class="btn btn-success btn-sm">新增</button></div>' +
+                            '<button type="submit" class="btn btn-success btn-sm">{{ _('Add') }}</button></div>' +
                             '</div></form></div></div>';
                     });
                     $('#addList').html(forms);
@@ -145,8 +145,8 @@ $(document).ready(function () {
             },
             error: function (xhr) {
                 $('#checking').addClass('d-none');
-                $('#checkBtn').prop('disabled', false).html('<i class="fas fa-sync-alt mr-2"></i>開始同步檢查');
-                const msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'API 請求失敗，請確認 BioLife 連線';
+                $('#checkBtn').prop('disabled', false).html('<i class="fas fa-sync-alt mr-2"></i>{{ _('Start sync check') }}');
+                const msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : '{{ _('API request failed. Please confirm the BioLife connection.') }}';
                 alert(msg);
             }
         });
@@ -155,9 +155,9 @@ $(document).ready(function () {
     $('#confirmDeactivateBtn').on('click', function () {
         const ids = $(this).data('ids');
         if (!ids || !ids.length) return;
-        if (!confirm('確認要停用這 ' + ids.length + ' 個帳號嗎？此操作不可逆。')) return;
+        if (!confirm('{{ _('Are you sure you want to deactivate these') }} ' + ids.length + ' {{ _('accounts') }}? {{ _('This action cannot be undone.') }}')) return;
 
-        $(this).prop('disabled', true).text('處理中…');
+        $(this).prop('disabled', true).text('{{ _('Processing...') }}');
         $.ajax({
             url: '/hr/staff/sync/deactivate',
             type: 'POST',
@@ -165,11 +165,11 @@ $(document).ready(function () {
             data: JSON.stringify({ user_ids: ids }),
             success: function (res) {
                 if (res.success) {
-                    alert('已停用 ' + res.data.deactivated + ' 個帳號');
+                    alert('{{ _('Deactivated') }} ' + res.data.deactivated + ' {{ _('accounts') }}');
                     $('#deactivateSection').addClass('d-none');
                 } else {
-                    alert(res.error || '停用失敗');
-                    $('#confirmDeactivateBtn').prop('disabled', false).text('確認停用');
+                    alert(res.error || '{{ _('Deactivation failed') }}');
+                    $('#confirmDeactivateBtn').prop('disabled', false).text('{{ _('Confirm deactivation') }}');
                 }
             }
         });

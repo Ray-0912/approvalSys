@@ -1,0 +1,125 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Restart approvalsys container",
+			"type": "shell",
+			"command": "d:/approvalSys/.venv/Scripts/python.exe scripts/docker_rebuild.py",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Restart approvalsys container",
+			"type": "shell",
+			"command": "docker rm -f approvalsys_app 2>$null; docker run -d --name approvalsys_app -p 80:80 approvalsys:latest",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Restart approvalsys container 2",
+			"type": "shell",
+			"command": "docker rm -f approvalsys_app; docker run -d --name approvalsys_app -p 80:80 approvalsys:latest; docker ps --filter name=approvalsys_app --format \"table {{.Names}}\\t{{.Status}}\\t{{.Ports}}\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify approvalsys container",
+			"type": "shell",
+			"command": "docker inspect -f '{{.State.Running}} {{.State.Status}}' approvalsys_app",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Restart approvalsys container after auth fix",
+			"type": "shell",
+			"command": "docker rm -f approvalsys_app 2>$null; docker run -d --name approvalsys_app -p 80:80 approvalsys:latest",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify approvalsys container after auth fix",
+			"type": "shell",
+			"command": "docker inspect -f '{{.State.Running}} {{.State.Status}}' approvalsys_app",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Inspect approvalsys logs",
+			"type": "shell",
+			"command": "docker logs approvalsys_app --tail 200",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Restart approvalsys container after secret fix",
+			"type": "shell",
+			"command": "docker rm -f approvalsys_app 2>$null; docker run -d --name approvalsys_app -p 80:80 approvalsys:latest",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Rebuild and restart approvalsys container",
+			"type": "shell",
+			"command": "docker build -t approvalsys:latest .; docker rm -f approvalsys_app 2>$null; docker run -d --name approvalsys_app -e APP_ENV=development -p 80:80 approvalsys:latest",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check approvalsys health after restart",
+			"type": "shell",
+			"command": "python - <<'PY'\nimport requests\nfor url in ['http://127.0.0.1/healthz','http://127.0.0.1/']:\n    try:\n        r = requests.get(url, timeout=10)\n        print(url, r.status_code, r.text[:200])\n    except Exception as e:\n        print(url, 'ERROR', e)\nPY",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Restart container with env file",
+			"type": "shell",
+			"command": "docker rm -f approvalsys_app 2>$null; docker run -d --name approvalsys_app --env-file .env -p 80:80 approvalsys:latest",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Rebuild and restart app after auth fix",
+			"type": "shell",
+			"command": "docker build -t approvalsys:latest .; docker rm -f approvalsys_app 2>$null; docker run -d --name approvalsys_app --env-file .env -p 80:80 approvalsys:latest",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Restart approvalsys container",
+			"type": "shell",
+			"command": "docker rm -f approvalsys_app 2>$null; docker run -d --name approvalsys_app -p 80:80 approvalsys:latest",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Force restart approvalsys container",
+			"type": "shell",
+			"command": "docker rm -f approvalsys_app 2>$null; docker run -d --name approvalsys_app -p 80:80 approvalsys:latest; docker ps --filter name=approvalsys_app --format \"table {{.Names}}\\t{{.Status}}\\t{{.Ports}}\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Verify approvalsys container",
+			"type": "shell",
+			"command": "docker inspect -f \"{{.State.Running}} {{.State.Status}}\" approvalsys_app",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

@@ -1,0 +1,298 @@
+{% extends 'components/base.html' %}
+{% block title %}{{ t.salary_structure }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0 text-gray-800">{{ t.salary_structure }}</h1>
+        <a class="btn btn-outline-secondary btn-sm" href="/hr/salary/ma">{{ t.back_to_salary_rules }}</a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="GET" class="form-row align-items-end" id="salary-structure-search-form">
+                <div class="col-md-4 mb-2">
+                    <label class="small text-muted">{{ _('Search by name or username') }}</label>
+                    <input type="text" class="form-control" name="q" value="{{ q or '' }}" placeholder="{{ _('Search by name or username') }}" autocomplete="off">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="small text-muted">{{ _('Department') }}</label>
+                    <div class="dropdown w-100 filter-dropdown" data-default-label="{{ _('All departments') }}" data-selected-label="{{ _('Department') }}">
+                        <button class="btn btn-outline-secondary dropdown-toggle text-left w-100" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="filter-dropdown-label">{{ _('All departments') }}</span>
+                        </button>
+                        <div class="dropdown-menu w-100 p-2 filter-dropdown-menu">
+                            {% for team in teams %}
+                            <label class="dropdown-item px-2 py-1 mb-0">
+                                <input type="checkbox" name="team_id" value="{{ team.team_id }}" {% if team.team_id in team_ids %}checked{% endif %}>
+                                <span class="ml-2">{{ team.name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="small text-muted">{{ _('Role') }}</label>
+                    <div class="dropdown w-100 filter-dropdown" data-default-label="{{ _('All roles') }}" data-selected-label="{{ _('Role') }}">
+                        <button class="btn btn-outline-secondary dropdown-toggle text-left w-100" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="filter-dropdown-label">{{ _('All roles') }}</span>
+                        </button>
+                        <div class="dropdown-menu w-100 p-2 filter-dropdown-menu">
+                            {% for role in roles %}
+                            <label class="dropdown-item px-2 py-1 mb-0">
+                                <input type="checkbox" name="role_id" value="{{ role.role_id }}" {% if role.role_id in role_ids %}checked{% endif %}>
+                                <span class="ml-2">{{ role.name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-primary btn-block" type="submit">{{ t.search }}</button>
+                </div>
+                <div class="col-md-3 mb-2 text-muted small">
+                    {{ _('Tip: use Tab to move between fields and Ctrl+Enter to save the active row.') }}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle">
+                    <thead>
+                        <tr>
+                            <th>{{ t.employee }}</th>
+                            <th>{{ t.department }}</th>
+                            <th>{{ t.role }}</th>
+                            <th>{{ t.salary_type }}</th>
+                            <th>{{ _('Base amount') }}</th>
+                            <th>{{ _('Allowances') }}</th>
+                            <th>{{ _('Action') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr>
+                            <form method="POST" action="/hr/salary/structure" class="salary-structure-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <input type="hidden" name="action" value="upsert_structure">
+                                <input type="hidden" name="user_id" value="{{ row.user_id }}">
+                                <td>{{ row.first_name or '' }} {{ row.last_name or '' }}<br><small class="text-muted">{{ row.username }}</small></td>
+                                <td>{{ row.team_id or '-' }}</td>
+                                <td>{{ row.role_id or '-' }}</td>
+                                <td>
+                                    {% set current_type = row.salary_type or 'hourly' %}
+                                    <select class="form-control form-control-sm salary-type-select" name="salary_type">
+                                        <option value="monthly" {% if (row.salary_type or 'hourly') == 'monthly' %}selected{% endif %}>{{ t.monthly }}</option>
+                                        <option value="hourly" {% if (row.salary_type or 'hourly') == 'hourly' %}selected{% endif %}>{{ t.hourly }}</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="monthly-base-group" {% if current_type != 'monthly' %}style="display:none"{% endif %}>
+                                        <input type="number" step="0.01" class="form-control form-control-sm monthly-salary-input" name="monthly_salary" value="{{ row.computed_monthly_salary }}" placeholder="{{ _('Monthly salary') }}" readonly>
+                                    </div>
+                                    <div class="hourly-base-group" {% if current_type == 'monthly' %}style="display:none"{% endif %}>
+                                        <input type="number" step="0.01" class="form-control form-control-sm hourly-salary-input" name="hourly_salary" value="{{ row.effective_hourly_salary }}" placeholder="{{ _('Hourly salary') }}">
+                                        <input type="hidden" class="weekday-hourly-rate-input" name="weekday_hourly_rate" value="{{ row.effective_weekday_hourly_rate }}">
+                                        <input type="hidden" class="holiday-hourly-rate-input" name="holiday_hourly_rate" value="{{ row.effective_holiday_hourly_rate }}">
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" class="form-control form-control-sm mb-1" name="base_salary_amount" value="{{ row.base_salary_amount or '' }}" placeholder="{{ _('Base salary') }}">
+                                    <input type="number" step="0.01" class="form-control form-control-sm mb-1" name="position_allowance" value="{{ row.position_allowance or '' }}" placeholder="{{ _('Position allowance') }}">
+                                    <input type="number" step="0.01" class="form-control form-control-sm mb-1" name="sales_allowance" value="{{ row.sales_allowance or '' }}" placeholder="{{ _('Sales allowance') }}">
+                                    <input type="number" step="0.01" class="form-control form-control-sm mb-1" name="overtime_allowance" value="{{ row.overtime_allowance or '' }}" placeholder="{{ _('Overtime allowance') }}">
+                                    <input type="number" step="0.01" class="form-control form-control-sm mb-1" name="night_shift_allowance" value="{{ row.night_shift_allowance or '' }}" placeholder="{{ _('Night shift allowance') }}">
+                                    <input type="number" step="0.01" class="form-control form-control-sm" name="special_leave_allowance" value="{{ row.special_leave_allowance or '' }}" placeholder="{{ _('Special leave allowance') }}">
+                                    <label class="small text-muted mt-2 mb-1">{{ _('Professional allowance') }}</label>
+                                    <div class="dropdown w-100 allowance-dropdown" data-default-label="{{ _('Professional allowance') }}" data-selected-label="{{ _('Professional allowance') }}">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle text-left w-100" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <span class="filter-dropdown-label">{{ _('Professional allowance') }}</span>
+                                        </button>
+                                        <div class="dropdown-menu w-100 p-2 filter-dropdown-menu">
+                                            {% for item in allowance_items %}
+                                            {% set selected_ids = row.selected_professional_allowance_item_ids or [] %}
+                                            <label class="dropdown-item px-2 py-1 mb-0">
+                                                <input type="checkbox" class="professional-allowance-select" name="professional_allowance_item_ids" value="{{ item.id }}" data-amount="{{ item.amount }}" {% if item.id in selected_ids %}checked{% endif %}>
+                                                <span class="ml-2">{{ item.name }} ({{ item.amount }})</span>
+                                            </label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><button class="btn btn-success btn-sm" type="submit">{{ t.save }}</button></td>
+                            </form>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">{{ _('No employee records found.') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+.filter-dropdown-menu {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.filter-dropdown .dropdown-item,
+.allowance-dropdown .dropdown-item {
+    cursor: pointer;
+    white-space: normal;
+}
+</style>
+<script>
+(function () {
+    function updateDropdownLabel(container) {
+        const label = container.querySelector('.filter-dropdown-label');
+        const defaultLabel = container.dataset.defaultLabel || '';
+        const selectedLabel = container.dataset.selectedLabel || defaultLabel;
+        const checkboxes = Array.from(container.querySelectorAll('input[type="checkbox"]'));
+        const checked = checkboxes.filter((checkbox) => checkbox.checked);
+        if (!checked.length) {
+            label.textContent = defaultLabel;
+            return;
+        }
+        if (checked.length === 1) {
+            const text = checked[0].closest('label')?.innerText?.trim() || checked[0].value;
+            label.textContent = text;
+            return;
+        }
+        label.textContent = `${selectedLabel} (${checked.length})`;
+    }
+
+    document.querySelectorAll('.filter-dropdown, .allowance-dropdown').forEach((container) => {
+        container.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+            checkbox.addEventListener('change', function () {
+                updateDropdownLabel(container);
+            });
+        });
+        updateDropdownLabel(container);
+    });
+
+    const ALLOWANCE_KEYS = [
+        'base_salary_amount',
+        'position_allowance',
+        'sales_allowance',
+        'overtime_allowance',
+        'night_shift_allowance',
+        'special_leave_allowance'
+    ];
+
+    function decimalOrZero(value) {
+        const parsed = parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function calcMonthlyFromAllowances(form) {
+        const fixedPart = ALLOWANCE_KEYS.reduce((sum, key) => {
+            const input = form.querySelector(`input[name="${key}"]`);
+            return sum + decimalOrZero(input ? input.value : 0);
+        }, 0);
+
+        const professionalPart = Array.from(form.querySelectorAll('.professional-allowance-select:checked')).reduce((sum, checkbox) => {
+                return sum + decimalOrZero(checkbox.dataset.amount);
+            }, 0)
+        ;
+
+        return fixedPart + professionalPart;
+    }
+
+    function syncHourlyRates(form) {
+        const hourlyInput = form.querySelector('.hourly-salary-input');
+        const weekdayHidden = form.querySelector('.weekday-hourly-rate-input');
+        const holidayHidden = form.querySelector('.holiday-hourly-rate-input');
+        if (!hourlyInput || !weekdayHidden || !holidayHidden) {
+            return;
+        }
+        const normalized = decimalOrZero(hourlyInput.value).toFixed(2);
+        weekdayHidden.value = normalized;
+        holidayHidden.value = normalized;
+    }
+
+    function updateRowByType(form) {
+        const typeSelect = form.querySelector('.salary-type-select');
+        const monthlyGroup = form.querySelector('.monthly-base-group');
+        const hourlyGroup = form.querySelector('.hourly-base-group');
+        const monthlyInput = form.querySelector('.monthly-salary-input');
+
+        if (!typeSelect || !monthlyGroup || !hourlyGroup || !monthlyInput) {
+            return;
+        }
+
+        const monthlyTotal = calcMonthlyFromAllowances(form).toFixed(2);
+        monthlyInput.value = monthlyTotal;
+
+        if (typeSelect.value === 'monthly') {
+            monthlyGroup.style.display = '';
+            hourlyGroup.style.display = 'none';
+        } else {
+            hourlyGroup.style.display = '';
+            monthlyGroup.style.display = 'none';
+            syncHourlyRates(form);
+        }
+    }
+
+    const forms = Array.from(document.querySelectorAll('.salary-structure-form'));
+    forms.forEach((form, index) => {
+        updateRowByType(form);
+
+        form.querySelectorAll('.salary-type-select, .hourly-salary-input, .professional-allowance-select').forEach((element) => {
+            element.addEventListener('change', function () {
+                updateRowByType(form);
+            });
+        });
+
+        ALLOWANCE_KEYS.forEach((key) => {
+            const input = form.querySelector(`input[name="${key}"]`);
+            if (!input) {
+                return;
+            }
+            input.addEventListener('input', function () {
+                updateRowByType(form);
+            });
+        });
+
+        form.addEventListener('keydown', function (event) {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                event.preventDefault();
+                form.requestSubmit();
+            }
+            if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA' && event.target.tagName !== 'SELECT') {
+                const inputs = Array.from(form.querySelectorAll('input, select, button'));
+                const currentIndex = inputs.indexOf(event.target);
+                if (currentIndex >= 0) {
+                    const next = inputs[currentIndex + 1];
+                    if (next) {
+                        event.preventDefault();
+                        next.focus();
+                    }
+                }
+            }
+        });
+
+        form.addEventListener('submit', function () {
+            updateRowByType(form);
+        });
+    });
+
+    document.getElementById('salary-structure-search-form')?.addEventListener('keydown', function (event) {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+            event.preventDefault();
+            this.submit();
+        }
+    });
+})();
+</script>
+{% endblock %}

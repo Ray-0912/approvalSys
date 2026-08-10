@@ -1,23 +1,23 @@
 {% extends 'components/base.html' %}
-{% block title %}Clock Record{% endblock %}
+{% block title %}{{ _('Clock Record') }}{% endblock %}
 {% block content %}
 
 <div class="container mt-4">
-    <h2 class="text-center">打卡紀錄查詢</h2>
+    <h2 class="text-center">{{ _('Clock Record Inquiry') }}</h2>
 
     <div class="d-flex justify-content-center mb-3">
-        <button id="currentMonthBtn" class="btn btn-secondary" disabled>當月</button>
-        <button id="lastMonthBtn" class="btn btn-primary ml-2">上個月</button>
-        <button id="customDateBtn" class="btn btn-success ml-2">自訂日期</button>
+        <button id="currentMonthBtn" class="btn btn-secondary" disabled>{{ _('Current month') }}</button>
+        <button id="lastMonthBtn" class="btn btn-primary ml-2">{{ _('Last month') }}</button>
+        <button id="customDateBtn" class="btn btn-success ml-2">{{ _('Custom date') }}</button>
     </div>
 
     {% if all_users %}
     <div class="d-flex justify-content-center mb-3">
         <div class="form-group">
-            <label for="employeeSelect">選擇員工 (管理員功能):</label>
+            <label for="employeeSelect">{{ _('Select employee (admin feature)') }}:</label>
             <select class="form-control" id="employeeSelect">
                 <!-- Current User Default -->
-                <option value="" selected>我的紀錄</option>
+                <option value="" selected>{{ _('My records') }}</option>
                 {% for user in all_users %}
                 <option value="{{ user.clock_id }}">{{ user.department }} - {{ user.first_name }} {{ user.last_name }}
                     ({{ user.username }})</option>
@@ -30,7 +30,7 @@
     <div class="d-flex justify-content-center mb-3">
         <div class="custom-control custom-switch">
             <input type="checkbox" class="custom-control-input" id="summarySwitch">
-            <label class="custom-control-label" for="summarySwitch">顯示每日統計 (Daily Summary)</label>
+            <label class="custom-control-label" for="summarySwitch">{{ _('Show daily summary') }}</label>
         </div>
     </div>
 
@@ -42,13 +42,13 @@
     <table class="table table-bordered text-center" id="resultTable">
         <thead id="tableHead">
             <tr>
-                <th>打卡時間</th>
-                <th>驗證方式</th>
+                <th>{{ _('Attendance time') }}</th>
+                <th>{{ _('Verification method') }}</th>
             </tr>
         </thead>
         <tbody id="logsTableBody">
             <tr>
-                <td colspan="2">載入中...</td>
+                <td colspan="2">{{ _('Loading...') }}</td>
             </tr>
         </tbody>
     </table>
@@ -59,18 +59,18 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">選擇日期範圍</h5>
+                <h5 class="modal-title">{{ _('Select date range') }}</h5>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body">
-                <label>開始日期：</label>
+                <label>{{ _('Start date') }}：</label>
                 <input type="date" id="startDate" class="form-control mb-2">
-                <label>結束日期：</label>
+                <label>{{ _('End date') }}：</label>
                 <input type="date" id="endDate" class="form-control mb-2">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-success" id="confirmDateBtn">確定</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                <button type="button" class="btn btn-success" id="confirmDateBtn">{{ _('Confirm') }}</button>
             </div>
         </div>
     </div>
@@ -114,7 +114,7 @@
             let endDate = $("#endDate").val();
 
             if (!startDate || !endDate) {
-                alert("請選擇完整的日期範圍");
+                alert("{{ _('Please select a complete date range') }}");
                 return;
             }
 
@@ -184,7 +184,7 @@
             postData.End = formatDateForApi(endDate, true);
         }
 
-        $("#logsTableBody").html("<tr><td colspan='5'>載入中...</td></tr>");
+        $("#logsTableBody").html("<tr><td colspan='5'>{{ _('Loading...') }}</td></tr>");
 
         $.ajax({
             url: "/hr/clockRecordPost",
@@ -198,7 +198,7 @@
             error: function (err) {
                 let tableBody = $("#logsTableBody");
                 tableBody.empty();
-                tableBody.append("<tr><td colspan='2'>查無紀錄或權限不足</td></tr>");
+                tableBody.append("<tr><td colspan='2'>{{ _('No records found or insufficient permissions') }}</td></tr>");
             }
         });
     }
@@ -214,7 +214,7 @@
         let isSummary = $("#summarySwitch").is(":checked");
 
         if (!data.result || !data.result.items) {
-            tableBody.append("<tr><td colspan='5'>無資料</td></tr>");
+            tableBody.append("<tr><td colspan='5'>{{ _('No data') }}</td></tr>");
             return;
         }
 
@@ -248,7 +248,7 @@
 
             let summaryItems = data.result.items.summary;
             if (!summaryItems || summaryItems.length === 0) {
-                tableBody.append("<tr><td colspan='5'>無打卡紀錄</td></tr>");
+                tableBody.append("<tr><td colspan='5'>{{ _('No clock-in records') }}</td></tr>");
                 return;
             }
 
@@ -308,7 +308,7 @@
                     tableBody.append(row);
                 });
             } else {
-                tableBody.append("<tr><td colspan='2'>無打卡紀錄</td></tr>");
+                tableBody.append("<tr><td colspan='2'>{{ _('No clock-in records') }}</td></tr>");
             }
         }
     }

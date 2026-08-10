@@ -31,6 +31,22 @@ def get_all_users_admin() -> list[dict[str, Any]]:
                     "ORDER BY u.user_id DESC"
             cursor.execute(query)
             return cursor.fetchall()
+
+
+def get_active_users_with_roles() -> list[dict[str, Any]]:
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            query = (
+                "SELECT u.user_id, u.username, u.first_name, u.last_name, u.email, u.role_id, u.team_id, u.activation, "
+                "r.name as role_name, t.name as team_name "
+                "FROM user u "
+                "LEFT JOIN role r ON u.role_id = r.role_id "
+                "LEFT JOIN team t ON u.team_id = t.team_id "
+                "WHERE u.activation = 1 "
+                "ORDER BY u.user_id DESC"
+            )
+            cursor.execute(query)
+            return cursor.fetchall()
             
 def get_user_by_id(user_id: int | str) -> dict[str, Any] | None:
     with get_db_connection() as connection:
@@ -52,6 +68,48 @@ def update_user_admin(user_id: int | str, first_name: str, last_name: str, email
                 cursor.execute(query, (first_name, last_name, email, phone, role_id, team_id, user_id))
             connection.commit()
     return True
+
+
+def set_users_activation(user_ids: list[int], activation: int) -> int:
+    if not user_ids:
+        return 0
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            fmt = ','.join(['%s'] * len(user_ids))
+            cursor.execute(
+                f"UPDATE user SET activation=%s WHERE user_id IN ({fmt})",
+                tuple([int(bool(activation))] + user_ids)
+            )
+            affected = cursor.rowcount
+            connection.commit()
+            return affected
+
+
+def get_users_by_ids(user_ids: list[int]) -> list[dict[str, Any]]:
+    if not user_ids:
+        return []
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            fmt = ','.join(['%s'] * len(user_ids))
+            cursor.execute(
+                f"SELECT user_id, username, role_id, team_id, activation FROM user WHERE user_id IN ({fmt})",
+                tuple(user_ids)
+            )
+            return cursor.fetchall()
+
+
+def count_active_system_admins_excluding(user_ids: list[int]) -> int:
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            query = "SELECT COUNT(*) FROM user WHERE role_id=99 AND activation=1"
+            params = []
+            if user_ids:
+                fmt = ','.join(['%s'] * len(user_ids))
+                query += f" AND user_id NOT IN ({fmt})"
+                params.extend(user_ids)
+            cursor.execute(query, tuple(params))
+            row = cursor.fetchone()
+            return int(row[0] if row else 0)
 
 
 def get_teams() -> list[Team]:
@@ -114,7 +172,7 @@ def verify_password(username: str, password: str) -> tuple[Any, ...] | None:
         with connection.cursor() as cursor:
             query = "SELECT user_id, username, password, role_id, team_id, phone, email, first_name, last_name, clock_id " \
                     "FROM user " \
-                    "WHERE username = %s"
+                    "WHERE username = %s AND activation = 1"
             cursor.execute(query, (username,))
             result = cursor.fetchone()
 
@@ -839,6 +897,52 @@ def get_roles_simple():
 
 
 # Salary Rule & Profile
+def _column_exists(table_name, column_name):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+                (table_name, column_name)
+            )
+            row = cursor.fetchone()
+            return bool(row and row[0])
+
+
+def _salary_profile_select_columns():
+    columns = [
+        'u.user_id', 'u.username', 'u.first_name', 'u.last_name', 'u.role_id', 'u.team_id', 'u.clock_id',
+        'p.salary_type', 'p.monthly_salary', 'p.hourly_salary'
+    ]
+    optional_columns = [
+        ('professional_allowance', 'p.professional_allowance'),
+        ('position_allowance', 'p.position_allowance'),
+        ('base_salary_amount', 'p.base_salary_amount'),
+        ('sales_allowance', 'p.sales_allowance'),
+        ('overtime_allowance', 'p.overtime_allowance'),
+        ('night_shift_allowance', 'p.night_shift_allowance'),
+        ('special_leave_allowance', 'p.special_leave_allowance'),
+        ('weekday_hourly_rate', 'p.weekday_hourly_rate'),
+        ('holiday_hourly_rate', 'p.holiday_hourly_rate'),
+    ]
+    for column_name, select_name in optional_columns:
+        if _column_exists('employee_salary_profile', column_name):
+            columns.append(select_name)
+    return columns
+
+
+def _salary_profile_insert_columns():
+    columns = ['user_id', 'salary_type', 'monthly_salary', 'hourly_salary']
+    optional_columns = [
+        'professional_allowance', 'position_allowance', 'base_salary_amount',
+        'sales_allowance', 'overtime_allowance', 'night_shift_allowance', 'special_leave_allowance',
+        'weekday_hourly_rate', 'holiday_hourly_rate'
+    ]
+    for column_name in optional_columns:
+        if _column_exists('employee_salary_profile', column_name):
+            columns.append(column_name)
+    return columns
+
+
 def get_active_salary_rule(year_month=None):
     with get_db_connection() as connection:
         with connection.cursor(dictionary=True) as cursor:
@@ -884,30 +988,194 @@ def create_salary_rule_version(version_name, effective_from, overtime_monthly_mu
 def get_salary_profiles():
     with get_db_connection() as connection:
         with connection.cursor(dictionary=True) as cursor:
-            query = (
-                "SELECT u.user_id, u.username, u.first_name, u.last_name, u.role_id, u.team_id, u.clock_id, "
-                "p.salary_type, p.monthly_salary, p.hourly_salary "
-                "FROM user u "
-                "LEFT JOIN employee_salary_profile p ON u.user_id = p.user_id "
-                "WHERE u.activation = 1 "
-                "ORDER BY u.user_id"
-            )
+            columns = ', '.join(_salary_profile_select_columns())
+            query = f"SELECT {columns} FROM user u LEFT JOIN employee_salary_profile p ON u.user_id = p.user_id WHERE u.activation = 1 ORDER BY u.user_id"
             cursor.execute(query)
             return cursor.fetchall()
 
 
-def upsert_salary_profile(user_id, salary_type, monthly_salary, hourly_salary, updated_by):
+def get_professional_allowance_items():
+    try:
+        with get_db_connection() as connection:
+            with connection.cursor(dictionary=True) as cursor:
+                cursor.execute(
+                    "SELECT id, name, amount, note, created_at FROM professional_allowance_item ORDER BY name"
+                )
+                return cursor.fetchall()
+    except Exception:
+        logger.warning("professional_allowance_item query failed; returning empty list", exc_info=True)
+        return []
+
+
+def get_professional_allowance_item(item_id):
+    try:
+        with get_db_connection() as connection:
+            with connection.cursor(dictionary=True) as cursor:
+                cursor.execute(
+                    "SELECT id, name, amount, note, created_at FROM professional_allowance_item WHERE id=%s",
+                    (item_id,)
+                )
+                return cursor.fetchone()
+    except Exception:
+        logger.warning("professional_allowance_item single query failed", exc_info=True)
+        return None
+
+
+def upsert_professional_allowance_item(item_id, name, amount, note, updated_by):
+    try:
+        with get_db_connection() as connection:
+            with connection.cursor() as cursor:
+                if item_id:
+                    cursor.execute(
+                        "UPDATE professional_allowance_item SET name=%s, amount=%s, note=%s, updated_by=%s WHERE id=%s",
+                        (name, amount, note, updated_by, item_id),
+                    )
+                else:
+                    cursor.execute(
+                        "INSERT INTO professional_allowance_item (name, amount, note, created_by, updated_by) VALUES (%s, %s, %s, %s, %s)",
+                        (name, amount, note, updated_by, updated_by),
+                    )
+                connection.commit()
+    except Exception:
+        logger.warning("professional_allowance_item upsert failed", exc_info=True)
+        return False
+    return True
+
+
+def delete_professional_allowance_item(item_id):
+    try:
+        with get_db_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM professional_allowance_item WHERE id=%s", (item_id,))
+                connection.commit()
+    except Exception:
+        logger.warning("professional_allowance_item delete failed", exc_info=True)
+        return False
+    return True
+
+
+def get_salary_structure_rows(query_text=None, team_id=None, role_id=None):
+    try:
+        with get_db_connection() as connection:
+            with connection.cursor(dictionary=True) as cursor:
+                sql = (
+                    "SELECT u.user_id, u.username, u.first_name, u.last_name, u.role_id, u.team_id, u.clock_id, "
+                    "p.salary_type, p.monthly_salary, p.hourly_salary, p.weekday_hourly_rate, p.holiday_hourly_rate, "
+                    "p.professional_allowance, p.position_allowance, p.base_salary_amount, p.sales_allowance, "
+                    "p.overtime_allowance, p.night_shift_allowance, p.special_leave_allowance "
+                    "FROM user u LEFT JOIN employee_salary_profile p ON u.user_id = p.user_id WHERE u.activation = 1"
+                )
+                params = []
+                if query_text:
+                    sql += " AND (u.username LIKE %s OR u.first_name LIKE %s OR u.last_name LIKE %s OR CONCAT(u.first_name, u.last_name) LIKE %s)"
+                    pattern = f"%{query_text}%"
+                    params.extend([pattern, pattern, pattern, pattern])
+                if team_id not in (None, ''):
+                    if isinstance(team_id, (list, tuple)):
+                        clean_team_ids = [value for value in team_id if str(value).isdigit()]
+                        if clean_team_ids:
+                            placeholders = ', '.join(['%s'] * len(clean_team_ids))
+                            sql += f" AND u.team_id IN ({placeholders})"
+                            params.extend(clean_team_ids)
+                    else:
+                        sql += " AND u.team_id = %s"
+                        params.append(team_id)
+                if role_id not in (None, ''):
+                    if isinstance(role_id, (list, tuple)):
+                        clean_role_ids = [value for value in role_id if str(value).isdigit()]
+                        if clean_role_ids:
+                            placeholders = ', '.join(['%s'] * len(clean_role_ids))
+                            sql += f" AND u.role_id IN ({placeholders})"
+                            params.extend(clean_role_ids)
+                    else:
+                        sql += " AND u.role_id = %s"
+                        params.append(role_id)
+                sql += " ORDER BY u.user_id"
+                cursor.execute(sql, tuple(params))
+                return cursor.fetchall()
+    except Exception:
+        logger.warning("salary structure query failed", exc_info=True)
+        return []
+
+
+def upsert_salary_structure_row(user_id, salary_type, monthly_salary, hourly_salary, weekday_hourly_rate,
+                                holiday_hourly_rate, professional_allowance, position_allowance,
+                                base_salary_amount, sales_allowance, overtime_allowance,
+                                night_shift_allowance, special_leave_allowance, updated_by):
+    try:
+        with get_db_connection() as connection:
+            with connection.cursor() as cursor:
+                insert_columns = ['user_id', 'salary_type', 'monthly_salary', 'hourly_salary']
+                values = [user_id, salary_type, monthly_salary, hourly_salary]
+                optional_values = [
+                    ('professional_allowance', professional_allowance),
+                    ('position_allowance', position_allowance),
+                    ('base_salary_amount', base_salary_amount),
+                    ('sales_allowance', sales_allowance),
+                    ('overtime_allowance', overtime_allowance),
+                    ('night_shift_allowance', night_shift_allowance),
+                    ('special_leave_allowance', special_leave_allowance),
+                    ('weekday_hourly_rate', weekday_hourly_rate),
+                    ('holiday_hourly_rate', holiday_hourly_rate),
+                ]
+                for column_name, value in optional_values:
+                    if _column_exists('employee_salary_profile', column_name):
+                        insert_columns.append(column_name)
+                        values.append(value)
+                insert_columns.append('updated_by')
+                values.append(updated_by)
+                placeholders = ', '.join(['%s'] * len(values))
+                update_columns = [col for col in insert_columns if col != 'user_id' and col != 'updated_by']
+                update_clause = ', '.join([f"{col}=%s" for col in update_columns])
+                update_values = [value for col, value in zip(insert_columns, values) if col != 'user_id' and col != 'updated_by']
+                query = (
+                    f"INSERT INTO employee_salary_profile ({', '.join(insert_columns)}) VALUES ({placeholders}) "
+                    f"ON DUPLICATE KEY UPDATE {update_clause}, updated_by=%s, updated_at=CURRENT_TIMESTAMP"
+                )
+                cursor.execute(query, tuple(values + update_values + [updated_by]))
+                connection.commit()
+    except Exception:
+        logger.warning("salary structure row upsert failed", exc_info=True)
+        return False
+    return True
+
+
+def upsert_salary_profile(user_id, salary_type, monthly_salary, hourly_salary, weekday_hourly_rate,
+                          holiday_hourly_rate, professional_allowance, position_allowance,
+                          base_salary_amount, sales_allowance, overtime_allowance,
+                          night_shift_allowance, special_leave_allowance, updated_by):
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
+            insert_columns = ['user_id', 'salary_type', 'monthly_salary', 'hourly_salary']
+            values = [user_id, salary_type, monthly_salary, hourly_salary]
+            optional_values = [
+                ('professional_allowance', professional_allowance),
+                ('position_allowance', position_allowance),
+                ('base_salary_amount', base_salary_amount),
+                ('sales_allowance', sales_allowance),
+                ('overtime_allowance', overtime_allowance),
+                ('night_shift_allowance', night_shift_allowance),
+                ('special_leave_allowance', special_leave_allowance),
+                ('weekday_hourly_rate', weekday_hourly_rate),
+                ('holiday_hourly_rate', holiday_hourly_rate),
+            ]
+            for column_name, value in optional_values:
+                if _column_exists('employee_salary_profile', column_name):
+                    insert_columns.append(column_name)
+                    values.append(value)
+
+            insert_columns.append('updated_by')
+            values.append(updated_by)
+
+            placeholders = ', '.join(['%s'] * len(values))
+            update_columns = [col for col in insert_columns if col != 'user_id' and col != 'updated_by']
+            update_clause = ', '.join([f"{col}=%s" for col in update_columns])
+            update_values = [value for col, value in zip(insert_columns, values) if col != 'user_id' and col != 'updated_by']
             query = (
-                "INSERT INTO employee_salary_profile "
-                "(user_id, salary_type, monthly_salary, hourly_salary, updated_by) "
-                "VALUES (%s, %s, %s, %s, %s) "
-                "ON DUPLICATE KEY UPDATE salary_type=%s, monthly_salary=%s, hourly_salary=%s, "
-                "updated_by=%s, updated_at=CURRENT_TIMESTAMP"
+                f"INSERT INTO employee_salary_profile ({', '.join(insert_columns)}) VALUES ({placeholders}) "
+                f"ON DUPLICATE KEY UPDATE {update_clause}, updated_by=%s, updated_at=CURRENT_TIMESTAMP"
             )
-            cursor.execute(query, (user_id, salary_type, monthly_salary, hourly_salary, updated_by,
-                                   salary_type, monthly_salary, hourly_salary, updated_by))
+            cursor.execute(query, tuple(values + update_values + [updated_by]))
             connection.commit()
     return True
 
@@ -924,15 +1192,45 @@ def get_full_salary_profile_for_user(user_id):
     """Returns user info + salary profile joined, same shape as get_salary_profiles() rows."""
     with get_db_connection() as connection:
         with connection.cursor(dictionary=True) as cursor:
-            query = (
-                "SELECT u.user_id, u.username, u.first_name, u.last_name, u.role_id, u.team_id, u.clock_id, "
-                "p.salary_type, p.monthly_salary, p.hourly_salary "
-                "FROM user u "
-                "LEFT JOIN employee_salary_profile p ON u.user_id = p.user_id "
-                "WHERE u.user_id = %s"
-            )
+            columns = ', '.join(_salary_profile_select_columns())
+            query = f"SELECT {columns} FROM user u LEFT JOIN employee_salary_profile p ON u.user_id = p.user_id WHERE u.user_id = %s"
             cursor.execute(query, (user_id,))
             return cursor.fetchone()
+
+
+def get_salary_day_rate_overrides(user_id, start_date=None, end_date=None):
+    try:
+        with get_db_connection() as connection:
+            with connection.cursor(dictionary=True) as cursor:
+                if start_date is not None and end_date is not None:
+                    query = (
+                        "SELECT work_date, rate FROM salary_day_rate_override "
+                        "WHERE user_id=%s AND work_date BETWEEN %s AND %s"
+                    )
+                    cursor.execute(query, (user_id, start_date, end_date))
+                else:
+                    query = "SELECT work_date, rate FROM salary_day_rate_override WHERE user_id=%s"
+                    cursor.execute(query, (user_id,))
+                return cursor.fetchall()
+    except Exception:
+        logger.warning("salary_day_rate_override query failed; returning empty results", exc_info=True)
+        return []
+
+
+def upsert_salary_day_rate_override(user_id, work_date, rate, updated_by):
+    try:
+        with get_db_connection() as connection:
+            with connection.cursor() as cursor:
+                query = (
+                    "INSERT INTO salary_day_rate_override (user_id, work_date, rate, updated_by) "
+                    "VALUES (%s, %s, %s, %s) "
+                    "ON DUPLICATE KEY UPDATE rate=%s, updated_by=%s, updated_at=CURRENT_TIMESTAMP"
+                )
+                cursor.execute(query, (user_id, work_date, rate, updated_by, rate, updated_by))
+                connection.commit()
+    except Exception:
+        logger.warning("salary_day_rate_override upsert failed; ignoring", exc_info=True)
+    return True
 
 
 def save_salary_result(year_month, user_id, rule_version_id, total_work_minutes,
@@ -1068,6 +1366,17 @@ def get_holidays_by_month(year_month, country_code='TW'):
             return cursor.fetchall()
 
 
+def get_holidays_all(country_code='TW'):
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            query = (
+                "SELECT holiday_date, name FROM holiday_calendar "
+                "WHERE country_code=%s ORDER BY holiday_date DESC"
+            )
+            cursor.execute(query, (country_code,))
+            return cursor.fetchall()
+
+
 def upsert_holiday(holiday_date, name, country_code, created_by):
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
@@ -1078,4 +1387,74 @@ def upsert_holiday(holiday_date, name, country_code, created_by):
             )
             cursor.execute(query, (holiday_date, name, country_code, created_by, name))
             connection.commit()
+    return True
+
+
+def delete_holiday(holiday_date, country_code='TW'):
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM holiday_calendar WHERE holiday_date=%s AND country_code=%s",
+                (holiday_date, country_code)
+            )
+            connection.commit()
+    return True
+
+
+def get_professional_allowance_items_by_ids(item_ids):
+    if not item_ids:
+        return []
+    cleaned = [int(item_id) for item_id in item_ids if str(item_id).isdigit()]
+    if not cleaned:
+        return []
+    placeholders = ', '.join(['%s'] * len(cleaned))
+    with get_db_connection() as connection:
+        with connection.cursor(dictionary=True) as cursor:
+            query = (
+                f"SELECT id, name, amount FROM professional_allowance_item "
+                f"WHERE id IN ({placeholders}) ORDER BY id"
+            )
+            cursor.execute(query, tuple(cleaned))
+            return cursor.fetchall()
+
+
+def get_user_professional_allowance_map(user_ids):
+    cleaned = [int(user_id) for user_id in user_ids if str(user_id).isdigit()]
+    if not cleaned:
+        return {}
+    placeholders = ', '.join(['%s'] * len(cleaned))
+    try:
+        with get_db_connection() as connection:
+            with connection.cursor(dictionary=True) as cursor:
+                query = (
+                    f"SELECT user_id, item_id FROM employee_professional_allowance_map "
+                    f"WHERE user_id IN ({placeholders}) ORDER BY user_id, item_id"
+                )
+                cursor.execute(query, tuple(cleaned))
+                rows = cursor.fetchall()
+    except Exception:
+        logger.warning("employee_professional_allowance_map query failed", exc_info=True)
+        return {}
+    mapping = {}
+    for row in rows:
+        mapping.setdefault(int(row['user_id']), []).append(int(row['item_id']))
+    return mapping
+
+
+def upsert_user_professional_allowance_items(user_id, item_ids, updated_by):
+    normalized_ids = [int(item_id) for item_id in item_ids if str(item_id).isdigit()]
+    try:
+        with get_db_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM employee_professional_allowance_map WHERE user_id=%s", (user_id,))
+                if normalized_ids:
+                    rows = [(user_id, item_id, updated_by) for item_id in sorted(set(normalized_ids))]
+                    cursor.executemany(
+                        "INSERT INTO employee_professional_allowance_map (user_id, item_id, updated_by) VALUES (%s, %s, %s)",
+                        rows
+                    )
+                connection.commit()
+    except Exception:
+        logger.warning("employee_professional_allowance_map upsert failed", exc_info=True)
+        return False
     return True

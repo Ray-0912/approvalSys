@@ -47,6 +47,14 @@ def run_migrations():
 
                 for statement in sql_statements:
                     cursor.execute(statement)
+                    try:
+                        if getattr(cursor, 'with_rows', False):
+                            cursor.fetchall()
+                        while cursor.nextset():
+                            if getattr(cursor, 'with_rows', False):
+                                cursor.fetchall()
+                    except Exception:
+                        logger.debug('No additional migration result sets to consume for statement')
 
                 cursor.execute('INSERT INTO schema_migrations (version) VALUES (%s)', (version,))
                 connection.commit()

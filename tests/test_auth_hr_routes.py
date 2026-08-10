@@ -1,5 +1,6 @@
 import pytest
 
+from config import BaseConfig
 from main import app
 
 
@@ -20,6 +21,64 @@ def client():
 def test_login_page_is_public(client):
     response = client.get('/login')
     assert response.status_code == 200
+
+
+def test_development_config_uses_stable_secret_when_env_missing(monkeypatch):
+    monkeypatch.delenv('SECRET_KEY', raising=False)
+    monkeypatch.setenv('APP_ENV', 'development')
+
+    config = BaseConfig()
+
+    assert config.SECRET_KEY == 'approvalsys-dev-secret'
+
+
+def test_login_post_allows_public_access_without_csrf_token(client, monkeypatch):
+    monkeypatch.setattr('database.queries.check_existing_username', lambda username: True)
+    monkeypatch.setattr('database.queries.verify_password', lambda username, password: (1, 'tester', None, 3, 1, '', '', 'Test', 'User', '123'))
+
+    response = client.post('/login', data={
+        'username': 'tester',
+        'password': 'Password123'
+    }, follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'Welcome Back!' not in response.data
+
+
+def test_login_sets_dedicated_session_cookie(monkeypatch):
+    monkeypatch.setattr('database.queries.check_existing_username', lambda username: True)
+    monkeypatch.setattr('database.queries.verify_password', lambda username, password: (1, 'tester', None, 3, 1, '', '', 'Test', 'User', '123'))
+
+    test_client = app.test_client()
+    response = test_client.post('/login', data={
+        'username': 'tester',
+        'password': 'Password123'
+    }, follow_redirects=False)
+
+    session_cookies = [
+        header for header in response.headers.getlist('Set-Cookie')
+        if header.startswith('approvalsys_session=')
+    ]
+    assert len(session_cookies) == 1
+
+
+def test_login_session_cookie_contains_flask_session_not_csrf_token(monkeypatch):
+    monkeypatch.setattr('database.queries.check_existing_username', lambda username: True)
+    monkeypatch.setattr('database.queries.verify_password', lambda username, password: (1, 'tester', None, 3, 1, '', '', 'Test', 'User', '123'))
+
+    test_client = app.test_client()
+    response = test_client.post('/login', data={
+        'username': 'tester',
+        'password': 'Password123'
+    }, follow_redirects=False)
+
+    session_cookies = [
+        header for header in response.headers.getlist('Set-Cookie')
+        if header.startswith('approvalsys_session=')
+    ]
+    assert len(session_cookies) == 1
+    with test_client.session_transaction() as session_data:
+        assert session_data['user_id'] == 1
 
 
 def test_register_requires_admin(client):

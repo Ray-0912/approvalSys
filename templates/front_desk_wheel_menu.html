@@ -17,6 +17,14 @@
             overflow: hidden;
         }
 
+        .content::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 30%);
+            pointer-events: none;
+        }
+
         .bg-slides {
             position: fixed;
             inset: 0;
@@ -50,33 +58,34 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            padding: 40px 28px 28px;
+            padding: 24px 28px 18px;
+            justify-content: flex-start;
         }
 
         .brand-strip {
             text-align: center;
             letter-spacing: 0.18em;
             text-transform: uppercase;
-            font-size: clamp(0.65rem, 2.2vw, 0.85rem);
+            font-size: clamp(0.65rem, 2.2vw, 0.83rem);
             color: rgba(255,255,255,0.35);
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
         .clock-block {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .clock {
             font-family: 'Roboto Mono', monospace;
-            font-size: clamp(3.8rem, 18vw, 7.5rem);
+            font-size: clamp(3.2rem, 14vw, 5.8rem);
             font-weight: 700;
             letter-spacing: 0.03em;
             line-height: 1;
             text-shadow: 0 4px 32px rgba(0,0,0,0.6);
         }
         .date-row {
-            margin-top: 8px;
-            font-size: clamp(0.9rem, 3.5vw, 1.3rem);
+            margin-top: 6px;
+            font-size: clamp(0.9rem, 3.2vw, 1.1rem);
             color: rgba(255,255,255,0.6);
             letter-spacing: 0.1em;
         }
@@ -84,48 +93,50 @@
         .divider {
             height: 1px;
             background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
-            margin: 18px 0;
+            margin: 12px 0 10px;
         }
 
         .section-label {
             text-align: center;
-            font-size: clamp(0.65rem, 2.5vw, 0.85rem);
+            font-size: clamp(0.65rem, 2.2vw, 0.8rem);
             letter-spacing: 0.14em;
             text-transform: uppercase;
             color: rgba(255,255,255,0.4);
-            margin-bottom: 18px;
+            margin-bottom: 12px;
         }
 
         .rates-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            flex: 1;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            flex: 0 0 auto;
         }
         .rate-card:last-child {
             grid-column: 1 / -1;
         }
 
         .rate-card {
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(255,255,255,0.11);
-            border-radius: 20px;
-            padding: 22px 20px 18px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 18px;
+            padding: 14px 14px 12px;
             backdrop-filter: blur(16px);
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            transition: transform 0.2s;
+            gap: 8px;
+            transition: transform 0.2s, background 0.2s;
+            min-height: 126px;
+            justify-content: center;
         }
         .rate-card:hover { transform: translateY(-2px); }
 
         .card-top {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         .flag {
-            width: clamp(42px, 12vw, 72px);
+            width: clamp(34px, 8vw, 46px);
             height: auto;
             border-radius: 6px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.4);
@@ -133,26 +144,26 @@
             flex-shrink: 0;
         }
         .currency-code {
-            font-size: clamp(1rem, 4vw, 1.35rem);
+            font-size: clamp(0.95rem, 3.2vw, 1.15rem);
             font-weight: 700;
             letter-spacing: 0.06em;
         }
         .currency-name {
-            font-size: clamp(0.6rem, 2vw, 0.75rem);
+            font-size: clamp(0.58rem, 1.8vw, 0.72rem);
             color: rgba(255,255,255,0.45);
             margin-top: 2px;
         }
 
         .rate-value {
             font-family: 'Roboto Mono', monospace;
-            font-size: clamp(2rem, 9vw, 3.5rem);
+            font-size: clamp(1.6rem, 6.5vw, 2.35rem);
             font-weight: 700;
             line-height: 1;
             letter-spacing: 0.01em;
             text-shadow: 0 2px 12px rgba(0,0,0,0.4);
         }
         .rate-unit {
-            font-size: clamp(0.6rem, 2vw, 0.75rem);
+            font-size: clamp(0.58rem, 1.8vw, 0.68rem);
             color: rgba(255,255,255,0.35);
             letter-spacing: 0.06em;
         }
@@ -169,12 +180,77 @@
         .card-cny .rate-value { color: #ffe66d; }
 
         .footer {
-            margin-top: 18px;
+            margin-top: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: clamp(0.6rem, 2vw, 0.75rem);
+            font-size: clamp(0.6rem, 1.8vw, 0.72rem);
             color: rgba(255,255,255,0.3);
+        }
+
+        .scenic-panel {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
+            border: 1px solid rgba(255,255,255,0.16);
+            backdrop-filter: blur(16px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+        }
+        .scenic-panel.sunny { background: linear-gradient(135deg, rgba(255, 196, 76, 0.24), rgba(255, 120, 60, 0.16)); }
+        .scenic-panel.cloudy { background: linear-gradient(135deg, rgba(96, 155, 255, 0.20), rgba(46, 86, 155, 0.16)); }
+        .scenic-panel.rain { background: linear-gradient(135deg, rgba(82, 110, 180, 0.24), rgba(36, 68, 132, 0.16)); }
+        .scenic-panel.snow { background: linear-gradient(135deg, rgba(164, 220, 255, 0.20), rgba(97, 143, 194, 0.18)); }
+        .scenic-main {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .scenic-title {
+            font-size: clamp(0.8rem, 2.2vw, 0.95rem);
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .scenic-copy {
+            font-size: clamp(0.68rem, 1.8vw, 0.8rem);
+            color: rgba(255,255,255,0.78);
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .scenic-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .weather-icon {
+            font-size: clamp(1.4rem, 3.6vw, 2rem);
+            line-height: 1;
+            filter: drop-shadow(0 2px 10px rgba(0,0,0,0.25));
+        }
+        .weather-temp {
+            font-family: 'Roboto Mono', monospace;
+            font-size: clamp(1.2rem, 3.2vw, 1.45rem);
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            color: #fff;
+        }
+        .scenic-badge {
+            padding: 5px 8px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.16);
+            color: rgba(255,255,255,0.9);
+            font-size: 0.68rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            white-space: nowrap;
         }
         .live-badge { display: flex; align-items: center; gap: 6px; }
         .live-dot {
@@ -237,6 +313,18 @@
         {% endfor %}
     </div>
 
+    <div class="scenic-panel">
+        <div class="scenic-main">
+            <div class="scenic-title" id="statusTitle">新竹市 · 即時天氣</div>
+            <div class="scenic-copy" id="statusCopy">正在讀取最新天氣…</div>
+        </div>
+        <div class="scenic-right">
+            <div class="weather-icon" id="weatherIcon">☁️</div>
+            <div class="weather-temp" id="weatherTemp">--°C</div>
+            <span class="scenic-badge" id="statusBadge">LIVE</span>
+        </div>
+    </div>
+
     <div class="footer">
         <span>資料來源：台灣銀行 &nbsp;·&nbsp; 每 12 小時更新</span>
         <div class="live-badge">
@@ -248,6 +336,20 @@
 
 <script>
     const DAYS = ['日','一','二','三','四','五','六'];
+    const WEATHER_API = 'https://api.open-meteo.com/v1/forecast?latitude=24.803&longitude=120.971&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Asia%2FTaipei';
+    const WEATHER_LABELS = {
+        0: '晴朗', 1: '大多晴朗', 2: '局部多雲', 3: '陰天',
+        45: '霧', 48: '結霜霧', 51: '輕微毛毛雨', 53: '毛毛雨', 55: '濃毛毛雨',
+        61: '小雨', 63: '中雨', 65: '大雨', 71: '小雪', 73: '中雪', 75: '大雪',
+        80: '陣雨', 81: '強陣雨', 82: '暴雨', 95: '雷陣雨', 96: '雷陣雨伴冰雹', 99: '雷陣雨伴強風'
+    };
+    const WEATHER_ICONS = {
+        0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
+        45: '🌫️', 48: '🌫️', 51: '🌦️', 53: '🌦️', 55: '🌧️',
+        61: '🌧️', 63: '🌧️', 65: '⛈️', 71: '🌨️', 73: '🌨️', 75: '❄️',
+        80: '🌦️', 81: '⛈️', 82: '⛈️', 95: '⚡', 96: '⛈️', 99: '⚡'
+    };
+
     function tick() {
         const n = new Date();
         document.getElementById('clock').textContent =
@@ -262,6 +364,52 @@
     }
     tick();
     setInterval(tick, 1000);
+
+    async function loadWeather() {
+        const panel = document.querySelector('.scenic-panel');
+        const title = document.getElementById('statusTitle');
+        const copy = document.getElementById('statusCopy');
+        const icon = document.getElementById('weatherIcon');
+        const temp = document.getElementById('weatherTemp');
+        const badge = document.getElementById('statusBadge');
+
+        try {
+            const response = await fetch(WEATHER_API);
+            if (!response.ok) throw new Error('weather request failed');
+            const data = await response.json();
+            const current = data.current;
+            const condition = WEATHER_LABELS[current.weather_code] || '即時天氣';
+            const tempValue = `${Math.round(current.temperature_2m)}°C`;
+            const humidity = `${current.relative_humidity_2m}%`;
+            const wind = `${current.wind_speed_10m.toFixed(1)} m/s`;
+            title.textContent = '新竹市 · 即時天氣';
+            copy.textContent = `${condition} · 濕度 ${humidity} · 風速 ${wind}`;
+            icon.textContent = WEATHER_ICONS[current.weather_code] || '☁️';
+            temp.textContent = tempValue;
+            badge.textContent = 'LIVE';
+
+            const code = current.weather_code;
+            if (code === 0 || code === 1 || code === 2) {
+                panel.className = 'scenic-panel sunny';
+            } else if (code >= 61 && code <= 82) {
+                panel.className = 'scenic-panel rain';
+            } else if (code >= 71 && code <= 75) {
+                panel.className = 'scenic-panel snow';
+            } else {
+                panel.className = 'scenic-panel cloudy';
+            }
+        } catch (error) {
+            title.textContent = '新竹市 · 即時天氣';
+            copy.textContent = '暫時無法取得最新資料，將於稍後重新更新。';
+            icon.textContent = '🌦️';
+            temp.textContent = '--°C';
+            badge.textContent = 'WAIT';
+            panel.className = 'scenic-panel cloudy';
+        }
+    }
+
+    loadWeather();
+    setInterval(loadWeather, 15 * 60 * 1000);
 
     const imgs = document.querySelectorAll('#bgSlides img');
     let idx = 0;

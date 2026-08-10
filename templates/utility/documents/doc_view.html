@@ -1,13 +1,13 @@
 {% extends 'components/base.html' %}
-{% block title %}檢閱簽呈{% endblock %}
+{% block title %}{{ _('Review Approval') }}{% endblock %}
 {% block content %}
 
-<h2>檢閱簽呈</h2>
+<h2>{{ _('Review Approval') }}</h2>
 <div class="row">
     <div class="col mb-4">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">簽呈內容  -
+                <h6 class="m-0 font-weight-bold text-primary">{{ _('Approval Content') }}  -
                     {% if document.status == 1 %}
                         <code>簽呈中</code>
                     {% elif document.status == 2 %}
@@ -18,27 +18,27 @@
             <div class="card-body">
                 <form id="edit_doc" action="/edit_doc/{{ document.doc_id }}" method="POST">
                     <div class="col mt-4 mb-2">
-                        <label for="type">類型：</label>
+                        <label for="type">{{ _('Type') }}：</label>
                         <p>{{ document.doc_type_cht }}</p>
                     </div>
 
                     <div class="col mt-4 mb-2">
-                        <label for="title">標題：</label>
+                        <label for="title">{{ _('Title') }}：</label>
                         <P>{{ document.title }}</P>
                     </div>
 
                     <div class="col mt-4 mb-2">
-                        <label for="content">內容：</label>
+                        <label for="content">{{ _('Content') }}：</label>
                         <p>{{ document.content|safe }}</p>
                     </div>
 
                     <div class="col mt-4 mb-2">
                         <div class="row">
                             <div class="col">
-                                <label for="created_time">建立日期：<code>{{ document.create_time.strftime('%Y-%m-%d')[:10] }}</code></label>
+                                <label for="created_time">{{ _('Created Date') }}：<code>{{ document.create_time.strftime('%Y-%m-%d')[:10] }}</code></label>
                             </div>
                             <div class="col">
-                                <label for="last_update">最後更新：<code>{{ document.last_update.strftime('%Y-%m-%d')[:10] }}</code></label>
+                                <label for="last_update">{{ _('Last Updated') }}：<code>{{ document.last_update.strftime('%Y-%m-%d')[:10] }}</code></label>
                             </div>
                         </div>
                     </div>
@@ -46,21 +46,21 @@
                     <div class="card shadow mb-4">
                         <a href="#collapseCardAppRecord" class="d-block card-header py-3" data-toggle="collapse"
                             role="button" aria-expanded="true" aria-controls="collapseCardAppRecord">
-                            <h6 class="m-0 font-weight-bold text-primary">簽呈紀錄</h6>
+                            <h6 class="m-0 font-weight-bold text-primary">{{ _('Approval History') }}</h6>
                         </a>
                         <div class="collapse" id="collapseCardAppRecord">
                             <div class="card-body">
                                 {% if next_approver %}
-                                <p class="mb-3 text-muted">目前待簽者：<strong>{{ next_approver.first_name }} {{ next_approver.last_name }}</strong> ({{ next_approver.username }})</p>
+                                <p class="mb-3 text-muted">{{ _('Current pending approver') }}：<strong>{{ next_approver.first_name }} {{ next_approver.last_name }}</strong> ({{ next_approver.username }})</p>
                                 {% endif %}
                                 {% for record in app_record %}
                                 <p>{{ record.username }} ：
                                     {% if record.status == 0 %}
-                                    待簽核
+                                    {{ _('Pending approval') }}
                                     {% elif record.status == 1 %}
-                                    已簽核於 <code>{{ record.approval_time.strftime('%Y-%m-%d')[:10] }}</code>
+                                    {{ _('Approved on') }} <code>{{ record.approval_time.strftime('%Y-%m-%d')[:10] }}</code>
                                     {% else %}
-                                    <code>已駁回</code>{% if record.reason %} — <span class="text-danger">{{ record.reason }}</span>{% endif %}
+                                    <code>{{ _('Rejected') }}</code>{% if record.reason %} — <span class="text-danger">{{ record.reason }}</span>{% endif %}
                                     {% endif %}
                                 </p>
                                 {% endfor %}
@@ -71,7 +71,7 @@
                     <div class="card shadow mb-4">
                         <a href="#collapseCardStatusRecord" class="d-block card-header py-3" data-toggle="collapse"
                             role="button" aria-expanded="true" aria-controls="collapseCardStatusRecord">
-                            <h6 class="m-0 font-weight-bold text-primary">簽呈編輯紀錄</h6>
+                            <h6 class="m-0 font-weight-bold text-primary">{{ _('Approval Edit History') }}</h6>
                         </a>
                         <div class="collapse" id="collapseCardStatusRecord">
                             <div class="card-body">
@@ -90,7 +90,7 @@
                                             <span class="icon text-white-50">
                                                 <i class="fas fa-file-code"></i>
                                             </span>
-                                            <span class="text">編輯</span>
+                                            <span class="text">{{ _('Edit') }}</span>
                                         </a>
                                     </div>
                                     <div class="col">
@@ -99,7 +99,7 @@
                                             <span class="icon text-white-50">
                                                 <i class="fas fa-trash"></i>
                                             </span>
-                                            <span class="text">刪除</span>
+                                            <span class="text">{{ _('Delete') }}</span>
                                         </a>
                                     </div>
                                 {% endif %}
@@ -111,7 +111,7 @@
                                             <span class="icon text-white-50">
                                                 <i class="fas fa-check"></i>
                                             </span>
-                                            <span class="text">核准</span>
+                                            <span class="text">{{ _('Approve') }}</span>
                                         </a>
                                     </div>
 
@@ -121,7 +121,7 @@
                                             <span class="icon text-white-50">
                                                 <i class="fas fa-comment-slash"></i>
                                             </span>
-                                            <span class="text">駁回</span>
+                                            <span class="text">{{ _('Reject') }}</span>
                                         </a>
                                     </div>
                                 {% endif %}
@@ -139,7 +139,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">駁回簽呈</h5>
+                <h5 class="modal-title">{{ _('Reject Approval') }}</h5>
                 <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
             </div>
             <form id="rejectForm" action="/p/reject" method="POST">
@@ -147,13 +147,13 @@
                 <input type="hidden" name="doc_id" id="rejectDocId" value="">
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="rejectReason">駁回原因（選填）</label>
-                        <textarea class="form-control" id="rejectReason" name="reason" rows="3" maxlength="500" placeholder="請輸入駁回原因..."></textarea>
+                        <label for="rejectReason">{{ _('Rejection reason (optional)') }}</label>
+                        <textarea class="form-control" id="rejectReason" name="reason" rows="3" maxlength="500" placeholder="{{ _('Please enter the rejection reason...') }}"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="submit" class="btn btn-danger">確認駁回</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                    <button type="submit" class="btn btn-danger">{{ _('Confirm Reject') }}</button>
                 </div>
             </form>
         </div>
